@@ -149,3 +149,17 @@
   }
 }
 
+.pagination-info {
+  margin-top: var(--spacing-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.pagination-info .separator {
+  color: #CED4DA;
+}
+

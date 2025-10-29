@@ -28,6 +28,19 @@ export class DteTableComponent implements OnInit, OnChanges {
   filaHover: DTE | null = null;
   filaHoverElement: HTMLElement | null = null;
 
+  get totalItems(): number {
+    return this.dtes.length;
+  }
+
+  get startItemIndex(): number {
+    if (this.totalItems === 0) return 0;
+    return (this.paginaActual - 1) * this.itemsPerPage + 1;
+  }
+
+  get endItemIndex(): number {
+    return Math.min(this.paginaActual * this.itemsPerPage, this.totalItems);
+  }
+
   ngOnInit(): void {
     this.actualizarPaginacion();
   }

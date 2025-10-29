@@ -93,6 +93,16 @@
     </div>
   }
 
+  <div class="pagination-info">
+    <span>
+      Mostrando {{ startItemIndex }}–{{ endItemIndex }} de {{ totalItems }}
+    </span>
+    <span class="separator">•</span>
+    <span>
+      Página {{ paginaActual }} de {{ totalPaginas }}
+    </span>
+  </div>
+
   <!-- Menú flotante -->
   @if (filaHover && filaHoverElement) {
     <app-dte-row-menu
