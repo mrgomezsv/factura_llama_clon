@@ -1,0 +1,73 @@
+.date-picker-overlay {
+  position: absolute;
+  top: calc(100% + var(--spacing-xs));
+  right: 0;
+  background-color: var(--color-bg-white);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--spacing-md);
+  z-index: 1000;
+  min-width: 280px;
+}
+
+.date-picker-year {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.date-picker-year span {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-primary);
+  min-width: 80px;
+  text-align: center;
+}
+
+.year-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background-color: transparent;
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  color: var(--color-primary);
+  transition: background-color var(--transition-fast);
+
+  &:hover {
+    background-color: var(--color-bg-light);
+  }
+}
+
+.date-picker-months {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-sm);
+}
+
+.date-picker-month {
+  padding: var(--spacing-sm);
+  border: none;
+  background-color: transparent;
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-weight: 500;
+
+  &:hover {
+    background-color: var(--color-bg-light);
+  }
+
+  &.active {
+    background-color: var(--color-primary);
+    color: var(--color-text-white);
+  }
+}
+

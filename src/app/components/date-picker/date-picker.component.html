@@ -1,0 +1,39 @@
+<div class="date-picker-overlay">
+  <div class="date-picker-year">
+    <button 
+      class="year-nav-btn"
+      (click)="cambiarAño(-1)"
+      type="button"
+      aria-label="Año anterior"
+    >
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <span>{{ año }}</span>
+    <button 
+      class="year-nav-btn"
+      (click)="cambiarAño(1)"
+      type="button"
+      aria-label="Año siguiente"
+    >
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+  
+  <div class="date-picker-months">
+    @for (mes of meses; track mes.numero) {
+      <button
+        class="date-picker-month"
+        [class.active]="esMesSeleccionado(mes.numero)"
+        (click)="seleccionarMes(mes.numero)"
+        type="button"
+      >
+        {{ mes.abreviatura }}
+      </button>
+    }
+  </div>
+</div>
+
