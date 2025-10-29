@@ -40,3 +40,30 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Logs (ampliado)
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Cachés y artefactos de herramientas
+.eslintcache
+.cache/
+.nyc_output/
+
+# Entornos (opcional)
+.env
+.env.*
+.env.local
+.env.*.local
+
+# Angular (archivos locales de entorno no versionados)
+src/environments/*.local.ts
+
+# Pruebas/QA opcional
+cypress/screenshots/
+cypress/videos/
+playwright-report/
+test-results/
