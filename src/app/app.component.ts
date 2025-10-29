@@ -2,8 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HeaderComponent } from './components/header/header.component';
-import { DatePickerComponent } from './components/date-picker/date-picker.component';
-import { GenerateDteMenuComponent } from './components/generate-dte-menu/generate-dte-menu.component';
 import { DteTabsComponent, TipoTab } from './components/dte-tabs/dte-tabs.component';
 import { DteTableComponent } from './components/dte-table/dte-table.component';
 import { DteService } from './services/dte.service';
@@ -16,8 +14,6 @@ import { PeriodoTributario } from './models/periodo-tributario.model';
     RouterOutlet,
     CommonModule,
     HeaderComponent,
-    DatePickerComponent,
-    GenerateDteMenuComponent,
     DteTabsComponent,
     DteTableComponent
   ],

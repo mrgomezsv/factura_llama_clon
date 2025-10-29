@@ -1,0 +1,21 @@
+[
+  {
+    "id": "1",
+    "nombre": "INDUSTRIAS G & G TEXTILES & BORDADOS",
+    "nit": "0614-123456-001-2",
+    "direccion": "San Salvador, El Salvador"
+  },
+  {
+    "id": "2",
+    "nombre": "COMERCIAL SAN MIGUEL S.A. DE C.V.",
+    "nit": "0614-234567-001-3",
+    "direccion": "San Miguel, El Salvador"
+  },
+  {
+    "id": "3",
+    "nombre": "DISTRIBUIDORA OCCIDENTAL LTDA",
+    "nit": "0614-345678-001-4",
+    "direccion": "Santa Ana, El Salvador"
+  }
+]
+

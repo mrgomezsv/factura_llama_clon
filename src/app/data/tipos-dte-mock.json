@@ -1,0 +1,43 @@
+[
+  {
+    "codigo": "FAC",
+    "nombre": "Factura",
+    "habilitado": true
+  },
+  {
+    "codigo": "CCF",
+    "nombre": "Comprobante Crédito Fiscal",
+    "habilitado": true
+  },
+  {
+    "codigo": "NCR",
+    "nombre": "Nota de Crédito",
+    "habilitado": true
+  },
+  {
+    "codigo": "NDB",
+    "nombre": "Nota de Débito",
+    "habilitado": true
+  },
+  {
+    "codigo": "FSE",
+    "nombre": "Factura de Sujeto Excluido",
+    "habilitado": true
+  },
+  {
+    "codigo": "FEX",
+    "nombre": "Factura de Exportación",
+    "habilitado": true
+  },
+  {
+    "codigo": "REM",
+    "nombre": "Nota de Remisión",
+    "habilitado": true
+  },
+  {
+    "codigo": "CRT",
+    "nombre": "Comprobante de Retención",
+    "habilitado": false
+  }
+]
+

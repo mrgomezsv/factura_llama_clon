@@ -14,7 +14,7 @@ export class DatePickerComponent implements OnInit {
   @Output() periodoSeleccionado = new EventEmitter<PeriodoTributario>();
   @Output() cerrar = new EventEmitter<void>();
 
-  año: number = new Date().getFullYear();
+  ano: number = new Date().getFullYear();
   meses: { numero: number; nombre: string; abreviatura: string }[] = [
       { numero: 1, nombre: 'Enero', abreviatura: 'Ene' },
       { numero: 2, nombre: 'Febrero', abreviatura: 'Feb' },
@@ -32,21 +32,21 @@ export class DatePickerComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.periodoActual) {
-      this.año = this.periodoActual.año;
+      this.ano = this.periodoActual.año;
     }
   }
 
   seleccionarMes(mes: number): void {
-    const nuevoPeriodo = new PeriodoTributario(mes, this.año);
+    const nuevoPeriodo = new PeriodoTributario(mes, this.ano);
     this.periodoSeleccionado.emit(nuevoPeriodo);
   }
 
   esMesSeleccionado(mes: number): boolean {
-    return this.periodoActual?.mes === mes && this.periodoActual?.año === this.año;
+    return this.periodoActual?.mes === mes && this.periodoActual?.año === this.ano;
   }
 
-  cambiarAño(delta: number): void {
-    this.año += delta;
+  cambiarAno(delta: number): void {
+    this.ano += delta;
   }
 }
 
