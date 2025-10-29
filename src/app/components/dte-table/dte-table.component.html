@@ -1,7 +1,7 @@
 <div class="table-container">
   <div class="table-header">
     <h1 class="table-title">DTEs</h1>
-    <button class="btn-filters" type="button">
+    <button class="btn-filters" (click)="toggleFiltros()" type="button">
       <span>Filtros</span>
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
         <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -29,7 +29,12 @@
         </tr>
       } @else {
         @for (dte of dtesPaginados; track dte.controlNumber) {
-          <tr>
+          <tr
+            [class.row-hover]="filaHover === dte"
+            (mouseenter)="onMouseEnter(dte, $event)"
+            (mouseleave)="onMouseLeave()"
+            #rowElement
+          >
             <td>
               <div class="control-number">
                 <span class="control-dot"></span>
@@ -87,5 +92,26 @@
       </button>
     </div>
   }
-</div>
 
+  <!-- Menú flotante -->
+  @if (filaHover && filaHoverElement) {
+    <app-dte-row-menu
+      [dte]="filaHover"
+      [rowElement]="filaHoverElement"
+      (eliminar)="eliminarDTE.emit($event)"
+      (exportarPDF)="exportarPDF.emit($event)"
+      (exportarJSON)="exportarJSON.emit($event)"
+      (verDetalles)="verDetalles.emit($event)"
+      (ocultar)="filaHover = null; filaHoverElement = null"
+    />
+  }
+
+  <!-- Panel de filtros -->
+  <app-dte-filters
+    [mostrar]="mostrarFiltros"
+    [filtros]="filtros"
+    (cerrar)="cerrarFiltros()"
+    (aplicarFiltros)="aplicarFiltros($event)"
+    (cancelar)="cancelarFiltros()"
+  />
+</div>

@@ -64,7 +64,8 @@
   font-size: var(--font-size-sm);
 }
 
-.table tbody tr:hover {
+.table tbody tr:hover,
+.table tbody tr.row-hover {
   background-color: var(--color-bg-light);
 }
 

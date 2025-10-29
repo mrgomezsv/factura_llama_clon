@@ -1,21 +1,32 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DTE } from '../../models/dte.model';
+import { DteFiltersComponent, FiltrosDTE } from '../dte-filters/dte-filters.component';
+import { DteRowMenuComponent } from '../dte-row-menu/dte-row-menu.component';
 
 @Component({
   selector: 'app-dte-table',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, DteFiltersComponent, DteRowMenuComponent],
   templateUrl: './dte-table.component.html',
   styleUrl: './dte-table.component.scss'
 })
 export class DteTableComponent implements OnInit, OnChanges {
   @Input() dtes: DTE[] = [];
   @Input() itemsPerPage: number = 15;
+  @Output() eliminarDTE = new EventEmitter<DTE>();
+  @Output() exportarPDF = new EventEmitter<DTE>();
+  @Output() exportarJSON = new EventEmitter<DTE>();
+  @Output() verDetalles = new EventEmitter<DTE>();
+  @Output() filtrosAplicados = new EventEmitter<FiltrosDTE>();
 
   paginaActual: number = 1;
   dtesPaginados: DTE[] = [];
   totalPaginas: number = 1;
+  mostrarFiltros: boolean = false;
+  filtros: FiltrosDTE = {};
+  filaHover: DTE | null = null;
+  filaHoverElement: HTMLElement | null = null;
 
   ngOnInit(): void {
     this.actualizarPaginacion();
@@ -71,5 +82,39 @@ export class DteTableComponent implements OnInit, OnChanges {
     
     return paginas;
   }
-}
 
+  toggleFiltros(): void {
+    this.mostrarFiltros = !this.mostrarFiltros;
+  }
+
+  cerrarFiltros(): void {
+    this.mostrarFiltros = false;
+  }
+
+  aplicarFiltros(filtros: FiltrosDTE): void {
+    this.filtros = filtros;
+    this.filtrosAplicados.emit(filtros);
+  }
+
+  cancelarFiltros(): void {
+    this.filtros = {};
+  }
+
+  onMouseEnter(dte: DTE, event: MouseEvent): void {
+    this.filaHover = dte;
+    this.filaHoverElement = (event.currentTarget as HTMLElement);
+  }
+
+  onMouseLeave(): void {
+    // El menú se ocultará automáticamente cuando el mouse salga
+    setTimeout(() => {
+      if (this.filaHoverElement) {
+        const menu = document.querySelector('.row-menu');
+        if (!menu || !menu.matches(':hover')) {
+          this.filaHover = null;
+          this.filaHoverElement = null;
+        }
+      }
+    }, 100);
+  }
+}
