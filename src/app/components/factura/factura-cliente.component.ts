@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
+import { DteService } from '../../services/dte.service';
 
 @Component({
   selector: 'app-factura-cliente',
@@ -79,13 +80,18 @@ export class FacturaClienteComponent {
   ];
   clientesFiltrados = this.clientes.slice();
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private dteService: DteService) {
     this.form = this.fb.group({
       busqueda: [''],
       nombre: [''],
       correo: ['']
     });
     this.form.valueChanges.subscribe(v => this.changed.emit(v));
+    // Cargar clientes desde servicio
+    this.dteService.getClientes().subscribe((lista: any[]) => {
+      this.clientes = lista;
+      this.clientesFiltrados = lista.slice();
+    });
   }
 
   toggleListado(forced?: boolean) { this.mostrarListado = forced ?? !this.mostrarListado; }

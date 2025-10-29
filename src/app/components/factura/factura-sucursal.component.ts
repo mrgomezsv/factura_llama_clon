@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { DteService } from '../../services/dte.service';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -50,12 +51,10 @@ export class FacturaSucursalComponent {
   collapsed = true; 
   sucursal: string | null = null;
   open = false;
-  sucursales = [
-    'Sucursal Central',
-    'Sucursal Escalón',
-    'Sucursal San Miguel',
-    'Sucursal Santa Ana'
-  ];
+  sucursales: string[] = [];
+  constructor(private dteService: DteService){
+    this.dteService.getSucursales().subscribe((s: any[]) => this.sucursales = s.map(x => x.nombre));
+  }
   seleccionar(s: string){ this.sucursal = s; this.open = false; }
 }
 

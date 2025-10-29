@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
+import { DteService } from '../../services/dte.service';
 
 @Component({
   selector: 'app-factura-items',
@@ -18,9 +19,15 @@ import { ReactiveFormsModule, FormBuilder, FormArray, FormGroup, Validators } fr
       <div class="card-body" *ngIf="!collapsed">
         <form [formGroup]="form">
           <label class="label">Producto</label>
-          <div class="input-group">
-            <input class="input" placeholder="Buscar por nombre, código interno o descripción..." formControlName="producto" />
-            <button class="btn btn-icon" type="button">▾</button>
+          <div class="input-group" style="position:relative">
+            <input class="input" placeholder="Buscar por nombre, código interno o descripción..." formControlName="producto" (focus)="openProducts()" (input)="filterProducts()" />
+            <button class="btn btn-icon" type="button" (click)="openProducts()">▾</button>
+            <div class="dropdown" *ngIf="productMenu">
+              <button type="button" class="dropdown-item" *ngFor="let pr of filteredProducts" (click)="chooseProduct(pr)">
+                {{ pr.nombre }} <span style="color:#868E96;font-size:12px" *ngIf="pr.codigo">({{ pr.codigo }})</span>
+              </button>
+              <div class="dropdown-vacio" *ngIf="filteredProducts.length===0">Sin resultados</div>
+            </div>
           </div>
 
           <label class="label">Tipo de Producto</label>
@@ -149,13 +156,18 @@ export class FacturaItemsComponent {
   menus: Record<string, boolean> = { tipoProducto: false, unidad: false, tributos: false, tipoVenta: false };
   selectedTaxes: string[] = [];
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private dteService: DteService) {
     this.form = this.fb.group({
       producto: [''], tipoProducto: ['Bienes'], cantidad: [1, [Validators.required, Validators.min(0.0001)]], unidad: ['Unidad'],
       codigo: [''], descripcion: [''], tributos: [''], precio: [0, [Validators.required, Validators.min(0)]], descuento: [0, [Validators.min(0)]], tipoVenta: ['Gravada'],
       items: this.fb.array([])
     });
     this.items.valueChanges.subscribe(v => this.itemsChanged.emit(v));
+    // Cargar productos
+    this.dteService.getProductos().subscribe((p: any[]) => {
+      this.allProducts = p;
+      this.filteredProducts = p;
+    });
   }
 
   agregarItem(): void {
@@ -194,6 +206,17 @@ export class FacturaItemsComponent {
     const val = Number(this.form.value[ctrl]);
     if (!isNaN(val)) this.form.patchValue({ [ctrl]: val.toFixed(decimals) }, { emitEvent: false });
   }
+
+  // Productos dropdown (búsqueda simple al tipear en campo producto)
+  productMenu = false;
+  allProducts: Array<{ id:string; nombre:string; codigo?: string }> = [];
+  filteredProducts: Array<{ id:string; nombre:string; codigo?: string }> = [];
+  openProducts(){ this.productMenu = true; this.filterProducts(); }
+  filterProducts(){
+    const q = (this.form.value.producto || '').toLowerCase();
+    this.filteredProducts = this.allProducts.filter(p => p.nombre.toLowerCase().includes(q) || (p.codigo||'').toLowerCase().includes(q));
+  }
+  chooseProduct(p: any){ this.form.patchValue({ producto: p.nombre, codigo: p.codigo||'' }); this.productMenu = false; }
 }
 
 

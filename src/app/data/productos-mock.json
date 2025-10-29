@@ -1,0 +1,9 @@
+[
+  { "id": "p1", "nombre": "Viseras", "codigo": "VSR-001" },
+  { "id": "p2", "nombre": "Sweater", "codigo": "SWT-002" },
+  { "id": "p3", "nombre": "Chumpas", "codigo": "CHM-003" },
+  { "id": "p4", "nombre": "Gabanas manga larga", "codigo": "GBL-004" },
+  { "id": "p5", "nombre": "CAMISA PISTA", "codigo": "CMP-005" },
+  { "id": "p6", "nombre": "Gabanas manga corta", "codigo": "GBC-006" }
+]
+
