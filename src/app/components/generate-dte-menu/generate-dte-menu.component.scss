@@ -1,0 +1,42 @@
+.generate-menu-container {
+  position: relative;
+}
+
+.icon-document {
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  font-size: var(--font-size-base);
+
+  &:hover:not(.disabled) {
+    background-color: var(--color-bg-light);
+  }
+
+  &.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  span:not(.badge) {
+    flex: 1;
+  }
+}
+
+.badge {
+  margin-left: auto;
+}
+
