@@ -20,9 +20,18 @@ import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
           <label class="label">Cliente
             <span class="help" data-tip="Todos tus clientes con nombre y correo electrónico registrados aparecerán en el listado.">i</span>
           </label>
-          <div class="input-group">
-            <input class="input" placeholder="Buscar por nombre, correo o alias..." formControlName="busqueda" />
-            <button class="btn btn-icon" type="button">▾</button>
+          <div class="input-group" style="position:relative">
+            <input class="input" placeholder="Buscar por nombre, correo o alias..." formControlName="busqueda" (focus)="toggleListado(true)" (input)="filtrar()" />
+            <button class="btn btn-icon" type="button" (click)="toggleListado()">▾</button>
+            <div class="dropdown" *ngIf="mostrarListado">
+              <button type="button" class="dropdown-item" *ngFor="let c of clientesFiltrados" (click)="seleccionarCliente(c)">
+                <div class="cliente-linea">
+                  <span class="cliente-nombre">{{ c.nombre }}</span>
+                  <span class="cliente-email">{{ c.correo }}</span>
+                </div>
+              </button>
+              <div class="dropdown-vacio" *ngIf="clientesFiltrados.length === 0">Sin resultados</div>
+            </div>
           </div>
           <label class="label">Nombre</label>
           <input class="input" placeholder="Ingresa el nombre" formControlName="nombre" />
@@ -48,12 +57,27 @@ import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
     .help{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#E9ECEF;color:#495057;font-size:11px;margin-left:6px;position:relative;cursor:default}
     .help::after{content:attr(data-tip);position:absolute;top:22px;left:0;background:#212529;color:#fff;padding:8px 10px;border-radius:8px;white-space:normal;min-width:220px;max-width:280px;font-size:11px;box-shadow:0 4px 12px rgba(0,0,0,.15);opacity:0;pointer-events:none;transition:opacity .15s}
     .help:hover::after{opacity:1}
+    .dropdown{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #E9ECEF;border-radius:8px;box-shadow:var(--shadow-lg);z-index:50;margin-top:6px;max-height:220px;overflow:auto}
+    .dropdown-item{width:100%;text-align:left;padding:10px 12px;border:none;background:transparent;cursor:pointer}
+    .dropdown-item:hover{background:#F8F9FA}
+    .cliente-linea{display:flex;flex-direction:column}
+    .cliente-nombre{font-weight:600;color:#495057}
+    .cliente-email{font-size:12px;color:#868E96}
+    .dropdown-vacio{padding:10px 12px;color:#868E96}
   `]
 })
 export class FacturaClienteComponent {
   @Output() changed = new EventEmitter<any>();
   form: FormGroup;
   collapsed = false;
+  mostrarListado = false;
+  clientes = [
+    { nombre: 'JOSE RICARDO MORATAYA MAGARIN', correo: 'superprintmcy@gmail.com' },
+    { nombre: 'JUAN CARLOS CARTAGENA HERNANDEZ', correo: 'jccartagena@gmail.com' },
+    { nombre: 'SERVICIOS MULTIPLES CONSULTORES, S.A. DE C.V.', correo: 'sermc.sv@gmail.com' },
+    { nombre: 'HIX TECHNOLOGIES, S.A. DE C.V.', correo: 'admin@hixcompany.com' }
+  ];
+  clientesFiltrados = this.clientes.slice();
 
   constructor(private fb: FormBuilder) {
     this.form = this.fb.group({
@@ -62,6 +86,17 @@ export class FacturaClienteComponent {
       correo: ['']
     });
     this.form.valueChanges.subscribe(v => this.changed.emit(v));
+  }
+
+  toggleListado(forced?: boolean) { this.mostrarListado = forced ?? !this.mostrarListado; }
+  filtrar() {
+    const q = (this.form.value.busqueda || '').toLowerCase();
+    this.clientesFiltrados = this.clientes.filter(c => c.nombre.toLowerCase().includes(q) || c.correo.toLowerCase().includes(q));
+  }
+  seleccionarCliente(c: any) {
+    this.form.patchValue({ nombre: c.nombre, correo: c.correo, busqueda: '' });
+    this.mostrarListado = false;
+    this.changed.emit(this.form.value);
   }
 }
 

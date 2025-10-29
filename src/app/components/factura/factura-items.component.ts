@@ -58,13 +58,15 @@ import { ReactiveFormsModule, FormBuilder, FormArray, FormGroup, Validators } fr
           </div>
 
           <label class="label">Tributos</label>
-          <div class="input-group">
+          <div class="input-group" style="position:relative">
             <button type="button" class="input select" (click)="toggleMenu('tributos')">
-              {{ form.value.tributos || 'Seleccione los tributos' }}
+              {{ selectedTaxes.length ? selectedTaxes.join(', ') : 'Seleccione los tributos' }}
             </button>
             <button class="btn btn-icon" type="button" (click)="toggleMenu('tributos')">▾</button>
             <div class="dropdown" *ngIf="menus['tributos']">
-              <button type="button" class="dropdown-item" *ngFor="let tx of taxes" (click)="selectTributo(tx)">{{ tx }}</button>
+              <button type="button" class="dropdown-item" *ngFor="let tx of taxes" (click)="toggleTax(tx)">
+                <input type="checkbox" [checked]="selectedTaxes.includes(tx)" /> {{ tx }}
+              </button>
             </div>
           </div>
 
@@ -145,6 +147,7 @@ export class FacturaItemsComponent {
   ];
   saleTypes = ['Gravada', 'Exenta', 'No Sujeta', 'No Gravada'];
   menus: Record<string, boolean> = { tipoProducto: false, unidad: false, tributos: false, tipoVenta: false };
+  selectedTaxes: string[] = [];
 
   constructor(private fb: FormBuilder) {
     this.form = this.fb.group({
@@ -176,6 +179,11 @@ export class FacturaItemsComponent {
   selectTipoProducto(val: string) { this.form.patchValue({ tipoProducto: val }); this.menus['tipoProducto'] = false; }
   selectUnidad(val: string) { this.form.patchValue({ unidad: val }); this.menus['unidad'] = false; }
   selectTributo(val: string) { this.form.patchValue({ tributos: val }); this.menus['tributos'] = false; }
+  toggleTax(val: string) {
+    const idx = this.selectedTaxes.indexOf(val);
+    if (idx >= 0) this.selectedTaxes.splice(idx, 1); else this.selectedTaxes.push(val);
+    this.form.patchValue({ tributos: this.selectedTaxes.join(', ') });
+  }
   selectTipoVenta(val: string) { this.form.patchValue({ tipoVenta: val }); this.menus['tipoVenta'] = false; }
 
   numberOnly(e: Event) {

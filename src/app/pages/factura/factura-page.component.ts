@@ -69,12 +69,7 @@ import { FacturaItemsComponent } from '../../components/factura/factura-items.co
           </div>
           <div class="panel-derecho">
             <div class="placeholder-totales" *ngIf="items.length === 0">
-              <svg class="box-illustration" width="140" height="120" viewBox="0 0 140 120" fill="none">
-                <g opacity="0.7">
-                  <path d="M70 10l35 20v30L70 80 35 60V30L70 10Z" fill="#F1F3F5" />
-                  <path d="M70 80v30" stroke="#DEE2E6" stroke-width="2" />
-                </g>
-              </svg>
+              <img class="box-illustration" src="images/empty-state-4bf0c4a3.png" alt="Sin ítems" />
               <p class="empty-title">No se han agregado ítems</p>
               <p class="empty-sub">No es posible registrar ventas sin añadir productos o servicios.</p>
             </div>
