@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DTE } from '../../models/dte.model';
 import { DteFiltersComponent, FiltrosDTE } from '../dte-filters/dte-filters.component';
