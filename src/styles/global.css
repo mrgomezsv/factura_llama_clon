@@ -436,3 +436,54 @@ html, body {
   }
 }
 
+/* -------------
+   Factura (Drawer) fine-tuning to match original UI
+   ------------- */
+.drawer .card {
+  border: 1px solid #E9ECEF;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.04);
+}
+
+.drawer .card-header {
+  height: 44px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  color: #343a40;
+  background-color: #fff;
+  border-bottom: 1px solid #E9ECEF;
+}
+
+.drawer .card-header .icon { color: #6B7280; }
+.drawer .card-header .chevron { margin-left: auto; color: #6B7280; }
+.drawer .card-header.active { border-color: #A7C5E7; box-shadow: 0 0 0 3px rgba(91,155,213,.12); }
+
+.drawer .card-body { padding: 14px; }
+.drawer .label { font-size: 12px; color: #6B7280; margin-bottom: 6px; }
+.drawer .input,
+.drawer .input.select {
+  height: 36px;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  background-color: #fff;
+}
+
+.drawer .input:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(91,155,213,.12); }
+.drawer .btn.btn-icon { width: 36px; height: 36px; border: 1px solid #E5E7EB; border-radius: 10px; }
+
+.drawer .dropdown { border-radius: 10px; box-shadow: 0 8px 24px rgba(16,24,40,.12); border-color: #E5E7EB; }
+.drawer .dropdown-item { font-size: 14px; }
+
+.drawer .placeholder-totales .empty-title { font-size: 18px; }
+.drawer .placeholder-totales .empty-sub { font-size: 13px; }
+
+.drawer .tabla-totales { border: 1px solid #E9ECEF; border-radius: 12px; padding: 8px 12px; }
+.drawer .tot-row { padding: 8px 0; font-size: 14px; }
+.drawer .tot-row.total { font-size: 15px; }
+
+.drawer .switch-row .switch { width: 40px; height: 22px; }
+.drawer .switch-row .switch::after { width: 18px; height: 18px; }
+
