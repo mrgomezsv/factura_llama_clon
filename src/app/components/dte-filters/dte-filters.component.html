@@ -1,0 +1,129 @@
+@if (mostrar) {
+  <div class="filters-overlay" (click)="cerrar.emit()">
+    <div class="filters-panel" (click)="$event.stopPropagation()">
+      <div class="filters-header">
+        <h2 class="filters-title">Filtros de facturas enviadas</h2>
+        <button class="close-btn" (click)="cerrar.emit()" type="button" aria-label="Cerrar">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="filters-content">
+        <!-- Filtro Ambiente -->
+        <div class="filter-group">
+          <label class="filter-label">Ambiente</label>
+          <div class="dropdown-container">
+            <button 
+              class="dropdown-button"
+              [class.active]="mostrarDropdownAmbiente"
+              (click)="toggleDropdownAmbiente()"
+              type="button"
+            >
+              <span [class.placeholder]="!filtrosLocales.ambiente">
+                {{ obtenerLabelAmbiente() }}
+              </span>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            @if (mostrarDropdownAmbiente) {
+              <div class="dropdown-menu">
+                @for (ambiente of ambientes; track ambiente.valor) {
+                  <button
+                    class="dropdown-item"
+                    [class.selected]="filtrosLocales.ambiente === ambiente.valor"
+                    (click)="seleccionarAmbiente(ambiente.valor)"
+                    type="button"
+                  >
+                    {{ ambiente.label }}
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Filtro Estado -->
+        <div class="filter-group">
+          <label class="filter-label">Estado</label>
+          <div class="dropdown-container">
+            <button 
+              class="dropdown-button"
+              [class.active]="mostrarDropdownEstado"
+              (click)="toggleDropdownEstado()"
+              type="button"
+            >
+              <span [class.placeholder]="!filtrosLocales.estado">
+                {{ obtenerLabelEstado() }}
+              </span>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            @if (mostrarDropdownEstado) {
+              <div class="dropdown-menu">
+                @for (estado of estados; track estado.valor) {
+                  <button
+                    class="dropdown-item"
+                    [class.selected]="filtrosLocales.estado === estado.valor"
+                    (click)="seleccionarEstado(estado.valor)"
+                    type="button"
+                  >
+                    <span class="estado-dot" [style.background-color]="estado.color === 'orange' ? '#FF9800' : estado.color === 'blue' ? '#2196F3' : '#F44336'"></span>
+                    {{ estado.label }}
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Filtro Tipo -->
+        <div class="filter-group">
+          <label class="filter-label">Tipo</label>
+          <div class="dropdown-container">
+            <button 
+              class="dropdown-button"
+              [class.active]="mostrarDropdownTipo"
+              (click)="toggleDropdownTipo()"
+              type="button"
+            >
+              <span [class.placeholder]="!filtrosLocales.tipo">
+                {{ obtenerLabelTipo() }}
+              </span>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            @if (mostrarDropdownTipo) {
+              <div class="dropdown-menu">
+                @for (tipo of tipos; track tipo.valor) {
+                  <button
+                    class="dropdown-item"
+                    [class.selected]="filtrosLocales.tipo === tipo.valor"
+                    (click)="seleccionarTipo(tipo.valor)"
+                    type="button"
+                  >
+                    {{ tipo.label }}
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="filters-footer">
+        <button class="btn-cancelar" (click)="onCancelar()" type="button">
+          Cancelar
+        </button>
+        <button class="btn-aplicar" (click)="onAplicar()" type="button">
+          Aplicar filtros
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
