@@ -17,6 +17,12 @@
   gap: var(--spacing-lg);
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
 .header-logo {
   .logo-text {
     font-size: var(--font-size-xl);
@@ -26,9 +32,6 @@
 }
 
 .header-selector {
-  flex: 1;
-  display: flex;
-  justify-content: center;
   position: relative;
 }
 
@@ -61,8 +64,7 @@
 .dropdown-menu-empresa {
   position: absolute;
   top: calc(100% + var(--spacing-xs));
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
   min-width: 320px;
   max-width: 400px;
   background-color: var(--color-bg-white);
@@ -207,10 +209,14 @@
     gap: var(--spacing-sm);
   }
 
-  .header-selector {
+  .header-left {
     order: 3;
     width: 100%;
-    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .header-selector {
+    width: 100%;
   }
 
   .header-controls {
