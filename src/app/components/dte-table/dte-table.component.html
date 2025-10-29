@@ -1,0 +1,91 @@
+<div class="table-container">
+  <div class="table-header">
+    <h1 class="table-title">DTEs</h1>
+    <button class="btn-filters" type="button">
+      <span>Filtros</span>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>#Control</th>
+        <th>Tipo</th>
+        <th>Receptor</th>
+        <th>Total</th>
+        <th>Ambiente</th>
+        <th>Fecha de Creación</th>
+      </tr>
+    </thead>
+    <tbody>
+      @if (dtesPaginados.length === 0) {
+        <tr>
+          <td colspan="6" class="empty-state">
+            No hay DTEs disponibles
+          </td>
+        </tr>
+      } @else {
+        @for (dte of dtesPaginados; track dte.controlNumber) {
+          <tr>
+            <td>
+              <div class="control-number">
+                <span class="control-dot"></span>
+                <span>{{ dte.controlNumber }}</span>
+              </div>
+            </td>
+            <td>{{ dte.tipo }}</td>
+            <td>{{ dte.receptor }}</td>
+            <td class="text-right">{{ dte.formattedTotal }}</td>
+            <td>
+              <span class="badge badge-success">{{ dte.ambiente }}</span>
+            </td>
+            <td>{{ dte.formattedFechaCreacion }}</td>
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+
+  @if (totalPaginas > 1) {
+    <div class="pagination">
+      <button
+        class="pagination-btn"
+        (click)="paginaAnterior()"
+        [disabled]="paginaActual === 1"
+        type="button"
+        aria-label="Página anterior"
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      @for (pagina of paginasVisibles; track pagina) {
+        <button
+          class="pagination-page"
+          [class.active]="pagina === paginaActual"
+          (click)="irAPagina(pagina)"
+          type="button"
+        >
+          {{ pagina }}
+        </button>
+      }
+
+      <button
+        class="pagination-btn"
+        (click)="paginaSiguiente()"
+        [disabled]="paginaActual === totalPaginas"
+        type="button"
+        aria-label="Página siguiente"
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  }
+</div>
+
