@@ -1,0 +1,7 @@
+[
+  { "id": "fp1", "nombre": "Efectivo" },
+  { "id": "fp2", "nombre": "Tarjeta de Crédito" },
+  { "id": "fp3", "nombre": "Transferencia" },
+  { "id": "fp4", "nombre": "Cheque" }
+]
+

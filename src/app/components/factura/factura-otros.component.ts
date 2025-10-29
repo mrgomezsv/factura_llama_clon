@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { DteService } from '../../services/dte.service';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -29,8 +30,11 @@ import { CommonModule } from '@angular/common';
         </div>
         <label class="label">Forma de Pago</label>
         <div class="input-group">
-          <input class="input" placeholder="Selecciona una forma de pago" />
-          <button class="btn btn-icon" type="button">▾</button>
+          <button type="button" class="input select" (click)="openFP = !openFP">{{ formaPago || 'Selecciona una forma de pago' }}</button>
+          <button class="btn btn-icon" type="button" (click)="openFP = !openFP">▾</button>
+          <div class="dropdown" *ngIf="openFP">
+            <button type="button" class="dropdown-item" *ngFor="let f of formasPago" (click)="escogerFP(f)">{{ f }}</button>
+          </div>
         </div>
         <label class="label">Observaciones</label>
         <textarea class="input" placeholder="Escribe aquí tus observaciones"></textarea>
@@ -52,6 +56,15 @@ import { CommonModule } from '@angular/common';
     textarea.input{min-height:90px}
   `]
 })
-export class FacturaOtrosComponent { collapsed = true; }
+export class FacturaOtrosComponent { 
+  collapsed = true; 
+  formaPago: string | null = null;
+  openFP = false;
+  formasPago: string[] = [];
+  constructor(private dteService: DteService){
+    this.dteService.getFormasPago().subscribe((fp: any[]) => this.formasPago = fp.map(x => x.nombre));
+  }
+  escogerFP(f: string){ this.formaPago = f; this.openFP = false; }
+}
 
 

@@ -198,6 +198,7 @@ const tiposDteData: any[] = [
 import clientesData from '../data/clientes-mock.json';
 import sucursalesData from '../data/sucursales-mock.json';
 import productosData from '../data/productos-mock.json';
+import formasPagoData from '../data/formas-pago-mock.json';
 
 @Injectable({
   providedIn: 'root'
@@ -236,6 +237,11 @@ export class DteService {
   /** Obtener productos mock */
   getProductos(): Observable<{ id: string; nombre: string; codigo?: string }[]> {
     return of(productosData as any[]).pipe(delay(150));
+  }
+
+  /** Obtener formas de pago */
+  getFormasPago(): Observable<{ id: string; nombre: string }[]> {
+    return of(formasPagoData as any[]).pipe(delay(150));
   }
 
   /**

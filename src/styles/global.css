@@ -443,9 +443,9 @@ html, body {
    Factura (Drawer) fine-tuning to match original UI
    ------------- */
 .drawer .card {
-  border: 1px solid #E9ECEF;
+  border: none; /* quita borde negro perceptible */
   border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,.04);
+  box-shadow: 0 1px 0 #E9ECEF, 0 2px 10px rgba(0,0,0,.04);
 }
 
 .drawer .card-header {
@@ -485,7 +485,7 @@ html, body {
 .drawer .placeholder-totales .empty-sub { font-size: 13px; }
 
 .drawer .tabla-totales { border: 1px solid #E9ECEF; border-radius: 12px; padding: 8px 12px; }
-.drawer .tot-row { padding: 8px 0; font-size: 14px; }
+.drawer .tot-row { padding: 8px 0; font-size: 14px; line-height: 1.4; color: #4B5563; }
 .drawer .tot-row.total { font-size: 15px; }
 
 .drawer .switch-row .switch { width: 40px; height: 22px; }

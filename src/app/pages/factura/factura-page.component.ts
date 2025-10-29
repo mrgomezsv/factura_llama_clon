@@ -55,15 +55,15 @@ import { FacturaItemsComponent } from '../../components/factura/factura-items.co
                 <span class="switch"></span>
                 <span class="switch-label">Generar en Ambiente de Producción</span>
               </label>
-              <label class="switch-row disabled">
-                <input type="checkbox" disabled />
+              <label class="switch-row">
+                <input type="checkbox" [(ngModel)]="enviarCorreo" />
                 <span class="switch"></span>
                 <span class="switch-label">Enviar correo de notificación al cliente</span>
               </label>
-              <label class="switch-row disabled">
-                <input type="checkbox" disabled />
+              <label class="switch-row">
+                <input type="checkbox" [(ngModel)]="vistaPrevia" />
                 <span class="switch"></span>
-                <span class="switch-label">Mostrar vista previa antes del envío <span class="badge">PRONTO</span></span>
+                <span class="switch-label">Mostrar vista previa antes del envío</span>
               </label>
             </div>
           </div>
@@ -128,6 +128,8 @@ export class FacturaPageComponent {
   descuentoGlobal = 0;
   retenciones = { renta: 0, iva: 0 };
   ambienteProduccion = true;
+  enviarCorreo = true;
+  vistaPrevia = true;
   constructor(private router: Router) {}
 
   onCliente(v: any) { this.cliente = v; }
