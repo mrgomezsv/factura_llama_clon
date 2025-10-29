@@ -1,0 +1,73 @@
+<header class="header">
+  <div class="header-container">
+    <!-- Logo / Nombre App -->
+    <div class="header-logo">
+      <span class="logo-text">FacturaLlama</span>
+    </div>
+
+    <!-- Selector de Empresa -->
+    <div class="header-selector">
+      <button 
+        class="empresa-selector"
+        (click)="toggleSelectorEmpresa()"
+        type="button"
+      >
+        <span class="empresa-nombre">
+          {{ empresaSeleccionada?.nombre || 'Seleccionar empresa' }}
+        </span>
+        <svg class="icon-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <!-- Dropdown de empresas -->
+      @if (mostrarSelectorEmpresa) {
+        <div class="dropdown-empresas">
+          @for (empresa of empresas; track empresa.id) {
+            <button 
+              class="dropdown-item"
+              (click)="seleccionarEmpresa(empresa)"
+              type="button"
+            >
+              {{ empresa.nombre }}
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Controles Derecha -->
+    <div class="header-controls">
+      <!-- Selector de Período Tributario -->
+      <div class="periodo-container">
+        <label class="periodo-label">Período Tributario</label>
+        <button 
+          class="periodo-button"
+          (click)="toggleSelectorPeriodo()"
+          type="button"
+        >
+          <svg class="icon-calendar" width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M3 2H13C13.5523 2 14 2.44772 14 3V13C14 13.5523 13.5523 14 13 14H3C2.44772 14 2 13.5523 2 13V3C2 2.44772 2.44772 2 3 2Z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M2 6H14" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M6 2V6" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M10 2V6" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+          <span>{{ periodoSeleccionado.formatoTexto }}</span>
+        </button>
+
+        <!-- Date Picker Component -->
+        @if (mostrarSelectorPeriodo) {
+          <app-date-picker
+            [periodoActual]="periodoSeleccionado"
+            (periodoSeleccionado)="onPeriodoSeleccionado($event)"
+            (cerrar)="mostrarSelectorPeriodo = false"
+          />
+        }
+      </div>
+
+      <!-- Botón Generar DTE -->
+      <app-generate-dte-menu />
+    </div>
+  </div>
+</header>
+
