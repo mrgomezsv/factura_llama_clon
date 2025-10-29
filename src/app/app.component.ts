@@ -21,7 +21,7 @@ import { PeriodoTributario } from './models/periodo-tributario.model';
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit {
-  title = 'FacturaLlama';
+  title = 'TecWaveLlama';
   dtes: DTE[] = [];
   tabActiva: TipoTab = 'enviados';
   periodoSeleccionado: PeriodoTributario;
