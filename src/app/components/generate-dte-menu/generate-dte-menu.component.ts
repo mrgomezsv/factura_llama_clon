@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { DteService } from '../../services/dte.service';
 import { TipoDTE } from '../../models/tipo-dte.model';
@@ -14,7 +15,7 @@ export class GenerateDteMenuComponent implements OnInit {
   mostrarMenu: boolean = false;
   tiposDTE: TipoDTE[] = [];
 
-  constructor(private dteService: DteService) {}
+  constructor(private dteService: DteService, private router: Router) {}
 
   ngOnInit(): void {
     this.cargarTiposDTE();
@@ -36,8 +37,9 @@ export class GenerateDteMenuComponent implements OnInit {
 
   seleccionarTipo(tipo: TipoDTE): void {
     if (tipo.habilitado) {
-      // TODO: Navegar a formulario de creación de DTE
-      console.log('Generar DTE:', tipo);
+      if (tipo.codigo === 'FAC') {
+        this.router.navigateByUrl('/factura/nueva');
+      }
       this.cerrarMenu();
     }
   }
