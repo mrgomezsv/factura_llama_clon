@@ -1,0 +1,38 @@
+<div class="tabs-container">
+  <div class="tabs">
+    <button
+      class="tab"
+      [class.active]="tabActiva === 'enviados'"
+      (click)="cambiarTab('enviados')"
+      type="button"
+    >
+      <svg class="tab-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M8 3L3 8L8 13M13 3L8 8L13 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      @if (tabActiva === 'enviados') {
+        <svg class="tab-icon-check" width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M13 4L6 11L3 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      }
+      Enviados
+    </button>
+
+    <button
+      class="tab"
+      [class.active]="tabActiva === 'recibidos'"
+      (click)="cambiarTab('recibidos')"
+      type="button"
+    >
+      <svg class="tab-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M3 3L8 8L3 13M13 3L8 8L13 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      @if (tabActiva === 'recibidos') {
+        <svg class="tab-icon-check" width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M13 4L6 11L3 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      }
+      Recibidos
+    </button>
+  </div>
+</div>
+
