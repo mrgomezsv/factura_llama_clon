@@ -1,0 +1,26 @@
+@if (visible && dte) {
+  <div 
+    class="row-menu"
+    [style.top.px]="position.top"
+    [style.left.px]="position.left"
+    (mouseleave)="onOcultar()"
+  >
+    <button class="menu-item" (click)="onEliminar()" type="button" title="Eliminar">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <button class="menu-item" (click)="onExportarPDF()" type="button" title="Exportar PDF">
+      <span class="menu-label">PDF</span>
+    </button>
+    <button class="menu-item" (click)="onExportarJSON()" type="button" title="Exportar JSON">
+      <span class="menu-label">JSON</span>
+    </button>
+    <button class="menu-item" (click)="onVerDetalles()" type="button" title="Ver detalles">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M11 3H4C3.44772 3 3 3.44772 3 4V16C3 16.5523 3.44772 17 4 17H16C16.5523 17 17 16.5523 17 16V9M11 3L17 9M11 3V9H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+}
+
