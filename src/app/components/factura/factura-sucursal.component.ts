@@ -17,8 +17,11 @@ import { CommonModule } from '@angular/common';
       <div class="card-body" *ngIf="!collapsed">
         <label class="label">Sucursal</label>
         <div class="input-group">
-          <input class="input" placeholder="Selecciona una sucursal" />
-          <button class="btn btn-icon" type="button">▾</button>
+          <button type="button" class="input select" (click)="open = !open">{{ sucursal || 'Selecciona una sucursal' }}</button>
+          <button class="btn btn-icon" type="button" (click)="open = !open">▾</button>
+          <div class="dropdown" *ngIf="open">
+            <button type="button" class="dropdown-item" *ngFor="let s of sucursales" (click)="seleccionar(s)">{{ s }}</button>
+          </div>
         </div>
         <label class="label">No. de POS</label>
         <input class="input" placeholder="" />
@@ -37,8 +40,23 @@ import { CommonModule } from '@angular/common';
     .label{font-size:12px;color:var(--color-text-secondary);}
     .input{padding:10px;border:1px solid #DEE2E6;border-radius:8px;}
     .input-group{display:flex;gap:8px}
+    .input.select{display:flex;align-items:center;justify-content:space-between}
+    .dropdown{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #E9ECEF;border-radius:8px;box-shadow:var(--shadow-lg);z-index:50;margin-top:6px;max-height:220px;overflow:auto}
+    .dropdown-item{width:100%;text-align:left;padding:10px 12px;border:none;background:transparent;cursor:pointer}
+    .dropdown-item:hover{background:#F8F9FA}
   `]
 })
-export class FacturaSucursalComponent { collapsed = true; }
+export class FacturaSucursalComponent { 
+  collapsed = true; 
+  sucursal: string | null = null;
+  open = false;
+  sucursales = [
+    'Sucursal Central',
+    'Sucursal Escalón',
+    'Sucursal San Miguel',
+    'Sucursal Santa Ana'
+  ];
+  seleccionar(s: string){ this.sucursal = s; this.open = false; }
+}
 
 
