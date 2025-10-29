@@ -1,16 +1,19 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 
 @Component({
   selector: 'app-factura-descuentos',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ReactiveFormsModule],
   template: `
     <div class="card">
       <div class="card-header">Descuentos</div>
       <div class="card-body">
-        <label class="label">Descuento Global Ventas Gravadas</label>
-        <input class="input" placeholder="Ingresa el monto (opcional)" />
+        <form [formGroup]="form">
+          <label class="label">Descuento Global Ventas Gravadas</label>
+          <input class="input" placeholder="Ingresa el monto (opcional)" formControlName="descuentoGlobal" />
+        </form>
       </div>
     </div>
   `,
@@ -22,6 +25,14 @@ import { CommonModule } from '@angular/common';
     .input{padding:10px;border:1px solid #DEE2E6;border-radius:8px;}
   `]
 })
-export class FacturaDescuentosComponent {}
+export class FacturaDescuentosComponent {
+  @Output() changed = new EventEmitter<number>();
+  form: FormGroup;
+
+  constructor(private fb: FormBuilder) {
+    this.form = this.fb.group({ descuentoGlobal: [0] });
+    this.form.valueChanges.subscribe(v => this.changed.emit(Number(v.descuentoGlobal) || 0));
+  }
+}
 
 
