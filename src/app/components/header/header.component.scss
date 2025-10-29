@@ -58,23 +58,37 @@
   color: var(--color-primary);
 }
 
-.dropdown-empresas {
+.dropdown-menu-empresa {
   position: absolute;
   top: calc(100% + var(--spacing-xs));
   left: 50%;
   transform: translateX(-50%);
-  min-width: 300px;
+  min-width: 320px;
+  max-width: 400px;
   background-color: var(--color-bg-white);
-  border-radius: var(--border-radius-md);
+  border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-lg);
   z-index: 1000;
   overflow: hidden;
   margin-top: var(--spacing-xs);
+  max-height: 80vh;
+  overflow-y: auto;
 }
 
-.dropdown-item {
-  display: block;
+.menu-section {
+  padding: var(--spacing-sm) 0;
+  border-bottom: 1px solid #E9ECEF;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.menu-item {
   width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
   padding: var(--spacing-md);
   background: none;
   border: none;
@@ -83,10 +97,57 @@
   transition: background-color var(--transition-fast);
   font-size: var(--font-size-base);
   color: var(--color-text-primary);
+  position: relative;
 
-  &:hover {
+  &:hover:not(.disabled):not(.empresa-actual) {
     background-color: var(--color-bg-light);
   }
+
+  svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    color: var(--color-text-secondary);
+  }
+
+  span {
+    flex: 1;
+  }
+
+  &.empresa-actual {
+    background-color: rgba(91, 155, 213, 0.1);
+    color: var(--color-primary);
+    font-weight: 600;
+    cursor: default;
+  }
+
+  &.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &.menu-item-danger {
+    color: var(--color-danger);
+
+    svg {
+      color: var(--color-danger);
+    }
+
+    &:hover {
+      background-color: rgba(220, 53, 69, 0.1);
+    }
+  }
+}
+
+.badge-badge {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  background-color: rgba(91, 155, 213, 0.1);
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-left: auto;
 }
 
 .header-controls {

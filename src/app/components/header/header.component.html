@@ -20,18 +20,121 @@
         </svg>
       </button>
 
-      <!-- Dropdown de empresas -->
+      <!-- Menú desplegable de navegación -->
       @if (mostrarSelectorEmpresa) {
-        <div class="dropdown-empresas">
-          @for (empresa of empresas; track empresa.id) {
-            <button 
-              class="dropdown-item"
-              (click)="seleccionarEmpresa(empresa)"
-              type="button"
-            >
-              {{ empresa.nombre }}
+        <div class="dropdown-menu-empresa">
+          <!-- Sección Empresa -->
+          <div class="menu-section">
+            <div class="menu-item empresa-actual">
+              {{ empresaSeleccionada?.nombre || 'Seleccionar empresa' }}
+            </div>
+            <button class="menu-item" (click)="navegar('clientes')" type="button">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M12 13C8.68629 13 6 15.6863 6 19H18C18 15.6863 15.3137 13 12 13Z" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+              <span>Clientes</span>
             </button>
-          }
+            <button class="menu-item" (click)="navegar('productos')" type="button">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M3 7H17L15 15H5L3 7Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M7 4V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              <span>Productos</span>
+            </button>
+            <button class="menu-item" (click)="navegar('sucursales')" type="button">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M3 17H17M5 5H15V15H5V5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>Sucursales</span>
+            </button>
+            <button class="menu-item" (click)="navegar('dtes')" type="button">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M6 2H14L16 4V18C16 18.5523 15.5523 19 15 19H5C4.44772 19 4 18.5523 4 18V3C4 2.44772 4.44772 2 5 2H6Z" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M6 2V6H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>DTEs</span>
+            </button>
+            <button class="menu-item" (click)="navegar('reportes')" type="button">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M3 17H17M5 17V9M10 17V5M15 17V13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>Reportes & Descargas</span>
+            </button>
+          </div>
+
+          <!-- Sección Cuenta -->
+          <div class="menu-section">
+            <button class="menu-item" (click)="navegar('suscripcion')" type="button">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M3 5H17V15H3V5Z" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M3 8H17" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+              <span>Mi Suscripción</span>
+            </button>
+            <button class="menu-item" (click)="navegar('configuracion')" type="button">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M10 12C11.1046 12 12 11.1046 12 10C12 8.89543 11.1046 8 10 8C8.89543 8 8 8.89543 8 10C8 11.1046 8.89543 12 10 12Z" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M17.6569 12.3431C17.8447 12.531 17.9499 12.7887 17.9499 13.0567C17.9499 13.3247 17.8447 13.5824 17.6569 13.7703L17.6569 13.7703C17.469 13.9582 17.2113 14.0634 16.9433 14.0634C16.6753 14.0634 16.4176 13.9582 16.2297 13.7703L15.3636 12.9042C15.1757 12.7163 15.0705 12.4586 15.0705 12.1906C15.0705 11.9226 15.1757 11.6649 15.3636 11.477L16.2297 10.611C16.4176 10.4231 16.6753 10.3179 16.9433 10.3179C17.2113 10.3179 17.469 10.4231 17.6569 10.611V10.611C17.8447 10.799 17.9499 11.0567 17.9499 11.3247C17.9499 11.5927 17.8447 11.8504 17.6569 12.0383L17.6569 12.3431Z" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M2.34315 7.65685C2.15526 7.46896 2.05005 7.2113 2.05005 6.94329C2.05005 6.67528 2.15526 6.41762 2.34315 6.22973L2.34315 6.22973C2.53104 6.04184 2.7887 5.93663 3.05671 5.93663C3.32472 5.93663 3.58238 6.04184 3.77027 6.22973L4.63636 7.09582C4.82425 7.28371 4.92946 7.54137 4.92946 7.80938C4.92946 8.07739 4.82425 8.33505 4.63636 8.52294L3.77027 9.38903C3.58238 9.57692 3.32472 9.68213 3.05671 9.68213C2.7887 9.68213 2.53104 9.57692 2.34315 9.38903V9.38903C2.15526 9.20114 2.05005 8.94348 2.05005 8.67547C2.05005 8.40746 2.15526 8.1498 2.34315 7.96191L2.34315 7.65685Z" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+              <span>Configuración</span>
+            </button>
+          </div>
+
+          <!-- Sección Ayuda y Recursos -->
+          <div class="menu-section">
+            <button class="menu-item" (click)="navegar('ayuda')" type="button">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18Z" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M10 14V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <circle cx="10" cy="7" r="1" fill="currentColor"/>
+              </svg>
+              <span>Centro de Ayuda</span>
+            </button>
+            <button class="menu-item" (click)="navegar('intro')" type="button">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M6 2H14L16 4V18C16 18.5523 15.5523 19 15 19H5C4.44772 19 4 18.5523 4 18V3C4 2.44772 4.44772 2 5 2H6Z" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+              <span>Intro a FacturaLlama</span>
+            </button>
+            <button class="menu-item" (click)="navegar('tutoriales')" type="button">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M8 10L11 13L15 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>Video Tutoriales</span>
+            </button>
+            <button class="menu-item disabled" type="button">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M10 2C10 2 14 6 14 10C14 11.6569 12.6569 13 11 13C9.34315 13 8 11.6569 8 10C8 6 10 2 10 2Z" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M10 10H10.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              <span>Novedades</span>
+              <span class="badge-badge">PRONTO</span>
+            </button>
+            <button class="menu-item disabled" type="button">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M10 2L2 7L10 12L18 7L10 2Z" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M2 7L10 12L18 7" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M2 13L10 18L18 13" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+              <span>Reportar un Error/Problema</span>
+              <span class="badge-badge">PRONTO</span>
+            </button>
+          </div>
+
+          <!-- Salir -->
+          <div class="menu-section">
+            <button class="menu-item menu-item-danger" (click)="salir()" type="button">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M8 2H12V10H8V2Z" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M2 18H18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M4 14H16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              <span>Salir de FacturaLlama</span>
+            </button>
+          </div>
         </div>
       }
     </div>
@@ -70,4 +173,3 @@
     </div>
   </div>
 </header>
-

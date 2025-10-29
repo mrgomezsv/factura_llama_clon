@@ -59,5 +59,17 @@ export class HeaderComponent implements OnInit {
     this.mostrarSelectorPeriodo = false;
     this.periodoCambiado.emit(periodo);
   }
+
+  navegar(destino: string): void {
+    console.log('Navegar a:', destino);
+    this.mostrarSelectorEmpresa = false;
+    // TODO: Implementar navegación real
+  }
+
+  salir(): void {
+    console.log('Salir de la aplicación');
+    this.mostrarSelectorEmpresa = false;
+    // TODO: Implementar lógica de logout
+  }
 }
 
