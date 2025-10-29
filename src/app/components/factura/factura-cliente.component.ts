@@ -17,7 +17,9 @@ import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
       </button>
       <div class="card-body" *ngIf="!collapsed">
         <form [formGroup]="form">
-          <label class="label">Cliente</label>
+          <label class="label">Cliente
+            <span class="help" data-tip="Todos tus clientes con nombre y correo electrónico registrados aparecerán en el listado.">i</span>
+          </label>
           <div class="input-group">
             <input class="input" placeholder="Buscar por nombre, correo o alias..." formControlName="busqueda" />
             <button class="btn btn-icon" type="button">▾</button>
@@ -43,6 +45,9 @@ import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
     .input{padding:10px;border:1px solid #DEE2E6;border-radius:8px;}
     .input-group{display:flex;gap:8px}
     .btn.btn-icon{width:40px;height:40px}
+    .help{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#E9ECEF;color:#495057;font-size:11px;margin-left:6px;position:relative;cursor:default}
+    .help::after{content:attr(data-tip);position:absolute;top:22px;left:0;background:#212529;color:#fff;padding:8px 10px;border-radius:8px;white-space:normal;min-width:220px;max-width:280px;font-size:11px;box-shadow:0 4px 12px rgba(0,0,0,.15);opacity:0;pointer-events:none;transition:opacity .15s}
+    .help:hover::after{opacity:1}
   `]
 })
 export class FacturaClienteComponent {
