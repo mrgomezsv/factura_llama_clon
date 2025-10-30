@@ -39,12 +39,19 @@
           <ul>
             <li><strong>FACTURALLAMA PRIME:</strong> Plataforma web para la emisión y administración de DTEs.</li>
             <li><strong>FACTURALLAMA API:</strong> Interfaz de Programación de Aplicaciones (API) para integrar sistemas del Usuario con los servicios de FACTURALLAMA.</li>
-            <li><strong>Integraciones Personalizadas:</strong> Soluciones diseñadas por FACTURALLAMA para facilitar la integración de sistemas del Usuario con FACTURALLAMA API.</li>
+            <li><strong>Integraciones Personalizadas:</strong> Soluciones diseñadas por FACTURALLAMA para facilitar la integración de sistemas del Usuario con FACTURALLAMA API. Estas soluciones pueden incluir adaptaciones específicas para sistemas comerciales como Odoo, SAP Business, Zoho Books, Microsoft Dynamics 365, o sistemas personalizados del Usuario.</li>
           </ul>
         </dd>
 
         <dt><strong>Usuario:</strong></dt>
-        <dd>Se refiere a toda persona natural o jurídica que utiliza los productos y/o servicios proporcionados por FACTURALLAMA.</dd>
+        <dd>Se refiere a toda persona natural o jurídica que utiliza los productos y/o servicios proporcionados por FACTURALLAMA, los cuales incluyen, pero no se limitan a:
+          <ul>
+            <li><strong>Usuarios Directos de FACTURALLAMA PRIME:</strong> Aquellos que utilizan directamente FACTURALLAMA PRIME para gestionar DTEs relacionados con su propia actividad comercial.</li>
+            <li><strong>Usuarios Representantes:</strong> Personas que actúan en nombre de terceros, como contadores o asesores fiscales.</li>
+            <li><strong>Usuarios Directos del API:</strong> Integran FACTURALLAMA API con sus sistemas internos para automatizar procesos.</li>
+            <li><strong>Usuarios Proveedores:</strong> Utilizan FACTURALLAMA API para ofrecer servicios de facturación electrónica a terceros.</li>
+          </ul>
+        </dd>
 
         <dt><strong>Ministerio de Hacienda (MH):</strong></dt>
         <dd>Entidad gubernamental de El Salvador responsable de la regulación de la facturación electrónica, la recaudación de impuestos, y la administración de las políticas fiscales del país.</dd>
@@ -52,8 +59,26 @@
         <dt><strong>DTE (Documento Tributario Electrónico):</strong></dt>
         <dd>Documento fiscal emitido a través de los servicios de FACTURALLAMA según las normativas del Ministerio de Hacienda (MH) de El Salvador.</dd>
 
+        <dt><strong>Certificado de Firma Electrónica Simple:</strong></dt>
+        <dd>Certificado de firma electrónica simple generado y gestionado por FACTURALLAMA en representación del Usuario para firmar DTEs conforme a la normativa del MH.</dd>
+
+        <dt><strong>Sistema del Usuario:</strong></dt>
+        <dd>Se refiere al software de gestión empresarial utilizado por el Usuario para operar sus procesos internos. Esto incluye sistemas comerciales como Odoo, SAP Business, Zoho Books, Microsoft Dynamics 365, o soluciones personalizadas desarrolladas específicamente para el Usuario. La lista mencionada es indicativa y no exhaustiva, ya que FACTURALLAMA se integra con una amplia variedad de sistemas.</dd>
+
+        <dt><strong>DTE Procesado:</strong></dt>
+        <dd>Información enviada y procesada exitosamente por FACTURALLAMA, generada por los Usuarios. Se convierte en un DTE conforme a los estándares del Ministerio de Hacienda, es firmado electrónicamente y enviado para su aprobación o rechazo.</dd>
+
+        <dt><strong>DTE Anulado:</strong></dt>
+        <dd>Un DTE Procesado que es invalidado tras solicitud del Usuario o por un error detectado. La anulación se notifica al Ministerio de Hacienda, que confirma su recepción.</dd>
+
+        <dt><strong>Notificación por Email:</strong></dt>
+        <dd>Envío automático de un correo electrónico con un DTE Procesado con estado "APROBADO" en formato PDF y JSON, dirigido al Usuario o a terceros designados.</dd>
+
         <dt><strong>Suscripción:</strong></dt>
-        <dd>Adquisición formal de los servicios de FACTURALLAMA por parte del Usuario, mediante un pedido en línea aceptado por FACTURALLAMA o un acuerdo escrito entre ambas partes.</dd>
+        <dd>Adquisición formal de los servicios de FACTURALLAMA por parte del Usuario, mediante un pedido en línea aceptado por FACTURALLAMA o un acuerdo escrito entre ambas partes. Puede incluir precios personalizados, condiciones específicas y/o servicios adicionales.</dd>
+
+        <dt><strong>Fecha de Suscripción:</strong></dt>
+        <dd>Fecha de inicio del contrato, determinada por la confirmación de la suscripción en línea a través del Sitio Web o la aceptación de un acuerdo o pedido escrito entre el Usuario y FACTURALLAMA.</dd>
       </dl>
     </section>
 
@@ -62,19 +87,39 @@
       
       <h3 class="subsection-title">3.1 Registro de Cuenta</h3>
       <ul>
-        <li>Para acceder a los servicios de FACTURALLAMA, el Usuario debe crear una cuenta proporcionando información veraz, completa y actualizada.</li>
-        <li>FACTURALLAMA se reserva el derecho de verificar la autenticidad de la información proporcionada por el Usuario.</li>
-        <li>Las cuentas pueden ser suspendidas o canceladas en caso de uso indebido o fraudulento de los servicios.</li>
+        <li>Para acceder a los servicios de FACTURALLAMA, incluidos la emisión de <strong>Documentos Tributarios Electrónicos (DTEs)</strong>, el Usuario debe crear una cuenta en el <strong>Sitio Web</strong> o a través de la <strong>API</strong>, proporcionando información veraz, completa y actualizada.</li>
+        <li>FACTURALLAMA se reserva el derecho de verificar la autenticidad de la información proporcionada por el Usuario. Las cuentas pueden ser suspendidas o canceladas en caso de:
+          <ol>
+            <li>Uso indebido o fraudulento de los servicios.</li>
+            <li>Incumplimiento de estos Términos o de las regulaciones aplicables.</li>
+            <li>Provisión de información falsa, incompleta o desactualizada.</li>
+          </ol>
+        </li>
       </ul>
 
       <h3 class="subsection-title">3.2 Alcance del Servicio</h3>
-      <p>FACTURALLAMA ofrece servicios especializados para la emisión, gestión y administración de Documentos Tributarios Electrónicos (DTEs), diseñados para cumplir con las regulaciones del Ministerio de Hacienda (MH) de El Salvador.</p>
+      <p>FACTURALLAMA ofrece servicios especializados para la emisión, gestión y administración de <strong>Documentos Tributarios Electrónicos (DTEs)</strong>, diseñados para cumplir con las regulaciones del <strong>Ministerio de Hacienda (MH)</strong> de El Salvador. Estos servicios son accesibles a través de:</p>
+      <ul>
+        <li><strong>FACTURALLAMA PRIME:</strong> Plataforma web para uso directo en la gestión de DTEs.</li>
+        <li><strong>FACTURALLAMA API:</strong> Una interfaz para la integración con sistemas del Usuario, que automatiza procesos de facturación electrónica.</li>
+        <li><strong>Soluciones personalizadas:</strong> Servicios adaptados a las necesidades técnicas específicas del Usuario.</li>
+      </ul>
 
       <h3 class="subsection-title">3.3 Limitaciones del Servicio</h3>
+      <p>Aunque FACTURALLAMA ofrece soluciones robustas y versátiles, los servicios tienen ciertas limitaciones definidas para establecer el alcance y las responsabilidades de cada parte.</p>
+
+      <h4 class="subsubsection-title">3.3.1 Alcance Legal y Técnico</h4>
       <ul>
-        <li><strong>Representación Legal:</strong> FACTURALLAMA no actúa como representante legal, fiscal o tributario del Usuario ante el Ministerio de Hacienda.</li>
-        <li><strong>Cumplimiento Fiscal:</strong> FACTURALLAMA no asume responsabilidad alguna por el cumplimiento fiscal del Usuario.</li>
-        <li><strong>Compatibilidad de Sistemas:</strong> FACTURALLAMA no garantiza compatibilidad con sistemas que no cumplan con los requisitos técnicos definidos.</li>
+        <li><strong>Representación Legal:</strong> FACTURALLAMA no actúa como representante legal, fiscal o tributario del Usuario ante el <strong>Ministerio de Hacienda</strong> u otras entidades gubernamentales, salvo que exista un acuerdo explícito y documentado que disponga lo contrario.</li>
+        <li><strong>Cumplimiento Fiscal:</strong> FACTURALLAMA no asume responsabilidad alguna por el cumplimiento fiscal del Usuario, incluyendo la presentación de declaraciones, reportes tributarios o el pago de impuestos.</li>
+        <li><strong>Compatibilidad de Sistemas:</strong> FACTURALLAMA no garantiza compatibilidad con sistemas o plataformas que no cumplan con los requisitos técnicos definidos en la documentación oficial disponible en <strong>docs.facturallama.com</strong>.</li>
+      </ul>
+
+      <h4 class="subsubsection-title">3.3.2 Exclusiones</h4>
+      <ul>
+        <li><strong>Desarrollo de Software:</strong> No se incluyen desarrollos de software adicionales o personalizados que no estén relacionados con los servicios ofrecidos explícitamente por FACTURALLAMA.</li>
+        <li><strong>Herramientas No Incluidas:</strong> No se incluyen herramientas, productos o funcionalidades que no estén mencionadas explícitamente en estos Términos o en la documentación técnica oficial.</li>
+        <li><strong>Capacitación Extensiva:</strong> El soporte de FACTURALLAMA incluye asistencia técnica relacionada con el uso de los servicios, pero no incluye capacitación extensiva o personalizada.</li>
       </ul>
     </section>
 
@@ -84,29 +129,100 @@
       <h3 class="subsection-title">12.2 Terminación por Parte del Usuario</h3>
       <p>El Usuario puede cancelar su suscripción en cualquier momento. Al cancelar:</p>
       <ul>
-        <li>Los DTEs estarán disponibles durante 30 días tras la cancelación.</li>
-        <li>El Usuario debe solicitar su entrega escribiendo a <a href="mailto:contacto&#64;facturallama.com">contacto&#64;facturallama.com</a> o descargarlos desde FACTURALLAMA PRIME.</li>
-        <li>Transcurridos los 30 días, los DTEs serán eliminados de forma definitiva.</li>
+        <li>Los DTEs estarán disponibles durante 30 días tras la cancelación. El Usuario debe solicitar su entrega escribiendo a <a href="mailto:contacto&#64;facturallama.com">contacto&#64;facturallama.com</a> o descargarlos desde FACTURALLAMA PRIME.</li>
+        <li>FACTURALLAMA proporcionará los DTEs solicitados en un plazo razonable, en el formato y medio determinado según la cantidad de DTEs generados.</li>
+        <li><strong>Eliminación de Información:</strong>
+          <ul>
+            <li>Transcurridos los treinta (30) días, los DTEs serán eliminados de forma definitiva y no podrán ser recuperados. FACTURALLAMA también eliminará toda la información asociada a la cuenta cancelada.</li>
+            <li>Se podrá conservar información para cumplir con requisitos legales, en sistemas de respaldo o como datos anonimizados para análisis.</li>
+          </ul>
+        </li>
+        <li><strong>Excepciones a la Eliminación:</strong> FACTURALLAMA podrá conservar cierta información en los siguientes casos:
+          <ul>
+            <li><strong>Cumplimiento Legal:</strong> Si la información debe ser retenida para cumplir con regulaciones legales aplicables, auditorías, litigios en curso o solicitudes de autoridades competentes.</li>
+            <li><strong>Sistemas de Respaldo:</strong> La información eliminada de las bases de datos activas puede permanecer en sistemas de respaldo o archivos, según las políticas de retención estándar de FACTURALLAMA.</li>
+            <li><strong>Información Anonimizada:</strong> FACTURALLAMA puede retener información anonimizada, no vinculada al Usuario, para fines estadísticos, analíticos o de mejora del servicio.</li>
+          </ul>
+        </li>
+        <li><strong>Notificación de Eliminación:</strong> FACTURALLAMA no estará obligada a notificar al Usuario sobre la eliminación automática de información si este no ha solicitado sus DTEs en el plazo establecido.</li>
       </ul>
 
       <h3 class="subsection-title">12.3 Terminación por Parte de FACTURALLAMA</h3>
       <p>FACTURALLAMA se reserva el derecho de suspender permanentemente el acceso del Usuario a los servicios en los siguientes casos:</p>
       <ol>
         <li>El Usuario incumple con cualquier disposición de estos Términos y Condiciones.</li>
-        <li>Se detecta un uso indebido, ilegal o no autorizado de los servicios.</li>
-        <li>El Usuario no realiza el pago oportuno de las tarifas adeudadas.</li>
-        <li>FACTURALLAMA debe cumplir con cambios en la legislación o regulaciones.</li>
+        <li>Se detecta un uso indebido, ilegal o no autorizado de los servicios proporcionados por FACTURALLAMA.</li>
+        <li>El Usuario no realiza el pago oportuno de las tarifas adeudadas, incluso después de los períodos de gracia establecidos en la <strong>Sección 4.4</strong>.</li>
+        <li>FACTURALLAMA debe cumplir con cambios en la legislación o regulaciones que afecten la prestación del servicio.</li>
+      </ol>
+      <p>En caso de terminación por parte de FACTURALLAMA, el Usuario:</p>
+      <ol>
+        <li>El Usuario será responsable de pagar todas las tarifas acumuladas hasta la fecha en que se suspendan los servicios.</li>
+        <li>FACTURALLAMA conservará los <strong>DTEs</strong> generados por el Usuario durante un plazo de <strong>30 días</strong> posteriores a la suspensión. Durante este período, el Usuario podrá solicitar sus DTEs conforme a la <strong>Sección 12.2</strong>.</li>
+        <li>Una vez finalizado el plazo de retención, FACTURALLAMA eliminará toda la información relacionada con la cuenta, excepto en los casos descritos en la <strong>Sección 12.2</strong> sobre retención de información por motivos legales o técnicos.</li>
       </ol>
     </section>
 
     <section class="section">
       <h2 class="section-title">13. Misceláneos</h2>
       
+      <h3 class="subsection-title">13.1 Cesión de Derechos</h3>
+      <ol>
+        <li><strong>Cesión por Parte de FACTURALLAMA:</strong>
+          <ul>
+            <li>FACTURALLAMA se reserva el derecho de ceder, delegar o transferir estos Términos, en su totalidad o en parte, a cualquier persona o entidad en cualquier momento, con o sin el consentimiento del Usuario.</li>
+            <li>Esto incluye, pero no se limita, a la concesión de licencias relacionadas con los servicios, la tecnología o cualquier componente relacionado según lo establecido en estos Términos.</li>
+          </ul>
+        </li>
+        <li><strong>Restricción de Cesión por Parte del Usuario:</strong>
+          <ul>
+            <li>El Usuario no podrá delegar, ceder ni transferir estos Términos ni ninguno de sus derechos y obligaciones bajo estos Términos sin el consentimiento previo por escrito de FACTURALLAMA.</li>
+            <li>Cualquier intento de cesión, delegación o transferencia por parte del Usuario sin dicho consentimiento será considerado nulo y sin efecto.</li>
+          </ul>
+        </li>
+        <li><strong>Continuidad del Servicio:</strong> FACTURALLAMA garantiza que cualquier cesión o delegación de estos Términos no afectará negativamente la calidad o disponibilidad de los servicios para el Usuario, salvo que se indique expresamente y se notifique con la debida antelación.</li>
+      </ol>
+
+      <h3 class="subsection-title">13.2 Relación entre las Partes</h3>
+      <p>FACTURALLAMA y el Usuario son contratistas independientes. No existe relación de sociedad, agencia o empleo. Cada parte es responsable de sus obligaciones legales y fiscales.</p>
+
       <h3 class="subsection-title">13.3 Comunicaciones</h3>
-      <p>FACTURALLAMA enviará notificaciones relacionadas con el Servicio a través del correo electrónico proporcionado durante el registro o publicaciones en el Sitio Web.</p>
+      <ol>
+        <li><strong>Notificaciones Electrónicas:</strong> FACTURALLAMA enviará notificaciones relacionadas con el Servicio, actualizaciones de estos Términos y otra información legal requerida a través de:
+          <ul>
+            <li>Correo electrónico proporcionado durante el registro.</li>
+            <li>Publicaciones en el Sitio Web.</li>
+          </ul>
+        </li>
+        <li>Dichas notificaciones se considerarán entregadas al momento de su envío. Si el Usuario no consiente recibir notificaciones electrónicas, deberá dejar de usar los servicios.</li>
+        <li><strong>Notificaciones al Equipo de FACTURALLAMA:</strong> Los Usuarios podrán enviar notificaciones legales a FACTURALLAMA escribiendo a: <strong>contacto&#64;facturallama.com</strong>, especificando que se trata de un aviso legal bajo estos Términos.</li>
+      </ol>
+
+      <h3 class="subsection-title">13.4 Divisibilidad, No Renuncia y Supervivencia</h3>
+      <ol>
+        <li><strong>Divisibilidad:</strong> Si alguna disposición de estos Términos se considera inválida o inaplicable, las demás disposiciones seguirán vigentes y ejecutables en la máxima medida permitida por la ley.</li>
+        <li><strong>No Renuncia:</strong> La falta de ejercicio de cualquier derecho por parte de FACTURALLAMA no se interpretará como una renuncia a dicho derecho.</li>
+        <li><strong>Supervivencia:</strong> Las disposiciones relacionadas con propiedad intelectual, confidencialidad, indemnización y limitaciones de responsabilidad permanecerán vigentes tras la terminación del servicio.</li>
+      </ol>
 
       <h3 class="subsection-title">13.5 Modificaciones a los Términos</h3>
-      <p>FACTURALLAMA puede modificar estos Términos en cualquier momento. Cambios significativos se notificarán con al menos 30 días de anticipación.</p>
+      <ul>
+        <li>FACTURALLAMA puede modificar estos Términos en cualquier momento. Cambios significativos se notificarán con al menos 30 días de anticipación, por correo electrónico o en el sitio web.</li>
+        <li>El uso continuo del servicio después de los cambios implica la aceptación de los Términos actualizados.</li>
+      </ul>
+
+      <h3 class="subsection-title">13.6 Acuerdo Completo</h3>
+      <ul>
+        <li>Estos Términos y la Política de Privacidad constituyen el acuerdo completo entre el Usuario y FACTURALLAMA.</li>
+        <li>En caso de conflicto entre los Términos y el contenido del sitio web, prevalecerán los Términos.</li>
+      </ul>
+
+      <h3 class="subsection-title">13.7 Errores Tipográficos</h3>
+      <ul>
+        <li>FACTURALLAMA no asume responsabilidad por errores tipográficos, inexactitudes o omisiones en los Términos o en el Sitio Web.</li>
+        <li>FACTURALLAMA podrá corregir cualquier error o inexactitud sin previo aviso.</li>
+        <li>Se recomienda a los Usuarios informar cualquier error escribiendo a: <strong>contacto&#64;facturallama.com</strong>.</li>
+      </ul>
 
       <h3 class="subsection-title">13.8 Información de Contacto</h3>
       <p>Los Usuarios pueden comunicarse con FACTURALLAMA a través de:</p>
@@ -116,4 +232,3 @@
     </section>
   </div>
 </div>
-
