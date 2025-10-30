@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -8,6 +9,12 @@ import { CommonModule } from '@angular/common';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent {}
+export class LoginComponent {
+  constructor(private router: Router) {}
+
+  entrar(): void {
+    this.router.navigateByUrl('/factura/nueva');
+  }
+}
 
 

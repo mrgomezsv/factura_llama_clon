@@ -5,6 +5,7 @@ import { Empresa } from '../../models/empresa.model';
 import { PeriodoTributario } from '../../models/periodo-tributario.model';
 import { DatePickerComponent } from '../date-picker/date-picker.component';
 import { GenerateDteMenuComponent } from '../generate-dte-menu/generate-dte-menu.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-header',
@@ -22,7 +23,7 @@ export class HeaderComponent implements OnInit {
   mostrarSelectorEmpresa: boolean = false;
   mostrarSelectorPeriodo: boolean = false;
 
-  constructor(private dteService: DteService) {
+  constructor(private dteService: DteService, private router: Router) {
     this.periodoSeleccionado = PeriodoTributario.ahora();
   }
 
@@ -61,15 +62,20 @@ export class HeaderComponent implements OnInit {
   }
 
   navegar(destino: string): void {
-    console.log('Navegar a:', destino);
     this.mostrarSelectorEmpresa = false;
-    // TODO: Implementar navegación real
+    if (destino === 'login') {
+      this.router.navigateByUrl('/login');
+      return;
+    }
+    if (destino === 'factura') {
+      this.router.navigateByUrl('/factura/nueva');
+      return;
+    }
   }
 
   salir(): void {
-    console.log('Salir de la aplicación');
     this.mostrarSelectorEmpresa = false;
-    // TODO: Implementar lógica de logout
+    this.router.navigateByUrl('/login');
   }
 }
 
