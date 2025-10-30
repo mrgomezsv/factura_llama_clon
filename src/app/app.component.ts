@@ -7,6 +7,7 @@ import { DteTableComponent } from './components/dte-table/dte-table.component';
 import { DteService } from './services/dte.service';
 import { DTE } from './models/dte.model';
 import { PeriodoTributario } from './models/periodo-tributario.model';
+import { UpgradeModalComponent } from './components/upgrade-modal/upgrade-modal.component';
 
 @Component({
   selector: 'app-root',
@@ -15,7 +16,8 @@ import { PeriodoTributario } from './models/periodo-tributario.model';
     CommonModule,
     HeaderComponent,
     DteTabsComponent,
-    DteTableComponent
+    DteTableComponent,
+    UpgradeModalComponent
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
@@ -25,6 +27,7 @@ export class AppComponent implements OnInit {
   dtes: DTE[] = [];
   tabActiva: TipoTab = 'enviados';
   periodoSeleccionado: PeriodoTributario;
+  mostrarUpgrade = false;
 
   constructor(private dteService: DteService) {
     this.periodoSeleccionado = PeriodoTributario.ahora();
@@ -44,8 +47,19 @@ export class AppComponent implements OnInit {
   }
 
   onTabCambiada(tab: TipoTab): void {
+    if (tab === 'recibidos') {
+      // Mostrar modal de upgrade y mantener la vista en "Enviados"
+      this.mostrarUpgrade = true;
+      return;
+    }
     this.tabActiva = tab;
     this.cargarDTEs();
+  }
+
+  cerrarUpgrade(): void {
+    this.mostrarUpgrade = false;
+    // Reafirmar la pestaña activa como enviados para el hijo
+    this.tabActiva = 'enviados';
   }
 
   onPeriodoCambiado(periodo: PeriodoTributario): void {

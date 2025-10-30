@@ -9,6 +9,8 @@
       />
       
       <app-dte-table [dtes]="dtes" />
+      
+      <app-upgrade-modal *ngIf="mostrarUpgrade" (close)="cerrarUpgrade()" />
     </div>
   </main>
 </div>
