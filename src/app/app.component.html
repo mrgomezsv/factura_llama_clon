@@ -1,18 +1,17 @@
-<div class="app-container">
-  <app-header (periodoCambiado)="onPeriodoCambiado($event)"/>
-  
-  <main class="main-content">
-    <div class="container">
-      <app-dte-tabs 
-        [tabActiva]="tabActiva"
-        (tabCambiada)="onTabCambiada($event)"
-      />
-      
-      <app-dte-table [dtes]="dtes" />
-      
-      <app-upgrade-modal *ngIf="mostrarUpgrade" (close)="cerrarUpgrade()" />
-    </div>
-  </main>
-</div>
+@if (!isLoginRoute) {
+  <div class="app-container">
+    <app-header (periodoCambiado)="onPeriodoCambiado($event)"/>
+    <main class="main-content">
+      <div class="container">
+        <app-dte-tabs 
+          [tabActiva]="tabActiva"
+          (tabCambiada)="onTabCambiada($event)"
+        />
+        <app-dte-table [dtes]="dtes" />
+        <app-upgrade-modal *ngIf="mostrarUpgrade" (close)="cerrarUpgrade()" />
+      </div>
+    </main>
+  </div>
+}
 
 <router-outlet />

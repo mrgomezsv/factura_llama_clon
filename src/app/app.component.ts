@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HeaderComponent } from './components/header/header.component';
 import { DteTabsComponent, TipoTab } from './components/dte-tabs/dte-tabs.component';
@@ -23,14 +23,21 @@ import { UpgradeModalComponent } from './components/upgrade-modal/upgrade-modal.
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit {
-  title = 'TecWaveLlama';
+  title = 'WaveDTE-v2';
   dtes: DTE[] = [];
   tabActiva: TipoTab = 'enviados';
   periodoSeleccionado: PeriodoTributario;
   mostrarUpgrade = false;
+  isLoginRoute = false;
 
-  constructor(private dteService: DteService) {
+  constructor(private dteService: DteService, private router: Router) {
     this.periodoSeleccionado = PeriodoTributario.ahora();
+    this.isLoginRoute = this.router.url.startsWith('/login');
+    this.router.events.subscribe(evt => {
+      if (evt instanceof NavigationEnd) {
+        this.isLoginRoute = evt.urlAfterRedirects.startsWith('/login');
+      }
+    });
   }
 
   ngOnInit(): void {
