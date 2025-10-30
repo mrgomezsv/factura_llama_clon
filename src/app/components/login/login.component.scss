@@ -10,8 +10,9 @@
   max-width: calc(100vw - 32px);
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 16px 40px rgba(15,23,42,.12);
+  box-shadow: 0 1px 2px rgba(16,24,40,.08), 0 24px 48px rgba(16,24,40,.12);
   padding: 36px 40px;
+  border: 1px solid #ECEFF3;
 }
 
 .logo-row {
@@ -34,10 +35,11 @@
 .logo-text {
   font-weight: 700;
   color: #1F2937;
+  font-size: 22px;
 }
 
 .title {
-  font-size: 24px;
+  font-size: 32px;
   font-weight: 700;
   color: #111827;
   margin: 14px 0 20px;
@@ -52,14 +54,18 @@
 }
 
 .form .input {
-  height: 40px;
+  height: 42px;
   border-radius: 10px;
+  border: 1px solid #E5E7EB;
+  background: #fff;
 }
 
 .input-group { position: relative; }
 .input-group .input { padding-left: 38px; padding-right: 38px; }
-.input-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: .55; }
-.input-trailing { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); opacity: .55; }
+.input-icon, .input-trailing { color: #9CA3AF; }
+.input-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); }
+.input-trailing { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); }
+.form .input:focus { outline: none; border-color: #5B9BD5; box-shadow: 0 0 0 3px rgba(91,155,213,.18); }
 
 .links-col { display: grid; gap: 6px; margin: 12px 0 16px; text-align: center; }
 .link { color: #5B9BD5; font-size: 13px; text-decoration: none; }
@@ -73,7 +79,10 @@
   height: 44px;
   border-radius: 10px;
   font-weight: 600;
+  background-color: #5B9BD5;
+  box-shadow: 0 1px 1px rgba(0,0,0,.04);
 }
+.submit:hover { background-color: #4472C4; }
 
 @media (max-width: 560px) {
   .login-card { padding: 24px; }
