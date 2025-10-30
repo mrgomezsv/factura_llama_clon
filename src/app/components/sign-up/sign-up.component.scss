@@ -96,14 +96,16 @@
 .helper-text {
   font-size: 12px;
   color: #6B7280;
-  margin-top: -8px;
+  margin-top: 6px;
+  margin-bottom: 4px;
 }
 
 .terms-text {
   font-size: 13px;
   color: #6B7280;
   line-height: 1.5;
-  margin-top: 4px;
+  margin-top: 12px;
+  text-align: center;
 }
 
 .link {
@@ -123,7 +125,7 @@
   font-weight: 600;
   background-color: #5B9BD5;
   box-shadow: 0 1px 1px rgba(0,0,0,.04);
-  margin-top: 8px;
+  margin-top: 0;
 }
 
 .submit:hover {
