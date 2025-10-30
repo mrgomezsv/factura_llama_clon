@@ -459,10 +459,9 @@ html, body {
    Factura (Drawer) fine-tuning to match original UI
    ------------- */
 .drawer .card {
-  border: 0; /* elimina cualquier borde externo */
+  border: 0;
   border-radius: 12px;
-  /* usa un hairline interno muy sutil para separar, no se ve negro */
-  box-shadow: inset 0 0 0 1px #E9ECEF, 0 2px 10px rgba(0,0,0,.04);
+  box-shadow: inset 0 0 0 1px #E5E7EB, 0 2px 10px rgba(0,0,0,.04);
   background-clip: padding-box;
 }
 
@@ -475,12 +474,12 @@ html, body {
   font-weight: 600;
   color: #374151;
   background-color: #fff;
-  border-bottom: 1px solid #E9ECEF;
+  border-bottom: 1px solid #E5E7EB;
 }
 
 .drawer .card-header .icon { color: #6B7280; }
 .drawer .card-header .chevron { margin-left: auto; color: #6B7280; }
-.drawer .card-header.active { border-color: #A7C5E7; box-shadow: 0 0 0 3px rgba(91,155,213,.12); }
+.drawer .card-header.active { border-color: #A7C5E7; box-shadow: 0 0 0 2px rgba(91,155,213,.10); }
 .drawer .card-header:focus, .drawer .card-header:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(91,155,213,.12); }
 
 .drawer .card-body { padding: 14px; }
