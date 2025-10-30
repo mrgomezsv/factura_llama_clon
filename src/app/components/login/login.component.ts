@@ -15,6 +15,14 @@ export class LoginComponent {
   entrar(): void {
     this.router.navigateByUrl('/home');
   }
+
+  irAForgetPassword(): void {
+    this.router.navigateByUrl('/forgot-password');
+  }
+
+  irASignUp(): void {
+    this.router.navigateByUrl('/sign-up');
+  }
 }
 
 

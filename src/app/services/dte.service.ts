@@ -133,7 +133,7 @@ const dtesData: any[] = [
 const empresasData: any[] = [
   {
     "id": "1",
-    "nombre": "INDUSTRIAS G & G TEXTILES & BORDADOS",
+    "nombre": "BARLLENO APP",
     "nit": "0614-123456-001-2",
     "direccion": "San Salvador, El Salvador"
   },

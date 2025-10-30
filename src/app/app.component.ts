@@ -32,12 +32,16 @@ export class AppComponent implements OnInit {
 
   constructor(private dteService: DteService, private router: Router) {
     this.periodoSeleccionado = PeriodoTributario.ahora();
-    this.isLoginRoute = this.router.url.startsWith('/login');
+    this.isLoginRoute = this.isAuthRoute(this.router.url);
     this.router.events.subscribe(evt => {
       if (evt instanceof NavigationEnd) {
-        this.isLoginRoute = evt.urlAfterRedirects.startsWith('/login');
+        this.isLoginRoute = this.isAuthRoute(evt.urlAfterRedirects);
       }
     });
+  }
+
+  private isAuthRoute(url: string): boolean {
+    return url.startsWith('/login') || url.startsWith('/forgot-password') || url.startsWith('/sign-up');
   }
 
   ngOnInit(): void {

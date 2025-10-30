@@ -1,17 +1,28 @@
-<div class="login-page">
-  <div class="login-card">
+<div class="signup-page">
+  <div class="signup-card">
     <div class="logo-row">
       <svg class="llama-logo" width="44" height="44" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M6 19c0-2 1-3 3-3h6c2 0 3 1 3 3" stroke="#5B9BD5" stroke-width="1.5" stroke-linecap="round"/>
         <path d="M7 8v6c0 1.657 1.343 3 3 3h2a3 3 0 003-3V7l2 1" stroke="#5B9BD5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         <circle cx="9.5" cy="6.5" r=".75" fill="#5B9BD5"/>
       </svg>
-      <div class="logo-text">WaveDTE-v2</div>
+      <div class="logo-text">FacturaLlama</div>
     </div>
 
-    <h1 class="title">Iniciar Sesión</h1>
+    <h1 class="title">Crear Cuenta</h1>
 
-    <form class="form" (submit)="$event.preventDefault()">
+    <form class="form" (submit)="$event.preventDefault(); crearCuenta()">
+      <label class="label">Nombre de tu negocio</label>
+      <div class="input-group">
+        <span class="input-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M4 6h16v12H4z" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M8 10h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <input class="input" type="text" placeholder="Escribe el nombre de tu negocio" />
+      </div>
+
       <label class="label">Correo Electrónico</label>
       <div class="input-group">
         <span class="input-icon">
@@ -20,10 +31,11 @@
             <path d="M4 7l8 6 8-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </span>
-        <input class="input" type="email" />
+        <input class="input" type="email" placeholder="Correo electrónico" />
       </div>
+      <div class="helper-text">Usa de 1 a 40 caracteres. Puedes usar a-z, 0-9, . (punto), - (guion) y _ (guion bajo).</div>
 
-      <label class="label mt-md">Contraseña</label>
+      <label class="label">Contraseña</label>
       <div class="input-group">
         <span class="input-icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -31,7 +43,7 @@
             <path d="M9 10V7a3 3 0 016 0v3" stroke="currentColor" stroke-width="1.8"/>
           </svg>
         </span>
-        <input class="input" type="password" />
+        <input class="input" type="password" placeholder="Crea una contraseña segura" />
         <span class="input-trailing">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" stroke="currentColor" stroke-width="1.8"/>
@@ -40,14 +52,16 @@
         </span>
       </div>
 
-      <div class="links-col">
-        <a href="#" class="link" (click)="$event.preventDefault(); irAForgetPassword()">¿Olvidaste tu contraseña?</a>
-        <div class="signup-row">¿No tienes una cuenta? <a href="#" class="link-strong" (click)="$event.preventDefault(); irASignUp()">Regístrate</a></div>
+      <div class="terms-text">
+        Al crear una cuenta, aceptas los <a href="#" class="link">Términos de Servicio</a> y la <a href="#" class="link">Política de Privacidad</a>.
       </div>
 
-      <button type="submit" class="btn btn-primary submit" (click)="entrar()">Entrar</button>
+      <button type="submit" class="btn btn-primary submit">Crea tu cuenta</button>
+
+      <div class="login-link">
+        ¿Ya tienes una cuenta? <a href="#" class="link" (click)="$event.preventDefault(); entrar()">Entrar</a>
+      </div>
     </form>
   </div>
 </div>
-
 
