@@ -9,16 +9,21 @@
 
     <form class="form" (submit)="$event.preventDefault()">
       <label class="label">Correo Electrónico</label>
-      <input class="input" type="email" placeholder="" />
-
-      <label class="label mt-md">Contraseña</label>
-      <div class="password-row">
-        <input class="input" type="password" placeholder="" />
+      <div class="input-group">
+        <span class="input-icon">✉️</span>
+        <input class="input" type="email" />
       </div>
 
-      <div class="links-row">
+      <label class="label mt-md">Contraseña</label>
+      <div class="input-group">
+        <span class="input-icon">🔒</span>
+        <input class="input" type="password" />
+        <span class="input-trailing">👁️</span>
+      </div>
+
+      <div class="links-col">
         <a href="#" class="link">¿Olvidaste tu contraseña?</a>
-        <a href="#" class="link">Regístrate</a>
+        <div class="signup-row">¿No tienes una cuenta? <a href="#" class="link-strong">Regístrate</a></div>
       </div>
 
       <button type="submit" class="btn btn-primary submit" (click)="entrar()">Entrar</button>
