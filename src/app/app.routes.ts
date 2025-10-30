@@ -27,6 +27,11 @@ export const routes: Routes = [
       import('./components/sign-up/sign-up.component').then(m => m.SignUpComponent)
   },
   {
+    path: 'terminos-y-condiciones',
+    loadComponent: () =>
+      import('./components/terms/terms.component').then(m => m.TermsComponent)
+  },
+  {
     path: 'home',
     loadComponent: () =>
       import('./components/blank/blank.component').then(m => m.BlankComponent)

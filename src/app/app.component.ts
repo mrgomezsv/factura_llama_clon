@@ -41,7 +41,7 @@ export class AppComponent implements OnInit {
   }
 
   private isAuthRoute(url: string): boolean {
-    return url.startsWith('/login') || url.startsWith('/forgot-password') || url.startsWith('/sign-up');
+    return url.startsWith('/login') || url.startsWith('/forgot-password') || url.startsWith('/sign-up') || url.startsWith('/terminos-y-condiciones');
   }
 
   ngOnInit(): void {
