@@ -5,12 +5,12 @@ import { Empresa } from '../../models/empresa.model';
 import { PeriodoTributario } from '../../models/periodo-tributario.model';
 import { DatePickerComponent } from '../date-picker/date-picker.component';
 import { GenerateDteMenuComponent } from '../generate-dte-menu/generate-dte-menu.component';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, DatePickerComponent, GenerateDteMenuComponent],
+  imports: [CommonModule, RouterModule, DatePickerComponent, GenerateDteMenuComponent],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
