@@ -19,5 +19,9 @@ export class SignUpComponent {
   entrar(): void {
     this.router.navigateByUrl('/login');
   }
+
+  irATerminos(): void {
+    this.router.navigateByUrl('/terminos-y-condiciones');
+  }
 }
 

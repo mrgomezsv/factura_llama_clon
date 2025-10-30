@@ -53,7 +53,7 @@
       </div>
 
       <div class="terms-text">
-        Al crear una cuenta, aceptas los <a href="#" class="link">Términos de Servicio</a> y la <a href="#" class="link">Política de Privacidad</a>.
+        Al crear una cuenta, aceptas los <a href="#" class="link" (click)="$event.preventDefault(); irATerminos()">Términos de Servicio</a> y la <a href="#" class="link">Política de Privacidad</a>.
       </div>
 
       <button type="submit" class="btn btn-primary submit">Crea tu cuenta</button>
