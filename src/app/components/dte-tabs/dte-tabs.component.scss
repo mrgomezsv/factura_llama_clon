@@ -42,14 +42,7 @@
 }
 
 .tab-icon {
-  display: none;
-}
-
-.tab.active .tab-icon {
-  display: none;
-}
-
-.tab.active .tab-icon-check {
   display: block;
+  flex-shrink: 0;
 }
 
