@@ -32,6 +32,11 @@ export const routes: Routes = [
       import('./pages/factura-sujeto-excluido/factura-sujeto-excluido-page.component').then(m => m.FacturaSujetoExcluidoPageComponent)
   },
   {
+    path: 'factura-exportacion/nueva',
+    loadComponent: () =>
+      import('./pages/factura-exportacion/factura-exportacion-page.component').then(m => m.FacturaExportacionPageComponent)
+  },
+  {
     path: 'login',
     loadComponent: () =>
       import('./components/login/login.component').then(m => m.LoginComponent)
