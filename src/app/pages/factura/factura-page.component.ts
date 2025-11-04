@@ -91,14 +91,13 @@ import { FacturaItemsComponent } from '../../components/factura/factura-items.co
                 <div class="dashed-line-right"></div>
               </div>
               <div class="card-body">
-                <div class="totales-separator"></div>
                 <div class="tabla-totales">
                   <div class="tot-row"><span>Suma de Ventas Gravadas</span><span>{{ sumaGravadas | currency:'USD':'symbol':'1.2-2' }}</span></div>
                   <div class="tot-row"><span>Suma de Ventas Exentas</span><span>$0.00</span></div>
                   <div class="tot-row"><span>Suma de Ventas No Sujetas</span><span>$0.00</span></div>
                   <div class="tot-row"><span>Sumatoria de Ventas</span><span>{{ sumaGravadas | currency:'USD':'symbol':'1.2-2' }}</span></div>
                   <div class="tot-row"><span>Descuento Global Ventas Gravadas</span><span>{{ descuentoGlobal | currency:'USD':'symbol':'1.2-2' }}</span></div>
-                  <div class="tot-row"><span>Sub Total</span><span>{{ subTotal | currency:'USD':'symbol':'1.2-2' }}</span></div>
+                  <div class="tot-row subtotal"><span>Sub Total</span><span>{{ subTotal | currency:'USD':'symbol':'1.2-2' }}</span></div>
                   <div class="tot-row"><span>(-)IVA Retenido</span><span>{{ retenciones.iva | currency:'USD':'symbol':'1.2-2' }}</span></div>
                   <div class="tot-row"><span>(-)Retención Renta</span><span>{{ retenciones.renta | currency:'USD':'symbol':'1.2-2' }}</span></div>
                   <div class="tot-row"><span>Monto Total de Operación</span><span>{{ totalPagar | currency:'USD':'symbol':'1.2-2' }}</span></div>
@@ -138,10 +137,15 @@ import { FacturaItemsComponent } from '../../components/factura/factura-items.co
     .card.opciones-card .card-header .title, .card.totales-card .card-header .title { flex:0 0 auto; color:#374151; position:relative; z-index:1; margin-right:10px; }
     .dashed-line-left, .dashed-line-right { flex:1; height:1px; border-top:1px dashed #E9ECEF; align-self:center; }
     .card.opciones-card .card-body, .card.totales-card .card-body { display:flex; flex-direction:column; gap:10px; padding:14px; }
-    .totales-separator { height:1px; border-bottom:1px dashed #E9ECEF; margin:0 0 10px 0; }
+    .card.totales-card .card-body { padding:0 14px 14px 14px; }
     .tabla-totales { display: flex; flex-direction: column; gap: 0; }
-    .tot-row { display: flex; justify-content: space-between; color: var(--color-text-primary); border-bottom: 1px solid #E5E7EB; padding: 8px 0; font-size: 14px; }
+    .tot-row { display: flex; justify-content: space-between; align-items: center; color: var(--color-text-primary); border-bottom: 1px solid #E5E7EB; padding: 10px 0; font-size: 14px; }
+    .tot-row span:first-child { text-align: left; }
+    .tot-row span:last-child { text-align: right; font-weight: 400; }
+    .tot-row.subtotal { font-weight: 700; }
+    .tot-row.subtotal span:last-child { font-weight: 700; }
     .tot-row.total { font-weight: 700; border-bottom: 1px solid #D1D5DB; }
+    .tot-row.total span:last-child { font-weight: 700; }
     .tot-row:last-child { border-bottom: 0; }
     .switch-row{display:flex;align-items:center;gap:10px;padding:8px 0}
     .switch-row.disabled{opacity:.6}
