@@ -1,0 +1,133 @@
+<div class="modal-overlay" (click)="cerrarModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="modal-header">
+      <h2>Crear Producto</h2>
+      <button class="btn-cerrar" type="button" (click)="cerrarModal()">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="modal-body">
+      <form [formGroup]="form">
+        <!-- Datos Generales -->
+        <div class="form-section">
+          <h3 class="section-title">Datos Generales</h3>
+
+          <div class="form-group">
+            <label class="form-label">Nombre</label>
+            <input 
+              type="text" 
+              class="form-input" 
+              formControlName="nombre"
+              placeholder="Nombre"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tipo de Producto</label>
+            <select class="form-select" formControlName="tipoProducto">
+              <option value="">Selecciona el tipo de producto</option>
+              <option *ngFor="let tipo of tiposProducto" [value]="tipo">{{ tipo }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Precio con IVA</label>
+            <div class="input-with-prefix">
+              <span class="prefix">$</span>
+              <input 
+                type="number" 
+                class="form-input" 
+                formControlName="precioConIva"
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Descripción <span class="optional">(opcional)</span></label>
+            <textarea 
+              class="form-textarea" 
+              formControlName="descripcion"
+              placeholder="Escribe aquí la descripción de tu producto o servicio"
+              rows="4"
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Código Interno <span class="optional">(opcional)</span></label>
+            <input 
+              type="text" 
+              class="form-input" 
+              formControlName="codigoInterno"
+              placeholder="Código Interno"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Descuento <span class="optional">(opcional)</span></label>
+            <div class="input-with-prefix">
+              <span class="prefix">$</span>
+              <input 
+                type="number" 
+                class="form-input" 
+                formControlName="descuento"
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Unidad de Medida</label>
+            <div class="unidad-medida-container">
+              <div class="unidad-tag" *ngIf="unidadSeleccionada && unidadSeleccionada !== 'Otra'">
+                {{ unidadSeleccionada }}
+                <button type="button" class="btn-limpiar" (click)="limpiarUnidad()">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </button>
+              </div>
+              <button 
+                type="button" 
+                class="btn-select-unidad" 
+                (click)="mostrarUnidadDropdown = !mostrarUnidadDropdown"
+              >
+                Seleccionar
+              </button>
+              <div class="dropdown-unidad" *ngIf="mostrarUnidadDropdown">
+                <button 
+                  type="button" 
+                  class="dropdown-item" 
+                  *ngFor="let unidad of unidadesMedida" 
+                  (click)="seleccionarUnidad(unidad)"
+                >
+                  {{ unidad }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer">
+      <button class="btn-cancelar" type="button" (click)="cerrarModal()">
+        Cancelar
+      </button>
+      <button class="btn-crear" type="button" (click)="crearProducto()" [disabled]="!form.valid">
+        Crear
+      </button>
+    </div>
+  </div>
+</div>
+
