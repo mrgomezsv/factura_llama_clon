@@ -1,30 +1,22 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DteService } from '../../services/dte.service';
 import { Empresa } from '../../models/empresa.model';
-import { PeriodoTributario } from '../../models/periodo-tributario.model';
-import { DatePickerComponent } from '../date-picker/date-picker.component';
-import { GenerateDteMenuComponent } from '../generate-dte-menu/generate-dte-menu.component';
 import { Router, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, RouterModule, DatePickerComponent, GenerateDteMenuComponent],
+  imports: [CommonModule, RouterModule],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
 export class HeaderComponent implements OnInit {
-  @Output() periodoCambiado = new EventEmitter<PeriodoTributario>();
-  
   empresas: Empresa[] = [];
   empresaSeleccionada: Empresa | null = null;
-  periodoSeleccionado: PeriodoTributario;
   mostrarSelectorEmpresa: boolean = false;
-  mostrarSelectorPeriodo: boolean = false;
 
   constructor(private dteService: DteService, private router: Router) {
-    this.periodoSeleccionado = PeriodoTributario.ahora();
   }
 
   ngOnInit(): void {
@@ -47,18 +39,6 @@ export class HeaderComponent implements OnInit {
 
   toggleSelectorEmpresa(): void {
     this.mostrarSelectorEmpresa = !this.mostrarSelectorEmpresa;
-    this.mostrarSelectorPeriodo = false;
-  }
-
-  toggleSelectorPeriodo(): void {
-    this.mostrarSelectorPeriodo = !this.mostrarSelectorPeriodo;
-    this.mostrarSelectorEmpresa = false;
-  }
-
-  onPeriodoSeleccionado(periodo: PeriodoTributario): void {
-    this.periodoSeleccionado = periodo;
-    this.mostrarSelectorPeriodo = false;
-    this.periodoCambiado.emit(periodo);
   }
 
   navegar(destino: string): void {

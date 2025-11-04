@@ -152,35 +152,6 @@
 
     <!-- Controles Derecha -->
     <div class="header-controls">
-      <!-- Selector de Período Tributario -->
-      <div class="periodo-container">
-        <label class="periodo-label">Período Tributario</label>
-        <button 
-          class="periodo-button"
-          (click)="toggleSelectorPeriodo()"
-          type="button"
-        >
-          <svg class="icon-calendar" width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M3 2H13C13.5523 2 14 2.44772 14 3V13C14 13.5523 13.5523 14 13 14H3C2.44772 14 2 13.5523 2 13V3C2 2.44772 2.44772 2 3 2Z" stroke="currentColor" stroke-width="1.5"/>
-            <path d="M2 6H14" stroke="currentColor" stroke-width="1.5"/>
-            <path d="M6 2V6" stroke="currentColor" stroke-width="1.5"/>
-            <path d="M10 2V6" stroke="currentColor" stroke-width="1.5"/>
-          </svg>
-          <span>{{ periodoSeleccionado.formatoTexto }}</span>
-        </button>
-
-        <!-- Date Picker Component -->
-        @if (mostrarSelectorPeriodo) {
-          <app-date-picker
-            [periodoActual]="periodoSeleccionado"
-            (periodoSeleccionado)="onPeriodoSeleccionado($event)"
-            (cerrar)="mostrarSelectorPeriodo = false"
-          />
-        }
-      </div>
-
-      <!-- Botón Generar DTE -->
-      <app-generate-dte-menu />
     </div>
   </div>
 </header>
