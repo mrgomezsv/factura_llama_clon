@@ -14,7 +14,7 @@
   gap: 8px;
   margin-bottom: 20px;
   font-size: 14px;
-  color: #64748b;
+  color: #000000;
 
   .breadcrumb-link {
     cursor: pointer;
@@ -26,11 +26,11 @@
   }
 
   .breadcrumb-separator {
-    color: #94a3b8;
+    color: #000000;
   }
 
   .breadcrumb-current {
-    color: #1e293b;
+    color: #000000;
     font-weight: 500;
   }
 }
@@ -154,7 +154,7 @@
 
   .info-label {
     font-size: 12px;
-    color: #64748b;
+    color: #000000;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -311,7 +311,7 @@
       text-align: left;
       font-size: 12px;
       font-weight: 600;
-      color: #64748b;
+      color: #000000;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
