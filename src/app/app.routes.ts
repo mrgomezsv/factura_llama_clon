@@ -37,6 +37,11 @@ export const routes: Routes = [
       import('./pages/factura-exportacion/factura-exportacion-page.component').then(m => m.FacturaExportacionPageComponent)
   },
   {
+    path: 'nota-remision/nueva',
+    loadComponent: () =>
+      import('./pages/nota-remision/nota-remision-page.component').then(m => m.NotaRemisionPageComponent)
+  },
+  {
     path: 'login',
     loadComponent: () =>
       import('./components/login/login.component').then(m => m.LoginComponent)

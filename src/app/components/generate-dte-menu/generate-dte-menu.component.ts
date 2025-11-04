@@ -49,6 +49,8 @@ export class GenerateDteMenuComponent implements OnInit {
         this.router.navigateByUrl('/factura-sujeto-excluido/nueva');
       } else if (tipo.codigo === 'FEX') {
         this.router.navigateByUrl('/factura-exportacion/nueva');
+      } else if (tipo.codigo === 'REM') {
+        this.router.navigateByUrl('/nota-remision/nueva');
       }
       this.cerrarMenu();
     }
