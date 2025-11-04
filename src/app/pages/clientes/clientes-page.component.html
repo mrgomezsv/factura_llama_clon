@@ -1,0 +1,255 @@
+<div class="clientes-page">
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <span class="breadcrumb-link" (click)="navegarAInicio()">Inicio</span>
+    <span class="breadcrumb-separator">→</span>
+    <span class="breadcrumb-current">{{ empresaSeleccionada?.nombre || 'Empresa' }}</span>
+  </div>
+
+  <div class="clientes-layout">
+    <!-- Sidebar Izquierdo -->
+    <aside class="sidebar-left" *ngIf="empresaSeleccionada">
+      <div class="sidebar-content">
+        <h2 class="empresa-title">
+          <span class="status-dot"></span>
+          {{ empresaSeleccionada.nombre }}
+        </h2>
+        <span class="badge-verificada">VERIFICADA</span>
+
+        <div class="empresa-logo">
+          <div class="logo-placeholder">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+              <path d="M20 20C23.3137 20 26 17.3137 26 14C26 10.6863 23.3137 8 20 8C16.6863 8 14 10.6863 14 14C14 17.3137 16.6863 20 20 20Z" stroke="currentColor" stroke-width="2"/>
+              <path d="M20 22C14.4772 22 10 26.4772 10 32V34H30V32C30 26.4772 25.5228 22 20 22Z" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <span class="logo-text">{{ empresaSeleccionada.nombre }}</span>
+          </div>
+          <button class="edit-logo-btn" type="button">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M11.3333 2.00004C11.5084 1.82493 11.7163 1.68602 11.9444 1.59129C12.1726 1.49657 12.4163 1.44775 12.6625 1.44775C12.9087 1.44775 13.1524 1.49657 13.3806 1.59129C13.6087 1.68602 13.8166 1.82493 13.9917 2.00004C14.1668 2.17515 14.3057 2.38303 14.4004 2.61118C14.4951 2.83933 14.5439 3.08305 14.5439 3.32926C14.5439 3.57547 14.4951 3.81919 14.4004 4.04734C14.3057 4.27549 14.1668 4.48337 13.9917 4.65848L5.65833 13L1.33333 14.3334L2.66667 10.0084L11 1.66671L11.3333 2.00004Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="empresa-info">
+          <div class="info-row">
+            <span class="info-label">ID:</span>
+            <span class="info-value">{{ empresaSeleccionada.id || 'N/A' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Nombre Legal:</span>
+            <span class="info-value">{{ empresaSeleccionada.nombreLegal || 'N/A' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Nombre Comercial:</span>
+            <span class="info-value">{{ empresaSeleccionada.nombre || 'N/A' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">NRC:</span>
+            <span class="info-value">{{ empresaSeleccionada.nrc || 'N/A' }}</span>
+          </div>
+          <div class="info-row" *ngIf="empresaSeleccionada.actividadesEconomicas">
+            <span class="info-label">Actividades Económicas:</span>
+            <div class="info-value-list">
+              <span *ngFor="let actividad of empresaSeleccionada.actividadesEconomicas" class="actividad-item">{{ actividad }}</span>
+            </div>
+          </div>
+          <div class="info-row">
+            <span class="info-label">DUI/NIT:</span>
+            <span class="info-value">{{ empresaSeleccionada.nit || 'N/A' }}</span>
+          </div>
+          
+          <div class="section-header">Casa Matriz</div>
+          <div class="info-row">
+            <span class="info-label">Dirección:</span>
+            <span class="info-value">{{ empresaSeleccionada.direccion || '-' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Complemento:</span>
+            <span class="info-value">{{ empresaSeleccionada.complemento || '-' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Departamento:</span>
+            <span class="info-value">{{ empresaSeleccionada.departamento || 'N/A' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Municipio:</span>
+            <span class="info-value">{{ empresaSeleccionada.municipio || 'N/A' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Código del Ministerio de Hacienda:</span>
+            <span class="info-value">{{ empresaSeleccionada.codigoMH || 'N/A' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Cantidad de Puntos de Venta:</span>
+            <span class="info-value">{{ empresaSeleccionada.puntosVenta || 'N/A' }}</span>
+          </div>
+
+          <div class="section-header">Contacto</div>
+          <div class="info-row">
+            <span class="info-label">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M8 1C10.7614 1 13 3.23858 13 6C13 8.76142 10.7614 11 8 11C5.23858 11 3 8.76142 3 6C3 3.23858 5.23858 1 8 1Z" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M1 15V12C1 10.3431 2.34315 9 4 9H12C13.6569 9 15 10.3431 15 12V15" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+            </span>
+            <span class="info-value">{{ empresaSeleccionada.website || '-' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M3.33333 2.66667C2.59695 2.66667 2 3.26362 2 4V12C2 12.7364 2.59695 13.3333 3.33333 13.3333H12.6667C13.403 13.3333 14 12.7364 14 12V4C14 3.26362 13.403 2.66667 12.6667 2.66667H3.33333Z" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M2 5.33333L8 9.33333L14 5.33333" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="info-value">{{ empresaSeleccionada.telefono || 'N/A' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M3.33333 2.66667C2.59695 2.66667 2 3.26362 2 4V12C2 12.7364 2.59695 13.3333 3.33333 13.3333H12.6667C13.403 13.3333 14 12.7364 14 12V4C14 3.26362 13.403 2.66667 12.6667 2.66667H3.33333Z" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M2 5.33333L8 9.33333L14 5.33333" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="info-value">{{ empresaSeleccionada.email || 'N/A' }}</span>
+          </div>
+
+          <div class="section-header">Ministerio de Hacienda</div>
+          <div class="info-row">
+            <span class="info-label">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="info-value">Certificado (TEST)</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M8 1L10.4721 5.52786L15 8L10.4721 10.4721L8 15L5.52786 10.4721L1 8L5.52786 5.52786L8 1Z" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+            </span>
+            <span class="info-value">Contraseña API (TEST)</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="info-value">Certificado (LIVE)</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M8 1L10.4721 5.52786L15 8L10.4721 10.4721L8 15L5.52786 10.4721L1 8L5.52786 5.52786L8 1Z" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+            </span>
+            <span class="info-value">Contraseña API (LIVE)</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Área Principal -->
+    <main class="main-content">
+      <!-- Tabs -->
+      <div class="tabs-container">
+        <button 
+          class="tab" 
+          [class.active]="tabActiva === 'clientes'"
+          (click)="cambiarTab('clientes')"
+          type="button"
+        >
+          Clientes
+        </button>
+        <button 
+          class="tab" 
+          [class.active]="tabActiva === 'sucursales'"
+          (click)="cambiarTab('sucursales')"
+          type="button"
+        >
+          Sucursales
+        </button>
+        <button 
+          class="tab" 
+          [class.active]="tabActiva === 'productos'"
+          (click)="cambiarTab('productos')"
+          type="button"
+        >
+          Productos
+        </button>
+
+        <!-- Search y Filtros -->
+        <div class="search-filters">
+          <div class="search-box">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M9 17C13.4183 17 17 13.4183 17 9C17 4.58172 13.4183 1 9 1C4.58172 1 1 4.58172 1 9C1 13.4183 4.58172 17 9 17Z" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M19 19L14.65 14.65" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <input type="text" placeholder="Buscar por nombre, correo o alias..." />
+          </div>
+          <button class="btn-filtros" type="button">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M2 4H14M4 8H12M6 12H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            Filtros
+          </button>
+        </div>
+
+        <!-- Botón + con Dropdown -->
+        <app-add-button-dropdown (opcionSeleccionada)="manejarOpcionSeleccionada($event)"></app-add-button-dropdown>
+      </div>
+
+      <!-- Contenido de Tab -->
+      <div class="tab-content" *ngIf="tabActiva === 'clientes'">
+        <table class="clientes-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Correo Electrónico</th>
+              <th>Fecha de Creación</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let cliente of clientes">
+              <td>{{ cliente.nombre }}</td>
+              <td>{{ cliente.correo }}</td>
+              <td>{{ cliente.fechaCreacion || 'N/A' }}</td>
+              <td>
+                <button class="btn-menu" type="button">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <circle cx="8" cy="4" r="1" fill="currentColor"/>
+                    <circle cx="8" cy="8" r="1" fill="currentColor"/>
+                    <circle cx="8" cy="12" r="1" fill="currentColor"/>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div class="pagination">
+          <button class="page-btn" type="button">&lt;</button>
+          <button class="page-btn active" type="button">1</button>
+          <button class="page-btn" type="button">2</button>
+          <button class="page-btn" type="button">3</button>
+          <button class="page-btn" type="button">4</button>
+          <button class="page-btn" type="button">5</button>
+          <span class="page-ellipsis">...</span>
+          <button class="page-btn" type="button">9</button>
+          <button class="page-btn" type="button">&gt;</button>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<app-crear-cliente-modal 
+  *ngIf="mostrarModalCrearCliente"
+  (cerrar)="mostrarModalCrearCliente = false"
+  (clienteCreado)="onClienteCreado($event)"
+></app-crear-cliente-modal>
+
