@@ -51,6 +51,8 @@ export class GenerateDteMenuComponent implements OnInit {
         this.router.navigateByUrl('/factura-exportacion/nueva');
       } else if (tipo.codigo === 'REM') {
         this.router.navigateByUrl('/nota-remision/nueva');
+      } else if (tipo.codigo === 'CRT') {
+        this.router.navigateByUrl('/comprobante-retencion/nueva');
       }
       this.cerrarMenu();
     }

@@ -42,6 +42,11 @@ export const routes: Routes = [
       import('./pages/nota-remision/nota-remision-page.component').then(m => m.NotaRemisionPageComponent)
   },
   {
+    path: 'comprobante-retencion/nueva',
+    loadComponent: () =>
+      import('./pages/comprobante-retencion/comprobante-retencion-page.component').then(m => m.ComprobanteRetencionPageComponent)
+  },
+  {
     path: 'login',
     loadComponent: () =>
       import('./components/login/login.component').then(m => m.LoginComponent)
