@@ -13,7 +13,8 @@ export class LoginComponent {
   constructor(private router: Router) {}
 
   entrar(): void {
-    this.router.navigateByUrl('/home');
+    // Redirigir a /dtes que mostrará el contenido principal
+    this.router.navigateByUrl('/dtes');
   }
 
   irAForgetPassword(): void {

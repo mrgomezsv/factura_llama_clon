@@ -7,6 +7,16 @@ export const routes: Routes = [
     pathMatch: 'full'
   },
   {
+    path: 'home',
+    loadComponent: () =>
+      import('./components/blank/blank.component').then(m => m.BlankComponent)
+  },
+  {
+    path: 'dtes',
+    loadComponent: () =>
+      import('./components/blank/blank.component').then(m => m.BlankComponent)
+  },
+  {
     path: 'factura/nueva',
     loadComponent: () =>
       import('./pages/factura/factura-page.component').then(m => m.FacturaPageComponent)
@@ -47,6 +57,11 @@ export const routes: Routes = [
       import('./pages/comprobante-retencion/comprobante-retencion-page.component').then(m => m.ComprobanteRetencionPageComponent)
   },
   {
+    path: 'clientes',
+    loadComponent: () =>
+      import('./pages/clientes/clientes-page.component').then(m => m.ClientesPageComponent)
+  },
+  {
     path: 'login',
     loadComponent: () =>
       import('./components/login/login.component').then(m => m.LoginComponent)
@@ -65,10 +80,5 @@ export const routes: Routes = [
     path: 'terminos-y-condiciones',
     loadComponent: () =>
       import('./components/terms/terms.component').then(m => m.TermsComponent)
-  },
-  {
-    path: 'home',
-    loadComponent: () =>
-      import('./components/blank/blank.component').then(m => m.BlankComponent)
   }
 ];

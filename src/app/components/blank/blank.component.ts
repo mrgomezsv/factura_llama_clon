@@ -3,7 +3,7 @@ import { Component } from '@angular/core';
 @Component({
   selector: 'app-blank',
   standalone: true,
-  template: ''
+  template: '<div></div>'
 })
 export class BlankComponent {}
 

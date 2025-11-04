@@ -15,3 +15,8 @@
   padding: 0 var(--spacing-md);
 }
 
+router-outlet {
+  display: block;
+  flex: 1;
+}
+
