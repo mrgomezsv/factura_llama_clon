@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DteService } from '../../services/dte.service';
 import { Empresa } from '../../models/empresa.model';
@@ -64,6 +64,14 @@ export class HeaderComponent implements OnInit {
   salir(): void {
     this.mostrarSelectorEmpresa = false;
     this.router.navigateByUrl('/login');
+  }
+
+  @HostListener('document:click', ['$event'])
+  clickOutside(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.header-selector')) {
+      this.mostrarSelectorEmpresa = false;
+    }
   }
 }
 
