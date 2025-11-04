@@ -77,9 +77,12 @@ import { FacturaItemsComponent } from '../../components/factura/factura-items.co
               <p class="empty-sub">No es posible registrar ventas sin añadir productos o servicios.</p>
             </div>
             <div class="card totales-card">
-              <div class="card-header"></div>
+              <div class="card-header">
                 <span class="icon">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10Z" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M10 10h2.5a1.5 1.5 0 0 1 0 3H10M12 14h2.5a1.5 1.5 0 0 1 0 3H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10Z" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M12 7v1.5M12 15.5V17M10 10.5h2.5a1.5 1.5 0 0 1 1.5 1.5 1.5 1.5 0 0 1-1.5 1.5H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
                 </span>
                 <span class="title">Totales</span>
               </div>
