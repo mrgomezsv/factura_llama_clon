@@ -2,14 +2,14 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { FacturaClienteComponent } from '../../components/factura/factura-cliente.component';
-import { FacturaSucursalComponent } from '../../components/factura/factura-sucursal.component';
-import { FacturaRetencionesComponent } from '../../components/factura/factura-retenciones.component';
-import { FacturaDescuentosComponent } from '../../components/factura/factura-descuentos.component';
-import { FacturaResponsablesComponent } from '../../components/factura/factura-responsables.component';
-import { FacturaOtrosComponent } from '../../components/factura/factura-otros.component';
-import { FacturaAppendicesComponent } from '../../components/factura/factura-appendices.component';
-import { FacturaItemsComponent } from '../../components/factura/factura-items.component';
+import { ComprobanteCreditoFiscalClienteComponent } from '../../components/comprobante-credito-fiscal/comprobante-credito-fiscal-cliente.component';
+import { ComprobanteCreditoFiscalSucursalComponent } from '../../components/comprobante-credito-fiscal/comprobante-credito-fiscal-sucursal.component';
+import { ComprobanteCreditoFiscalRetencionesComponent } from '../../components/comprobante-credito-fiscal/comprobante-credito-fiscal-retenciones.component';
+import { ComprobanteCreditoFiscalDescuentosComponent } from '../../components/comprobante-credito-fiscal/comprobante-credito-fiscal-descuentos.component';
+import { ComprobanteCreditoFiscalResponsablesComponent } from '../../components/comprobante-credito-fiscal/comprobante-credito-fiscal-responsables.component';
+import { ComprobanteCreditoFiscalOtrosComponent } from '../../components/comprobante-credito-fiscal/comprobante-credito-fiscal-otros.component';
+import { ComprobanteCreditoFiscalAppendicesComponent } from '../../components/comprobante-credito-fiscal/comprobante-credito-fiscal-appendices.component';
+import { ComprobanteCreditoFiscalItemsComponent } from '../../components/comprobante-credito-fiscal/comprobante-credito-fiscal-items.component';
 
 @Component({
   selector: 'app-comprobante-credito-fiscal-page',
@@ -17,14 +17,14 @@ import { FacturaItemsComponent } from '../../components/factura/factura-items.co
   imports: [
     CommonModule,
     FormsModule,
-    FacturaClienteComponent,
-    FacturaSucursalComponent,
-    FacturaRetencionesComponent,
-    FacturaDescuentosComponent,
-    FacturaResponsablesComponent,
-    FacturaOtrosComponent,
-    FacturaAppendicesComponent,
-    FacturaItemsComponent
+    ComprobanteCreditoFiscalClienteComponent,
+    ComprobanteCreditoFiscalSucursalComponent,
+    ComprobanteCreditoFiscalRetencionesComponent,
+    ComprobanteCreditoFiscalDescuentosComponent,
+    ComprobanteCreditoFiscalResponsablesComponent,
+    ComprobanteCreditoFiscalOtrosComponent,
+    ComprobanteCreditoFiscalAppendicesComponent,
+    ComprobanteCreditoFiscalItemsComponent
   ],
   template: `
     <div class="overlay" (click)="cerrar()">
@@ -35,14 +35,14 @@ import { FacturaItemsComponent } from '../../components/factura/factura-items.co
         </div>
         <div class="factura-layout">
           <div class="panel-izquierdo">
-            <app-factura-cliente (changed)="onCliente($event)" />
-            <app-factura-sucursal />
-            <app-factura-retenciones (changed)="onRetenciones($event)" />
-            <app-factura-descuentos (changed)="onDescuento($event)" />
-            <app-factura-responsables />
-            <app-factura-otros />
-            <app-factura-appendices />
-            <app-factura-items (itemsChanged)="onItems($event)" />
+            <app-comprobante-credito-fiscal-cliente (changed)="onCliente($event)" />
+            <app-comprobante-credito-fiscal-sucursal />
+            <app-comprobante-credito-fiscal-retenciones (changed)="onRetenciones($event)" />
+            <app-comprobante-credito-fiscal-descuentos (changed)="onDescuento($event)" />
+            <app-comprobante-credito-fiscal-responsables />
+            <app-comprobante-credito-fiscal-otros />
+            <app-comprobante-credito-fiscal-appendices />
+            <app-comprobante-credito-fiscal-items (itemsChanged)="onItems($event)" />
 
             <div class="card opciones-card">
               <div class="card-header">
