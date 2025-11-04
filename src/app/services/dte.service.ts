@@ -190,7 +190,7 @@ const tiposDteData: any[] = [
   {
     "codigo": "CRT",
     "nombre": "Comprobante de Retención",
-    "habilitado": false
+    "habilitado": true
   }
 ];
 
