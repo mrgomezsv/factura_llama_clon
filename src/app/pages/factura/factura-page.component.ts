@@ -185,7 +185,7 @@ export class FacturaPageComponent {
   }
 
   cerrar(): void {
-    this.router.navigateByUrl('/');
+    this.router.navigateByUrl('/dtes');
   }
 }
 

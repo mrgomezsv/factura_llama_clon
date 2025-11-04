@@ -185,6 +185,6 @@ export class ComprobanteRetencionPageComponent {
   }
 
   cerrar(): void {
-    this.router.navigateByUrl('/');
+    this.router.navigateByUrl('/dtes');
   }
 }

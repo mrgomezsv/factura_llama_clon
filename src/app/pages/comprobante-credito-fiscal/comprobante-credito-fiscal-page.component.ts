@@ -185,7 +185,7 @@ export class ComprobanteCreditoFiscalPageComponent {
   }
 
   cerrar(): void {
-    this.router.navigateByUrl('/');
+    this.router.navigateByUrl('/dtes');
   }
 }
 
