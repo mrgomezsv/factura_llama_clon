@@ -45,6 +45,8 @@ export class GenerateDteMenuComponent implements OnInit {
         this.router.navigateByUrl('/nota-credito/nueva');
       } else if (tipo.codigo === 'NDB') {
         this.router.navigateByUrl('/nota-debito/nueva');
+      } else if (tipo.codigo === 'FSE') {
+        this.router.navigateByUrl('/factura-sujeto-excluido/nueva');
       }
       this.cerrarMenu();
     }
