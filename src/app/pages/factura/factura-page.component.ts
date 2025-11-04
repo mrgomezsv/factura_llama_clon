@@ -118,12 +118,12 @@ import { FacturaItemsComponent } from '../../components/factura/factura-items.co
   `,
   styles: [`
     .overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(2px);display:flex;justify-content:flex-end;z-index:1000}
-    .drawer{width:min(100%, 980px);height:100vh;background:#fff;display:flex;flex-direction:column;animation:slideIn .25s ease;border:0;}
+    .drawer{width:min(100%, 1250px);height:100vh;background:#fff;display:flex;flex-direction:column;animation:slideIn .25s ease;border:0;}
     @keyframes slideIn{from{transform:translateX(100%);}to{transform:translateX(0);}}
     .drawer-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #E9ECEF}
     .drawer-footer{display:flex;gap:12px;justify-content:flex-end;padding:12px 16px;border-top:1px solid #E9ECEF}
     .btn-cerrar{border:none;background:transparent;font-size:18px;cursor:pointer;color:var(--color-text-secondary)}
-    .factura-layout { flex:1; display: grid; grid-template-columns: 420px 1fr; gap: 24px; padding: 20px 24px; overflow:auto; }
+    .factura-layout { flex:1; display: grid; grid-template-columns: 500px 1fr; gap: 24px; padding: 20px 24px; overflow:auto; }
     .panel-izquierdo { display: flex; flex-direction: column; gap: 12px; }
     .panel-derecho { display: flex; flex-direction: column; gap: 16px; }
     .placeholder-totales { text-align: center; color: var(--color-text-secondary); padding: 32px 0 16px; }
