@@ -87,13 +87,18 @@ import { FacturaItemsComponent } from '../../components/factura/factura-items.co
                 <span class="title">Totales</span>
               </div>
               <div class="card-body">
+                <div class="totales-separator"></div>
                 <div class="tabla-totales">
                   <div class="tot-row"><span>Suma de Ventas Gravadas</span><span>{{ sumaGravadas | currency:'USD':'symbol':'1.2-2' }}</span></div>
                   <div class="tot-row"><span>Suma de Ventas Exentas</span><span>$0.00</span></div>
                   <div class="tot-row"><span>Suma de Ventas No Sujetas</span><span>$0.00</span></div>
+                  <div class="tot-row"><span>Sumatoria de Ventas</span><span>{{ sumaGravadas | currency:'USD':'symbol':'1.2-2' }}</span></div>
+                  <div class="tot-row"><span>Descuento Global Ventas Gravadas</span><span>{{ descuentoGlobal | currency:'USD':'symbol':'1.2-2' }}</span></div>
                   <div class="tot-row"><span>Sub Total</span><span>{{ subTotal | currency:'USD':'symbol':'1.2-2' }}</span></div>
                   <div class="tot-row"><span>(-)IVA Retenido</span><span>{{ retenciones.iva | currency:'USD':'symbol':'1.2-2' }}</span></div>
                   <div class="tot-row"><span>(-)Retención Renta</span><span>{{ retenciones.renta | currency:'USD':'symbol':'1.2-2' }}</span></div>
+                  <div class="tot-row"><span>Monto Total de Operación</span><span>{{ totalPagar | currency:'USD':'symbol':'1.2-2' }}</span></div>
+                  <div class="tot-row"><span>Total de Otros Montos No Afectos</span><span>$0.00</span></div>
                   <div class="tot-row total"><span>Total a Pagar</span><span>{{ totalPagar | currency:'USD':'symbol':'1.2-2' }}</span></div>
                 </div>
               </div>
@@ -122,13 +127,17 @@ import { FacturaItemsComponent } from '../../components/factura/factura-items.co
     .empty-title{font-weight:700;color:#495057;margin:0}
     .empty-sub{margin:4px 0 0;color:#868E96;font-size:14px}
     .card.opciones-card, .card.totales-card { background:var(--color-bg-white); border-radius:var(--border-radius-md); box-shadow:0 1px 2px rgba(15, 23, 42, 0.08); }
-    .card.opciones-card .card-header, .card.totales-card .card-header { width:100%; display:flex; align-items:center; gap:10px; padding:0 14px; height:44px; font-weight:600; border-bottom:1px solid #E5E7EB; background:#fff; }
+    .card.opciones-card .card-header, .card.totales-card .card-header { width:100%; display:flex; align-items:center; gap:10px; padding:0 14px; height:44px; font-weight:600; background:#fff; }
+    .card.opciones-card .card-header { border-bottom:1px solid #E5E7EB; }
+    .card.totales-card .card-header { border-bottom:0; }
     .card.opciones-card .card-header .icon, .card.totales-card .card-header .icon { display:inline-flex; color:var(--color-text-secondary); }
     .card.opciones-card .card-header .title, .card.totales-card .card-header .title { flex:1; color:#374151; }
     .card.opciones-card .card-body, .card.totales-card .card-body { display:flex; flex-direction:column; gap:10px; padding:14px; }
-    .tabla-totales { display: flex; flex-direction: column; gap: 8px; }
-    .tot-row { display: flex; justify-content: space-between; color: var(--color-text-primary); border-bottom: 1px solid #eee; padding: 6px 0; }
-    .tot-row.total { font-weight: 700; }
+    .totales-separator { height:1px; border-bottom:1px dashed #E9ECEF; margin:0 0 10px 0; }
+    .tabla-totales { display: flex; flex-direction: column; gap: 0; }
+    .tot-row { display: flex; justify-content: space-between; color: var(--color-text-primary); border-bottom: 1px solid #E5E7EB; padding: 8px 0; font-size: 14px; }
+    .tot-row.total { font-weight: 700; border-bottom: 1px solid #D1D5DB; }
+    .tot-row:last-child { border-bottom: 0; }
     .switch-row{display:flex;align-items:center;gap:10px;padding:8px 0}
     .switch-row.disabled{opacity:.6}
     .switch{width:38px;height:22px;border-radius:999px;background:#E9ECEF;position:relative;display:inline-block}
