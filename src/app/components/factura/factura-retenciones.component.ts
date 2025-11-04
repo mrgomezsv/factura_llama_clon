@@ -32,7 +32,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
     .card-header .title{flex:1}
     .card-header .chevron{transition:transform .2s ease;color:var(--color-text-secondary)}
     .card-header .chevron.open{transform:rotate(180deg)}
-    .card-header.active{box-shadow:0 0 0 3px rgba(91,155,213,.1);border-color:var(--color-primary)}
+    .card-header.active{box-shadow:0 0 0 3px rgba(91,155,213,.1);border-color:transparent}
     .card-body{display:flex;flex-direction:column;gap:10px;padding:16px;}
     .label{font-size:12px;color:var(--color-text-secondary);}
     .input{padding:10px;border:1px solid #DEE2E6;border-radius:8px;}
