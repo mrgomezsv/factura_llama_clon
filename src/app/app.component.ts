@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HeaderComponent } from './components/header/header.component';
@@ -8,6 +8,8 @@ import { DteService } from './services/dte.service';
 import { DTE } from './models/dte.model';
 import { PeriodoTributario } from './models/periodo-tributario.model';
 import { UpgradeModalComponent } from './components/upgrade-modal/upgrade-modal.component';
+import { DatePickerComponent } from './components/date-picker/date-picker.component';
+import { TipoDTE } from './models/tipo-dte.model';
 
 @Component({
   selector: 'app-root',
@@ -17,7 +19,8 @@ import { UpgradeModalComponent } from './components/upgrade-modal/upgrade-modal.
     HeaderComponent,
     DteTabsComponent,
     DteTableComponent,
-    UpgradeModalComponent
+    UpgradeModalComponent,
+    DatePickerComponent
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
@@ -31,6 +34,9 @@ export class AppComponent implements OnInit {
   isLoginRoute = false;
   showMainLayout = true;
   showDTEsContent = true;
+  mostrarSelectorPeriodo = false;
+  mostrarMenuDTE = false;
+  tiposDTE: TipoDTE[] = [];
 
   constructor(private dteService: DteService, private router: Router) {
     this.periodoSeleccionado = PeriodoTributario.ahora();
@@ -70,6 +76,13 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarDTEs();
+    this.cargarTiposDTE();
+  }
+
+  cargarTiposDTE(): void {
+    this.dteService.getTiposDTE().subscribe(tipos => {
+      this.tiposDTE = tipos;
+    });
   }
 
   cargarDTEs(): void {
@@ -97,8 +110,57 @@ export class AppComponent implements OnInit {
     this.tabActiva = 'enviados';
   }
 
-  onPeriodoCambiado(periodo: PeriodoTributario): void {
+  toggleSelectorPeriodo(): void {
+    this.mostrarSelectorPeriodo = !this.mostrarSelectorPeriodo;
+    this.mostrarMenuDTE = false;
+  }
+
+  onPeriodoSeleccionado(periodo: PeriodoTributario): void {
     this.periodoSeleccionado = periodo;
+    this.mostrarSelectorPeriodo = false;
     this.cargarDTEs();
+  }
+
+  toggleMenuDTE(): void {
+    this.mostrarMenuDTE = !this.mostrarMenuDTE;
+    this.mostrarSelectorPeriodo = false;
+  }
+
+  cerrarMenuDTE(): void {
+    this.mostrarMenuDTE = false;
+  }
+
+  seleccionarTipoDTE(tipo: TipoDTE): void {
+    if (tipo.habilitado) {
+      if (tipo.codigo === 'FAC') {
+        this.router.navigateByUrl('/factura/nueva');
+      } else if (tipo.codigo === 'CCF') {
+        this.router.navigateByUrl('/comprobante-credito-fiscal/nueva');
+      } else if (tipo.codigo === 'NCR') {
+        this.router.navigateByUrl('/nota-credito/nueva');
+      } else if (tipo.codigo === 'NDB') {
+        this.router.navigateByUrl('/nota-debito/nueva');
+      } else if (tipo.codigo === 'FSE') {
+        this.router.navigateByUrl('/factura-sujeto-excluido/nueva');
+      } else if (tipo.codigo === 'FEX') {
+        this.router.navigateByUrl('/factura-exportacion/nueva');
+      } else if (tipo.codigo === 'REM') {
+        this.router.navigateByUrl('/nota-remision/nueva');
+      } else if (tipo.codigo === 'CRT') {
+        this.router.navigateByUrl('/comprobante-retencion/nueva');
+      }
+      this.cerrarMenuDTE();
+    }
+  }
+
+  @HostListener('document:click', ['$event'])
+  clickOutside(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.periodo-container')) {
+      this.mostrarSelectorPeriodo = false;
+    }
+    if (!target.closest('.generate-menu-container')) {
+      this.mostrarMenuDTE = false;
+    }
   }
 }

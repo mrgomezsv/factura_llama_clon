@@ -1,14 +1,80 @@
 @if (showMainLayout) {
   <div class="app-container">
-    <app-header (periodoCambiado)="onPeriodoCambiado($event)"/>
+    <app-header />
     @if (showDTEsContent) {
       <main class="main-content">
         <div class="container">
-          <app-dte-tabs 
-            [tabActiva]="tabActiva"
-            (tabCambiada)="onTabCambiada($event)"
-          />
-          <app-dte-table [dtes]="dtes" />
+          <div class="dte-header-top">
+            <h1 class="dte-title">DTEs</h1>
+            <div class="periodo-container">
+              <label class="periodo-label">Período Tributario</label>
+              <div class="periodo-controls">
+                <button 
+                  class="periodo-button"
+                  (click)="toggleSelectorPeriodo()"
+                  type="button"
+                >
+                  <svg class="icon-calendar" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M3 2H13C13.5523 2 14 2.44772 14 3V13C14 13.5523 13.5523 14 13 14H3C2.44772 14 2 13.5523 2 13V3C2 2.44772 2.44772 2 3 2Z" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M2 6H14" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M6 2V6" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M10 2V6" stroke="currentColor" stroke-width="1.5"/>
+                  </svg>
+                  <span>{{ periodoSeleccionado.formatoTexto }}</span>
+                </button>
+                <div class="generate-menu-container">
+                  <button 
+                    class="periodo-add-btn"
+                    (click)="toggleMenuDTE()"
+                    type="button"
+                    aria-label="Generar DTE"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M8 3V13M3 8H13" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+
+                  @if (mostrarMenuDTE) {
+                    <div class="dropdown-menu">
+                      <div class="dropdown-header">Generar DTE</div>
+                      @for (tipo of tiposDTE; track tipo.codigo) {
+                        <button
+                          class="dropdown-item"
+                          [class.disabled]="!tipo.habilitado"
+                          (click)="seleccionarTipoDTE(tipo)"
+                          type="button"
+                        >
+                          <svg class="icon-document" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M6 2H14L16 4V18C16 18.5523 15.5523 19 15 19H5C4.44772 19 4 18.5523 4 18V3C4 2.44772 4.44772 2 5 2H6Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                            <path d="M6 2V6H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                          <span>{{ tipo.nombre }}</span>
+                          @if (!tipo.habilitado) {
+                            <span class="badge badge-warning">PRONTO</span>
+                          }
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+              <!-- Date Picker Component -->
+              @if (mostrarSelectorPeriodo) {
+                <app-date-picker
+                  [periodoActual]="periodoSeleccionado"
+                  (periodoSeleccionado)="onPeriodoSeleccionado($event)"
+                  (cerrar)="mostrarSelectorPeriodo = false"
+                />
+              }
+            </div>
+          </div>
+          <div class="table-card">
+            <app-dte-tabs 
+              [tabActiva]="tabActiva"
+              (tabCambiada)="onTabCambiada($event)"
+            />
+            <app-dte-table [dtes]="dtes" />
+          </div>
           <app-upgrade-modal *ngIf="mostrarUpgrade" (close)="cerrarUpgrade()" />
         </div>
       </main>
