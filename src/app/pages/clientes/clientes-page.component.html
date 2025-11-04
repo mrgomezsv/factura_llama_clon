@@ -187,7 +187,10 @@
               <path d="M9 17C13.4183 17 17 13.4183 17 9C17 4.58172 13.4183 1 9 1C4.58172 1 1 4.58172 1 9C1 13.4183 4.58172 17 9 17Z" stroke="currentColor" stroke-width="1.5"/>
               <path d="M19 19L14.65 14.65" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
             </svg>
-            <input type="text" placeholder="Buscar por nombre, correo o alias..." />
+            <input 
+              type="text" 
+              [placeholder]="tabActiva === 'clientes' ? 'Buscar por nombre, correo o alias...' : tabActiva === 'sucursales' ? 'Buscar por nombre, dirección...' : 'Buscar por nombre, código interno o descripción...'" 
+            />
           </div>
           <button class="btn-filtros" type="button">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -201,7 +204,7 @@
         <app-add-button-dropdown (opcionSeleccionada)="manejarOpcionSeleccionada($event)"></app-add-button-dropdown>
       </div>
 
-      <!-- Contenido de Tab -->
+      <!-- Contenido de Tab Clientes -->
       <div class="tab-content" *ngIf="tabActiva === 'clientes'">
         <table class="clientes-table">
           <thead>
@@ -243,6 +246,105 @@
           <button class="page-btn" type="button">&gt;</button>
         </div>
       </div>
+
+      <!-- Contenido de Tab Sucursales -->
+      <div class="tab-content" *ngIf="tabActiva === 'sucursales'">
+        <div class="empty-state" *ngIf="sucursales.length === 0">
+          <svg width="140" height="140" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Caja isométrica abierta -->
+            <!-- Cara frontal -->
+            <path d="M35 85L70 65L105 85V105L70 125L35 105V85Z" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5"/>
+            <!-- Cara superior -->
+            <path d="M70 65L105 85L105 105L70 125L70 105L70 65Z" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="1.5"/>
+            <!-- Cara lateral -->
+            <path d="M35 85L70 105L70 125L35 105V85Z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+            <!-- Línea superior ondulada (hilo/cinta) -->
+            <path d="M40 78Q45 72 55 70Q65 68 75 70Q85 72 90 78" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" fill="none"/>
+            <!-- Sombra -->
+            <ellipse cx="70" cy="130" rx="35" ry="8" fill="#e2e8f0" opacity="0.5"/>
+          </svg>
+          <h3 class="empty-state-title">Aún no tienes sucursales</h3>
+          <p class="empty-state-text">Haz click en 'Agregar Sucursal' para añadir la primera.</p>
+          <button class="btn-agregar" type="button" (click)="mostrarModalCrearSucursal = true">
+            Agregar Sucursal
+          </button>
+        </div>
+        <table class="clientes-table" *ngIf="sucursales.length > 0">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Tipo</th>
+              <th>Dirección</th>
+              <th>Fecha de Creación</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let sucursal of sucursales">
+              <td>{{ sucursal.nombre }}</td>
+              <td>{{ sucursal.tipoSucursal || 'N/A' }}</td>
+              <td>{{ sucursal.direccion || 'N/A' }}</td>
+              <td>{{ sucursal.fechaCreacion || 'N/A' }}</td>
+              <td>
+                <button class="btn-menu" type="button">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <circle cx="8" cy="4" r="1" fill="currentColor"/>
+                    <circle cx="8" cy="8" r="1" fill="currentColor"/>
+                    <circle cx="8" cy="12" r="1" fill="currentColor"/>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div class="pagination" *ngIf="sucursales.length > 0">
+          <button class="page-btn" type="button">&lt;</button>
+          <button class="page-btn active" type="button">1</button>
+          <button class="page-btn" type="button">&gt;</button>
+        </div>
+      </div>
+
+      <!-- Contenido de Tab Productos -->
+      <div class="tab-content" *ngIf="tabActiva === 'productos'">
+        <table class="clientes-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Precio con IVA</th>
+              <th>Unidad de Medida</th>
+              <th>Fecha de Creación</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let producto of productos">
+              <td>{{ producto.nombre }}</td>
+              <td>${{ producto.precioConIva | number:'1.2-2' }}</td>
+              <td>{{ producto.unidadMedida }}</td>
+              <td>{{ producto.fechaCreacion || 'N/A' }}</td>
+              <td>
+                <button class="btn-menu" type="button">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <circle cx="8" cy="4" r="1" fill="currentColor"/>
+                    <circle cx="8" cy="8" r="1" fill="currentColor"/>
+                    <circle cx="8" cy="12" r="1" fill="currentColor"/>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div class="pagination">
+          <button class="page-btn" type="button">&lt;</button>
+          <button class="page-btn active" type="button">1</button>
+          <button class="page-btn" type="button">2</button>
+          <button class="page-btn" type="button">&gt;</button>
+        </div>
+      </div>
     </main>
   </div>
 </div>
@@ -252,4 +354,16 @@
   (cerrar)="mostrarModalCrearCliente = false"
   (clienteCreado)="onClienteCreado($event)"
 ></app-crear-cliente-modal>
+
+<app-crear-sucursal-modal 
+  *ngIf="mostrarModalCrearSucursal"
+  (cerrar)="mostrarModalCrearSucursal = false"
+  (sucursalCreada)="onSucursalCreada($event)"
+></app-crear-sucursal-modal>
+
+<app-crear-producto-modal 
+  *ngIf="mostrarModalCrearProducto"
+  (cerrar)="mostrarModalCrearProducto = false"
+  (productoCreado)="onProductoCreado($event)"
+></app-crear-producto-modal>
 
