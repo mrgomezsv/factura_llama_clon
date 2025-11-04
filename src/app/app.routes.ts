@@ -12,6 +12,11 @@ export const routes: Routes = [
       import('./pages/factura/factura-page.component').then(m => m.FacturaPageComponent)
   },
   {
+    path: 'comprobante-credito-fiscal/nueva',
+    loadComponent: () =>
+      import('./pages/comprobante-credito-fiscal/comprobante-credito-fiscal-page.component').then(m => m.ComprobanteCreditoFiscalPageComponent)
+  },
+  {
     path: 'login',
     loadComponent: () =>
       import('./components/login/login.component').then(m => m.LoginComponent)

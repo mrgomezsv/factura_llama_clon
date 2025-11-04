@@ -39,6 +39,8 @@ export class GenerateDteMenuComponent implements OnInit {
     if (tipo.habilitado) {
       if (tipo.codigo === 'FAC') {
         this.router.navigateByUrl('/factura/nueva');
+      } else if (tipo.codigo === 'CCF') {
+        this.router.navigateByUrl('/comprobante-credito-fiscal/nueva');
       }
       this.cerrarMenu();
     }
