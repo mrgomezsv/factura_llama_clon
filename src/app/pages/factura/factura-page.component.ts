@@ -93,14 +93,14 @@ import { FacturaItemsComponent } from '../../components/factura/factura-items.co
   `,
   styles: [`
     .overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(2px);display:flex;justify-content:flex-end;z-index:1000}
-    .drawer{width:min(100%, 980px);height:100vh;background:#fff;display:flex;flex-direction:column;animation:slideIn .25s ease;}
+    .drawer{width:min(100%, 980px);height:100vh;background:#fff;display:flex;flex-direction:column;animation:slideIn .25s ease;border:0;}
     @keyframes slideIn{from{transform:translateX(100%);}to{transform:translateX(0);}}
     .drawer-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #E9ECEF}
     .drawer-footer{display:flex;gap:12px;justify-content:flex-end;padding:12px 16px;border-top:1px solid #E9ECEF}
     .btn-cerrar{border:none;background:transparent;font-size:18px;cursor:pointer;color:var(--color-text-secondary)}
     .factura-layout { flex:1; display: grid; grid-template-columns: 420px 1fr; gap: 24px; padding: 20px 24px; overflow:auto; }
     .panel-izquierdo { display: flex; flex-direction: column; gap: 12px; }
-    .panel-derecho { background: var(--color-bg-white); border-radius: var(--border-radius-md); padding: 16px; box-shadow: var(--shadow-sm); height: fit-content; align-self: start; }
+    .panel-derecho { background: var(--color-bg-white); border-radius: var(--border-radius-md); padding: 16px; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08); height: fit-content; align-self: start; border: 0; }
     .placeholder-totales { text-align: center; color: var(--color-text-secondary); padding: 32px 0 16px; }
     .box-illustration { margin-bottom: 8px; }
     .empty-title{font-weight:700;color:#495057;margin:0}
@@ -109,7 +109,7 @@ import { FacturaItemsComponent } from '../../components/factura/factura-items.co
     .tot-row { display: flex; justify-content: space-between; color: var(--color-text-primary); border-bottom: 1px solid #eee; padding: 6px 0; }
     .tot-row.total { font-weight: 700; }
     .separador{height:1px;background:#E9ECEF;margin:8px 0}
-    .opciones{background:#fff;border:1px solid #E9ECEF;border-radius:12px;padding:12px;box-shadow:var(--shadow-sm)}
+    .opciones{background:#fff;border:0;border-radius:12px;padding:12px;box-shadow:0 1px 2px rgba(15, 23, 42, 0.08)}
     .opciones-header{display:flex;align-items:center;gap:8px;color:#868E96;border-bottom:1px dashed #E9ECEF;padding-bottom:8px;margin-bottom:8px}
     .switch-row{display:flex;align-items:center;gap:10px;padding:8px 0}
     .switch-row.disabled{opacity:.6}
