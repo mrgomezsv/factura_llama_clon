@@ -41,6 +41,18 @@ export class GenerateDteMenuComponent implements OnInit {
         this.router.navigateByUrl('/factura/nueva');
       } else if (tipo.codigo === 'CCF') {
         this.router.navigateByUrl('/comprobante-credito-fiscal/nueva');
+      } else if (tipo.codigo === 'NCR') {
+        this.router.navigateByUrl('/nota-credito/nueva');
+      } else if (tipo.codigo === 'NDB') {
+        this.router.navigateByUrl('/nota-debito/nueva');
+      } else if (tipo.codigo === 'FSE') {
+        this.router.navigateByUrl('/factura-sujeto-excluido/nueva');
+      } else if (tipo.codigo === 'FEX') {
+        this.router.navigateByUrl('/factura-exportacion/nueva');
+      } else if (tipo.codigo === 'REM') {
+        this.router.navigateByUrl('/nota-remision/nueva');
+      } else if (tipo.codigo === 'CRT') {
+        this.router.navigateByUrl('/comprobante-retencion/nueva');
       }
       this.cerrarMenu();
     }
