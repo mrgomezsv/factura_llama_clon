@@ -44,27 +44,30 @@ import { FacturaItemsComponent } from '../../components/factura/factura-items.co
             <app-factura-appendices />
             <app-factura-items (itemsChanged)="onItems($event)" />
 
-            <div class="separador"></div>
-            <div class="opciones">
-              <div class="opciones-header">
-                <span class="icono">🔗</span>
-                <span>Opciones</span>
+            <div class="card opciones-card">
+              <div class="card-header">
+                <span class="icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" stroke="currentColor" stroke-width="1.5"/></svg>
+                </span>
+                <span class="title">Opciones</span>
               </div>
-              <label class="switch-row">
-                <input type="checkbox" [(ngModel)]="ambienteProduccion" />
-                <span class="switch"></span>
-                <span class="switch-label">Generar en Ambiente de Producción</span>
-              </label>
-              <label class="switch-row">
-                <input type="checkbox" [(ngModel)]="enviarCorreo" />
-                <span class="switch"></span>
-                <span class="switch-label">Enviar correo de notificación al cliente</span>
-              </label>
-              <label class="switch-row">
-                <input type="checkbox" [(ngModel)]="vistaPrevia" />
-                <span class="switch"></span>
-                <span class="switch-label">Mostrar vista previa antes del envío</span>
-              </label>
+              <div class="card-body">
+                <label class="switch-row">
+                  <input type="checkbox" [(ngModel)]="ambienteProduccion" />
+                  <span class="switch"></span>
+                  <span class="switch-label">Generar en Ambiente de Producción</span>
+                </label>
+                <label class="switch-row">
+                  <input type="checkbox" [(ngModel)]="enviarCorreo" />
+                  <span class="switch"></span>
+                  <span class="switch-label">Enviar correo de notificación al cliente</span>
+                </label>
+                <label class="switch-row">
+                  <input type="checkbox" [(ngModel)]="vistaPrevia" />
+                  <span class="switch"></span>
+                  <span class="switch-label">Mostrar vista previa antes del envío</span>
+                </label>
+              </div>
             </div>
           </div>
           <div class="panel-derecho">
@@ -73,14 +76,24 @@ import { FacturaItemsComponent } from '../../components/factura/factura-items.co
               <p class="empty-title">No se han agregado ítems</p>
               <p class="empty-sub">No es posible registrar ventas sin añadir productos o servicios.</p>
             </div>
-            <div class="tabla-totales">
-              <div class="tot-row"><span>Suma de Ventas Gravadas</span><span>{{ sumaGravadas | currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row"><span>Suma de Ventas Exentas</span><span>$0.00</span></div>
-              <div class="tot-row"><span>Suma de Ventas No Sujetas</span><span>$0.00</span></div>
-              <div class="tot-row"><span>Sub Total</span><span>{{ subTotal | currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row"><span>(-)IVA Retenido</span><span>{{ retenciones.iva | currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row"><span>(-)Retención Renta</span><span>{{ retenciones.renta | currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row total"><span>Total a Pagar</span><span>{{ totalPagar | currency:'USD':'symbol':'1.2-2' }}</span></div>
+            <div class="card totales-card">
+              <div class="card-header"></div>
+                <span class="icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10Z" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M10 10h2.5a1.5 1.5 0 0 1 0 3H10M12 14h2.5a1.5 1.5 0 0 1 0 3H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </span>
+                <span class="title">Totales</span>
+              </div>
+              <div class="card-body">
+                <div class="tabla-totales">
+                  <div class="tot-row"><span>Suma de Ventas Gravadas</span><span>{{ sumaGravadas | currency:'USD':'symbol':'1.2-2' }}</span></div>
+                  <div class="tot-row"><span>Suma de Ventas Exentas</span><span>$0.00</span></div>
+                  <div class="tot-row"><span>Suma de Ventas No Sujetas</span><span>$0.00</span></div>
+                  <div class="tot-row"><span>Sub Total</span><span>{{ subTotal | currency:'USD':'symbol':'1.2-2' }}</span></div>
+                  <div class="tot-row"><span>(-)IVA Retenido</span><span>{{ retenciones.iva | currency:'USD':'symbol':'1.2-2' }}</span></div>
+                  <div class="tot-row"><span>(-)Retención Renta</span><span>{{ retenciones.renta | currency:'USD':'symbol':'1.2-2' }}</span></div>
+                  <div class="tot-row total"><span>Total a Pagar</span><span>{{ totalPagar | currency:'USD':'symbol':'1.2-2' }}</span></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -100,17 +113,19 @@ import { FacturaItemsComponent } from '../../components/factura/factura-items.co
     .btn-cerrar{border:none;background:transparent;font-size:18px;cursor:pointer;color:var(--color-text-secondary)}
     .factura-layout { flex:1; display: grid; grid-template-columns: 420px 1fr; gap: 24px; padding: 20px 24px; overflow:auto; }
     .panel-izquierdo { display: flex; flex-direction: column; gap: 12px; }
-    .panel-derecho { background: var(--color-bg-white); border-radius: var(--border-radius-md); padding: 16px; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08); height: fit-content; align-self: start; border: 0; }
+    .panel-derecho { display: flex; flex-direction: column; gap: 16px; }
     .placeholder-totales { text-align: center; color: var(--color-text-secondary); padding: 32px 0 16px; }
     .box-illustration { margin-bottom: 8px; }
     .empty-title{font-weight:700;color:#495057;margin:0}
     .empty-sub{margin:4px 0 0;color:#868E96;font-size:14px}
+    .card.opciones-card, .card.totales-card { background:var(--color-bg-white); border-radius:var(--border-radius-md); box-shadow:0 1px 2px rgba(15, 23, 42, 0.08); }
+    .card.opciones-card .card-header, .card.totales-card .card-header { width:100%; display:flex; align-items:center; gap:10px; padding:0 14px; height:44px; font-weight:600; border-bottom:1px solid #E5E7EB; background:#fff; }
+    .card.opciones-card .card-header .icon, .card.totales-card .card-header .icon { display:inline-flex; color:var(--color-text-secondary); }
+    .card.opciones-card .card-header .title, .card.totales-card .card-header .title { flex:1; color:#374151; }
+    .card.opciones-card .card-body, .card.totales-card .card-body { display:flex; flex-direction:column; gap:10px; padding:14px; }
     .tabla-totales { display: flex; flex-direction: column; gap: 8px; }
     .tot-row { display: flex; justify-content: space-between; color: var(--color-text-primary); border-bottom: 1px solid #eee; padding: 6px 0; }
     .tot-row.total { font-weight: 700; }
-    .separador{height:1px;background:#E9ECEF;margin:8px 0}
-    .opciones{background:#fff;border:0;border-radius:12px;padding:12px;box-shadow:0 1px 2px rgba(15, 23, 42, 0.08)}
-    .opciones-header{display:flex;align-items:center;gap:8px;color:#868E96;border-bottom:1px dashed #E9ECEF;padding-bottom:8px;margin-bottom:8px}
     .switch-row{display:flex;align-items:center;gap:10px;padding:8px 0}
     .switch-row.disabled{opacity:.6}
     .switch{width:38px;height:22px;border-radius:999px;background:#E9ECEF;position:relative;display:inline-block}
