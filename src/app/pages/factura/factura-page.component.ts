@@ -46,10 +46,12 @@ import { FacturaItemsComponent } from '../../components/factura/factura-items.co
 
             <div class="card opciones-card">
               <div class="card-header">
+                <div class="dashed-line-left"></div>
                 <span class="icon">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" stroke="currentColor" stroke-width="1.5"/></svg>
                 </span>
                 <span class="title">Opciones</span>
+                <div class="dashed-line-right"></div>
               </div>
               <div class="card-body">
                 <label class="switch-row">
@@ -78,6 +80,7 @@ import { FacturaItemsComponent } from '../../components/factura/factura-items.co
             </div>
             <div class="card totales-card">
               <div class="card-header">
+                <div class="dashed-line-left"></div>
                 <span class="icon">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10Z" stroke="currentColor" stroke-width="1.5"/>
@@ -85,6 +88,7 @@ import { FacturaItemsComponent } from '../../components/factura/factura-items.co
                   </svg>
                 </span>
                 <span class="title">Totales</span>
+                <div class="dashed-line-right"></div>
               </div>
               <div class="card-body">
                 <div class="totales-separator"></div>
@@ -127,11 +131,12 @@ import { FacturaItemsComponent } from '../../components/factura/factura-items.co
     .empty-title{font-weight:700;color:#495057;margin:0}
     .empty-sub{margin:4px 0 0;color:#868E96;font-size:14px}
     .card.opciones-card, .card.totales-card { background:var(--color-bg-white); border-radius:var(--border-radius-md); box-shadow:0 1px 2px rgba(15, 23, 42, 0.08); }
-    .card.opciones-card .card-header, .card.totales-card .card-header { width:100%; display:flex; align-items:center; gap:10px; padding:0 14px; height:44px; font-weight:600; background:#fff; }
+    .card.opciones-card .card-header, .card.totales-card .card-header { width:100%; display:flex; align-items:center; padding:0 14px; height:44px; font-weight:600; background:#fff; position:relative; gap:0; }
     .card.opciones-card .card-header { border-bottom:1px solid #E5E7EB; }
     .card.totales-card .card-header { border-bottom:0; }
-    .card.opciones-card .card-header .icon, .card.totales-card .card-header .icon { display:inline-flex; color:var(--color-text-secondary); }
-    .card.opciones-card .card-header .title, .card.totales-card .card-header .title { flex:1; color:#374151; }
+    .card.opciones-card .card-header .icon, .card.totales-card .card-header .icon { display:inline-flex; color:var(--color-text-secondary); position:relative; z-index:1; margin-right:10px; }
+    .card.opciones-card .card-header .title, .card.totales-card .card-header .title { flex:0 0 auto; color:#374151; position:relative; z-index:1; margin-right:10px; }
+    .dashed-line-left, .dashed-line-right { flex:1; height:1px; border-top:1px dashed #E9ECEF; align-self:center; }
     .card.opciones-card .card-body, .card.totales-card .card-body { display:flex; flex-direction:column; gap:10px; padding:14px; }
     .totales-separator { height:1px; border-bottom:1px dashed #E9ECEF; margin:0 0 10px 0; }
     .tabla-totales { display: flex; flex-direction: column; gap: 0; }
