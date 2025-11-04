@@ -22,6 +22,11 @@ export const routes: Routes = [
       import('./pages/nota-credito/nota-credito-page.component').then(m => m.NotaCreditoPageComponent)
   },
   {
+    path: 'nota-debito/nueva',
+    loadComponent: () =>
+      import('./pages/nota-debito/nota-debito-page.component').then(m => m.NotaDebitoPageComponent)
+  },
+  {
     path: 'login',
     loadComponent: () =>
       import('./components/login/login.component').then(m => m.LoginComponent)

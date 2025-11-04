@@ -43,6 +43,8 @@ export class GenerateDteMenuComponent implements OnInit {
         this.router.navigateByUrl('/comprobante-credito-fiscal/nueva');
       } else if (tipo.codigo === 'NCR') {
         this.router.navigateByUrl('/nota-credito/nueva');
+      } else if (tipo.codigo === 'NDB') {
+        this.router.navigateByUrl('/nota-debito/nueva');
       }
       this.cerrarMenu();
     }
