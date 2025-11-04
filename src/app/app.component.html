@@ -22,6 +22,14 @@
                   </svg>
                   <span>{{ periodoSeleccionado.formatoTexto }}</span>
                 </button>
+                <!-- Date Picker Component -->
+                @if (mostrarSelectorPeriodo) {
+                  <app-date-picker
+                    [periodoActual]="periodoSeleccionado"
+                    (periodoSeleccionado)="onPeriodoSeleccionado($event)"
+                    (cerrar)="mostrarSelectorPeriodo = false"
+                  />
+                }
                 <div class="generate-menu-container">
                   <button 
                     class="periodo-add-btn"
@@ -58,14 +66,6 @@
                   }
                 </div>
               </div>
-              <!-- Date Picker Component -->
-              @if (mostrarSelectorPeriodo) {
-                <app-date-picker
-                  [periodoActual]="periodoSeleccionado"
-                  (periodoSeleccionado)="onPeriodoSeleccionado($event)"
-                  (cerrar)="mostrarSelectorPeriodo = false"
-                />
-              }
             </div>
           </div>
           <div class="table-card">

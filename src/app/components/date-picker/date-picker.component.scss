@@ -1,13 +1,14 @@
 .date-picker-overlay {
   position: absolute;
   top: calc(100% + var(--spacing-xs));
-  right: 0;
+  left: 0;
   background-color: var(--color-bg-white);
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-lg);
   padding: var(--spacing-md);
   z-index: 1000;
   min-width: 280px;
+  pointer-events: auto;
 }
 
 .date-picker-year {
