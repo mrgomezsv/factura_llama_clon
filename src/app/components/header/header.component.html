@@ -3,7 +3,7 @@
     <!-- Logo / Nombre App y Selector de Empresa -->
     <div class="header-left">
       <div class="header-logo">
-        <span class="logo-text">WaveDTE-v2</span>
+        <span class="logo-text" (click)="irAInicio()" style="cursor: pointer;">WaveDTE-v2</span>
       </div>
 
       <!-- Selector de Empresa -->
@@ -29,13 +29,12 @@
             <div class="menu-item empresa-actual">
               {{ empresaSeleccionada?.nombre || 'Seleccionar empresa' }}
             </div>
-            <button class="menu-item disabled" (click)="navegar('clientes')" type="button">
+            <button class="menu-item" (click)="navegar('clientes')" type="button">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                 <path d="M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="currentColor" stroke-width="1.5"/>
                 <path d="M12 13C8.68629 13 6 15.6863 6 19H18C18 15.6863 15.3137 13 12 13Z" stroke="currentColor" stroke-width="1.5"/>
               </svg>
               <span>Clientes</span>
-              <span class="badge-badge">PRONTO</span>
             </button>
             <button class="menu-item disabled" (click)="navegar('productos')" type="button">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
