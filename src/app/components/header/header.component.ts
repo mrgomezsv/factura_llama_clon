@@ -55,6 +55,14 @@ export class HeaderComponent implements OnInit {
       this.router.navigateByUrl('/clientes');
       return;
     }
+    if (destino === 'productos') {
+      this.router.navigateByUrl('/productos');
+      return;
+    }
+    if (destino === 'sucursales') {
+      this.router.navigateByUrl('/sucursales');
+      return;
+    }
   }
 
   irAInicio(): void {

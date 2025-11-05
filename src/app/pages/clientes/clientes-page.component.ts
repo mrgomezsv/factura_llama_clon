@@ -1,6 +1,7 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { DteService } from '../../services/dte.service';
 import { AddButtonDropdownComponent } from '../../components/add-button-dropdown/add-button-dropdown.component';
 import { CrearClienteModalComponent } from '../../components/crear-cliente-modal/crear-cliente-modal.component';
@@ -37,14 +38,34 @@ export class ClientesPageComponent implements OnInit {
 
   constructor(
     private dteService: DteService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
+    this.determinarTabDesdeRuta();
     this.cargarEmpresa();
     this.cargarClientes();
     this.cargarSucursales();
     this.cargarProductos();
+
+    // Suscribirse a cambios de ruta
+    this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe(() => {
+        this.determinarTabDesdeRuta();
+      });
+  }
+
+  determinarTabDesdeRuta(): void {
+    const url = this.router.url;
+    if (url.includes('/productos')) {
+      this.tabActiva = 'productos';
+    } else if (url.includes('/sucursales')) {
+      this.tabActiva = 'sucursales';
+    } else if (url.includes('/clientes')) {
+      this.tabActiva = 'clientes';
+    }
   }
 
   cargarEmpresa(): void {
@@ -106,6 +127,14 @@ export class ClientesPageComponent implements OnInit {
 
   cambiarTab(tab: 'clientes' | 'sucursales' | 'productos'): void {
     this.tabActiva = tab;
+    // Navegar a la ruta correspondiente
+    if (tab === 'productos') {
+      this.router.navigateByUrl('/productos');
+    } else if (tab === 'sucursales') {
+      this.router.navigateByUrl('/sucursales');
+    } else {
+      this.router.navigateByUrl('/clientes');
+    }
   }
 
   navegarAInicio(): void {
