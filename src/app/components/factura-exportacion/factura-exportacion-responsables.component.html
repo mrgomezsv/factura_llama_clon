@@ -1,0 +1,32 @@
+<div class="card">
+<button class="card-header" type="button" (click)="collapsed = !collapsed" [class.active]="!collapsed">
+<span class="icon" aria-hidden="true">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM4 21a8 8 0 1 1 16 0v1H4v-1Z" stroke="currentColor" stroke-width="1.5"/></svg>
+</span>
+<span class="title">Responsables</span>
+<span class="chevron" [class.open]="!collapsed">▾</span>
+</button>
+<div class="card-body" *ngIf="!collapsed">
+<div class="subtitulo">Emisor</div>
+<label class="label">Nombre</label>
+<input class="input" placeholder="Ingresa el Nombre" />
+<label class="label">Tipo de Documento</label>
+<div class="input-group">
+<input class="input" placeholder="Selecciona el Tipo de Documento" />
+<button class="btn btn-icon" type="button">▾</button>
+</div>
+<label class="label">Número de Documento</label>
+<input class="input" placeholder="Ingresa el Número de Documento" />
+
+<div class="subtitulo" style="margin-top: 12px;">Receptor</div>
+<label class="label">Nombre</label>
+<input class="input" placeholder="Ingresa el Nombre" />
+<label class="label">Tipo de Documento</label>
+<div class="input-group">
+<input class="input" placeholder="Selecciona el Tipo de Documento" />
+<button class="btn btn-icon" type="button">▾</button>
+</div>
+<label class="label">Número de Documento</label>
+<input class="input" placeholder="Ingresa el Número de Documento" />
+</div>
+</div>

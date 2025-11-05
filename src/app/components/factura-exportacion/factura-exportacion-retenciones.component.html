@@ -1,0 +1,17 @@
+<div class="card">
+<button class="card-header" type="button" (click)="collapsed = !collapsed" [class.active]="!collapsed">
+<span class="icon" aria-hidden="true">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3l8 4v10l-8 4-8-4V7l8-4Z" stroke="currentColor" stroke-width="1.5"/></svg>
+</span>
+<span class="title">Retenciones</span>
+<span class="chevron" [class.open]="!collapsed">▾</span>
+</button>
+<div class="card-body" *ngIf="!collapsed">
+<form [formGroup]="form">
+<label class="label">Retención Renta</label>
+<input class="input" placeholder="Ingresa el monto (opcional)" formControlName="renta" />
+<label class="label">IVA Retenido</label>
+<input class="input" placeholder="Ingresa el monto (opcional)" formControlName="iva" />
+</form>
+</div>
+</div>

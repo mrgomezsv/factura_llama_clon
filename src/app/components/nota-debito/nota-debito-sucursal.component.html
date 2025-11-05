@@ -1,0 +1,21 @@
+<div class="card">
+<button class="card-header" type="button" (click)="collapsed = !collapsed" [class.active]="!collapsed">
+<span class="icon" aria-hidden="true">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 10l9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V10Z" stroke="currentColor" stroke-width="1.5"/></svg>
+</span>
+<span class="title">Sucursal</span>
+<span class="chevron" [class.open]="!collapsed">▾</span>
+</button>
+<div class="card-body" *ngIf="!collapsed">
+<label class="label">Sucursal</label>
+<div class="input-group">
+<button type="button" class="input select" (click)="open = !open">{{ sucursal || 'Selecciona una sucursal' }}</button>
+<button class="btn btn-icon" type="button" (click)="open = !open">▾</button>
+<div class="dropdown" *ngIf="open">
+<button type="button" class="dropdown-item" *ngFor="let s of sucursales" (click)="seleccionar(s)">{{ s }}</button>
+</div>
+</div>
+<label class="label">No. de POS</label>
+<input class="input" placeholder="" />
+</div>
+</div>

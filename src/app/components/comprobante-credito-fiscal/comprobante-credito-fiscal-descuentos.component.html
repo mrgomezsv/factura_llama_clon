@@ -1,0 +1,15 @@
+<div class="card">
+<button class="card-header" type="button" (click)="collapsed = !collapsed" [class.active]="!collapsed">
+<span class="icon" aria-hidden="true">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 4h6l10 10-6 6L4 10V4Z" stroke="currentColor" stroke-width="1.5"/></svg>
+</span>
+<span class="title">Descuentos</span>
+<span class="chevron" [class.open]="!collapsed">▾</span>
+</button>
+<div class="card-body" *ngIf="!collapsed">
+<form [formGroup]="form">
+<label class="label">Descuento Global Ventas Gravadas</label>
+<input class="input" placeholder="Ingresa el monto (opcional)" formControlName="descuentoGlobal" />
+</form>
+</div>
+</div>
