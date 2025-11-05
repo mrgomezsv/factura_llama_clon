@@ -67,6 +67,10 @@ export class HeaderComponent implements OnInit {
       this.router.navigateByUrl('/dtes');
       return;
     }
+    if (destino === 'reportes') {
+      this.router.navigateByUrl('/reports');
+      return;
+    }
   }
 
   irAInicio(): void {

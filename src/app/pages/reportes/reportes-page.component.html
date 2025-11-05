@@ -1,0 +1,91 @@
+<div class="reportes-page">
+  <!-- Header -->
+  <div class="reportes-header">
+    <h1 class="reportes-title">Reportes & Descargas</h1>
+    <div class="periodo-container">
+      <label class="periodo-label">Período Tributario</label>
+      <div class="periodo-controls">
+        <button 
+          class="periodo-button"
+          (click)="toggleSelectorPeriodo()"
+          type="button"
+        >
+          <svg class="icon-calendar" width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M3 2H13C13.5523 2 14 2.44772 14 3V13C14 13.5523 13.5523 14 13 14H3C2.44772 14 2 13.5523 2 13V3C2 2.44772 2.44772 2 3 2Z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M2 6H14" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M6 2V6" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M10 2V6" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+          <span>{{ periodoSeleccionado.formatoTexto }}</span>
+        </button>
+        <!-- Date Picker Component -->
+        @if (mostrarSelectorPeriodo) {
+          <app-date-picker
+            [periodoActual]="periodoSeleccionado"
+            (periodoSeleccionado)="onPeriodoSeleccionado($event)"
+            (cerrar)="mostrarSelectorPeriodo = false"
+          />
+        }
+        <button 
+          class="periodo-clear"
+          (click)="limpiarPeriodo()"
+          type="button"
+          aria-label="Limpiar período"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-container">
+    <button 
+      class="tab" 
+      [class.active]="tabActiva === 'dtes'"
+      (click)="cambiarTab('dtes')"
+      type="button"
+    >
+      DTEs
+    </button>
+    <button 
+      class="tab" 
+      [class.active]="tabActiva === 'anexos'"
+      (click)="cambiarTab('anexos')"
+      type="button"
+    >
+      Anexos
+    </button>
+    <button 
+      class="tab" 
+      [class.active]="tabActiva === 'libro-iva'"
+      (click)="cambiarTab('libro-iva')"
+      type="button"
+    >
+      Libro de IVA
+    </button>
+    <button 
+      class="tab" 
+      [class.active]="tabActiva === 'reportes'"
+      (click)="cambiarTab('reportes')"
+      type="button"
+    >
+      Reportes
+    </button>
+  </div>
+
+  <!-- Content Area -->
+  <div class="content-area">
+    <!-- Skeleton Loader -->
+    <div class="skeleton-loader">
+      <div class="skeleton-line skeleton-line-1"></div>
+      <div class="skeleton-line skeleton-line-2"></div>
+      <div class="skeleton-line skeleton-line-3"></div>
+      <div class="skeleton-line skeleton-line-4"></div>
+      <div class="skeleton-line skeleton-line-5"></div>
+    </div>
+  </div>
+</div>
+
