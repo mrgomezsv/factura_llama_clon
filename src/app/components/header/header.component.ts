@@ -63,6 +63,10 @@ export class HeaderComponent implements OnInit {
       this.router.navigateByUrl('/sucursales');
       return;
     }
+    if (destino === 'dtes') {
+      this.router.navigateByUrl('/dtes');
+      return;
+    }
   }
 
   irAInicio(): void {
