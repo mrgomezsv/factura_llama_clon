@@ -299,14 +299,78 @@
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   background: #fff;
-  color: #64748b;
+  color: #1e293b;
   font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover {
     background: #f8fafc;
     border-color: #cbd5e1;
+  }
+
+  .icon-plus {
+    margin-left: 4px;
+    color: #1e293b;
+  }
+}
+
+.filtros-container {
+  position: relative;
+  display: inline-block;
+}
+
+.filtros-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 200px;
+  padding: 8px 0;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.filtros-header {
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 4px;
+}
+
+.filtro-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-size: 14px;
+  color: #1e293b;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #f8f9fa;
+  }
+
+  svg {
+    flex-shrink: 0;
+    color: #64748b;
+  }
+
+  span {
+    flex: 1;
   }
 }
 

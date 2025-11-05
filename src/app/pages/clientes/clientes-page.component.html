@@ -221,12 +221,35 @@
               [placeholder]="tabActiva === 'clientes' ? 'Buscar por nombre, correo o alias...' : tabActiva === 'sucursales' ? 'Buscar por nombre, dirección...' : 'Buscar por nombre, código interno o descripción...'" 
             />
           </div>
-          <button class="btn-filtros" type="button">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M2 4H14M4 8H12M6 12H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            </svg>
-            Filtros
-          </button>
+          <div class="filtros-container">
+            <button 
+              class="btn-filtros" 
+              type="button"
+              (click)="toggleFiltrosDropdown($event)"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M2 4H14M4 8H12M6 12H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              Filtros
+              <svg class="icon-plus" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M8 3V13M3 8H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </button>
+            @if (filtrosDropdownAbierto) {
+              <div class="filtros-dropdown">
+                <div class="filtros-header">Filtros</div>
+                <button class="filtro-item" type="button">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M3 2H13C13.5523 2 14 2.44772 14 3V13C14 13.5523 13.5523 14 13 14H3C2.44772 14 2 13.5523 2 13V3C2 2.44772 2.44772 2 3 2Z" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M2 6H14" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M6 2V6" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M10 2V6" stroke="currentColor" stroke-width="1.5"/>
+                  </svg>
+                  <span>Fecha de Creación</span>
+                </button>
+              </div>
+            }
+          </div>
         </div>
 
         <!-- Botón + con Dropdown -->
