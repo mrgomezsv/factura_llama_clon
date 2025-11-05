@@ -41,7 +41,10 @@ export class HeaderComponent implements OnInit {
     this.mostrarSelectorEmpresa = !this.mostrarSelectorEmpresa;
   }
 
-  navegar(destino: string): void {
+  navegar(destino: string, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
     this.mostrarSelectorEmpresa = false;
     if (destino === 'login') {
       this.router.navigateByUrl('/login');
@@ -85,7 +88,7 @@ export class HeaderComponent implements OnInit {
   @HostListener('document:click', ['$event'])
   clickOutside(event: Event): void {
     const target = event.target as HTMLElement;
-    if (!target.closest('.header-selector')) {
+    if (!target.closest('.header-selector') && !target.closest('.dropdown-menu-empresa')) {
       this.mostrarSelectorEmpresa = false;
     }
   }
