@@ -58,14 +58,23 @@
   height: 100%;
 }
 
+.empresa-title-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  position: relative;
+}
+
 .empresa-title {
   font-size: 20px;
   font-weight: 600;
   color: #1e293b;
-  margin-bottom: 12px;
+  margin-bottom: 0;
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1;
 
   .status-dot {
     width: 8px;
@@ -73,6 +82,11 @@
     border-radius: 50%;
     background: #3b82f6;
   }
+}
+
+.empresa-info-menu-container {
+  position: relative;
+  display: inline-block;
 }
 
 .badge-verificada {
@@ -356,7 +370,8 @@
 
 .producto-menu-container,
 .cliente-menu-container,
-.sucursal-menu-container {
+.sucursal-menu-container,
+.empresa-info-menu-container {
   position: relative;
   display: inline-block;
 }

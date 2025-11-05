@@ -10,10 +10,39 @@
     <!-- Sidebar Izquierdo -->
     <aside class="sidebar-left" *ngIf="empresaSeleccionada">
       <div class="sidebar-content">
-        <h2 class="empresa-title">
-          <span class="status-dot"></span>
-          {{ empresaSeleccionada.nombre }}
-        </h2>
+        <div class="empresa-title-header">
+          <h2 class="empresa-title">
+            <span class="status-dot"></span>
+            {{ empresaSeleccionada.nombre }}
+          </h2>
+          <div class="empresa-info-menu-container">
+            <button 
+              class="btn-menu" 
+              type="button"
+              (click)="toggleEmpresaInfoDropdown($event)"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="4" r="1" fill="currentColor"/>
+                <circle cx="8" cy="8" r="1" fill="currentColor"/>
+                <circle cx="8" cy="12" r="1" fill="currentColor"/>
+              </svg>
+            </button>
+            @if (empresaInfoDropdownAbierto) {
+              <div class="producto-dropdown-menu">
+                <button 
+                  class="dropdown-item-edit" 
+                  type="button"
+                  (click)="editarEmpresaInfo()"
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M11.3333 2.00004C11.5084 1.82493 11.7163 1.68602 11.9444 1.59129C12.1726 1.49657 12.4163 1.44775 12.6625 1.44775C12.9087 1.44775 13.1524 1.49657 13.3806 1.59129C13.6087 1.68602 13.8166 1.82493 13.9917 2.00004C14.1668 2.17515 14.3057 2.38303 14.4004 2.61118C14.4951 2.83933 14.5439 3.08305 14.5439 3.32926C14.5439 3.57547 14.4951 3.81919 14.4004 4.04734C14.3057 4.27549 14.1668 4.48337 13.9917 4.65848L5.65833 13L1.33333 14.3334L2.66667 10.0084L11 1.66671L11.3333 2.00004Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <span>Editar</span>
+                </button>
+              </div>
+            }
+          </div>
+        </div>
         <span class="badge-verificada">VERIFICADA</span>
 
         <div class="empresa-logo">

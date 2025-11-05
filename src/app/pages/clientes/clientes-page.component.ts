@@ -32,6 +32,7 @@ export class ClientesPageComponent implements OnInit {
   productoDropdownAbierto: number | null = null;
   clienteDropdownAbierto: number | null = null;
   sucursalDropdownAbierto: number | null = null;
+  empresaInfoDropdownAbierto = false;
 
   constructor(
     private dteService: DteService,
@@ -221,15 +222,35 @@ export class ClientesPageComponent implements OnInit {
     console.log('Eliminar sucursal:', sucursal);
   }
 
+  toggleEmpresaInfoDropdown(event: Event): void {
+    event.stopPropagation();
+    this.empresaInfoDropdownAbierto = !this.empresaInfoDropdownAbierto;
+    this.productoDropdownAbierto = null;
+    this.clienteDropdownAbierto = null;
+    this.sucursalDropdownAbierto = null;
+  }
+
+  cerrarEmpresaInfoDropdown(): void {
+    this.empresaInfoDropdownAbierto = false;
+  }
+
+  editarEmpresaInfo(): void {
+    this.cerrarEmpresaInfoDropdown();
+    // TODO: Implementar edición de información de empresa
+    console.log('Editar información de empresa:', this.empresaSeleccionada);
+  }
+
   @HostListener('document:click', ['$event'])
   clickOutside(event: Event): void {
     const target = event.target as HTMLElement;
     if (!target.closest('.producto-menu-container') && 
         !target.closest('.cliente-menu-container') && 
-        !target.closest('.sucursal-menu-container')) {
+        !target.closest('.sucursal-menu-container') &&
+        !target.closest('.empresa-info-menu-container')) {
       this.cerrarProductoDropdown();
       this.cerrarClienteDropdown();
       this.cerrarSucursalDropdown();
+      this.cerrarEmpresaInfoDropdown();
     }
   }
 }
