@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -42,7 +42,8 @@ export class ClientesPageComponent implements OnInit {
   constructor(
     private dteService: DteService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -134,14 +135,25 @@ export class ClientesPageComponent implements OnInit {
   }
 
   cambiarTab(tab: 'clientes' | 'sucursales' | 'productos'): void {
+    // Cambiar el tab primero sin navegar para evitar flicker
+    const tabAnterior = this.tabActiva;
     this.tabActiva = tab;
-    // Navegar a la ruta correspondiente
+    
+    // Navegar a la ruta correspondiente sin refrescar la página
+    // La estrategia de reutilización de rutas mantendrá el componente activo
     if (tab === 'productos') {
-      this.router.navigateByUrl('/productos');
+      this.router.navigateByUrl('/productos', { replaceUrl: false }).catch(() => {
+        // Si falla la navegación, revertir el tab
+        this.tabActiva = tabAnterior;
+      });
     } else if (tab === 'sucursales') {
-      this.router.navigateByUrl('/sucursales');
+      this.router.navigateByUrl('/sucursales', { replaceUrl: false }).catch(() => {
+        this.tabActiva = tabAnterior;
+      });
     } else {
-      this.router.navigateByUrl('/clientes');
+      this.router.navigateByUrl('/clientes', { replaceUrl: false }).catch(() => {
+        this.tabActiva = tabAnterior;
+      });
     }
   }
 

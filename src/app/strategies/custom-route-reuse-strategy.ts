@@ -2,44 +2,57 @@ import { ActivatedRouteSnapshot, DetachedRouteHandle, RouteReuseStrategy } from 
 
 export class CustomRouteReuseStrategy implements RouteReuseStrategy {
   private storedRoutes = new Map<string, DetachedRouteHandle>();
+  private readonly reusableRoutes = ['clientes', 'sucursales', 'productos'];
+  private readonly componentKey = 'clientes-page-component'; // Clave única para todas las rutas que usan el mismo componente
 
   shouldDetach(route: ActivatedRouteSnapshot): boolean {
-    // Reutilizar rutas para clientes, sucursales y productos (mismo componente)
-    const paths = ['/clientes', '/sucursales', '/productos'];
-    return paths.some(path => route.routeConfig?.path === path.split('/').pop());
+    return this.isReusableRoute(route);
   }
 
   store(route: ActivatedRouteSnapshot, handle: DetachedRouteHandle): void {
-    if (route.routeConfig?.path) {
-      this.storedRoutes.set(route.routeConfig.path, handle);
+    // Usar una clave única para todas las rutas que usan el mismo componente
+    if (this.isReusableRoute(route)) {
+      this.storedRoutes.set(this.componentKey, handle);
     }
   }
 
   shouldAttach(route: ActivatedRouteSnapshot): boolean {
-    if (route.routeConfig?.path) {
-      return this.storedRoutes.has(route.routeConfig.path);
-    }
-    return false;
+    // Verificar si tenemos el componente guardado para cualquiera de las rutas reutilizables
+    return this.isReusableRoute(route) && this.storedRoutes.has(this.componentKey);
   }
 
   retrieve(route: ActivatedRouteSnapshot): DetachedRouteHandle | null {
-    if (route.routeConfig?.path) {
-      return this.storedRoutes.get(route.routeConfig.path) || null;
+    if (this.isReusableRoute(route)) {
+      return this.storedRoutes.get(this.componentKey) || null;
     }
     return null;
   }
 
   shouldReuseRoute(future: ActivatedRouteSnapshot, curr: ActivatedRouteSnapshot): boolean {
-    // Reutilizar rutas cuando ambas usan el mismo componente (clientes, sucursales, productos)
-    const sameComponentRoutes = ['clientes', 'sucursales', 'productos'];
     const futurePath = future.routeConfig?.path || '';
     const currPath = curr.routeConfig?.path || '';
     
-    if (sameComponentRoutes.includes(futurePath) && sameComponentRoutes.includes(currPath)) {
+    // Si ambas rutas son reutilizables (mismo componente), forzar reutilización
+    if (this.isReusableRoute(future) && this.isReusableRoute(curr)) {
       return true;
     }
     
+    // También verificar si las rutas tienen el mismo componente cargado
+    const futureComponent = future.component || future.routeConfig?.loadComponent;
+    const currComponent = curr.component || curr.routeConfig?.loadComponent;
+    
+    // Si ambas rutas apuntan al mismo componente (incluso si es lazy loading), reutilizar
+    if (futureComponent === currComponent && (this.isReusableRoute(future) || this.isReusableRoute(curr))) {
+      return true;
+    }
+    
+    // Comportamiento por defecto
     return future.routeConfig === curr.routeConfig;
+  }
+
+  private isReusableRoute(route: ActivatedRouteSnapshot): boolean {
+    const path = route.routeConfig?.path || '';
+    return this.reusableRoutes.includes(path);
   }
 }
 
