@@ -354,7 +354,9 @@
   }
 }
 
-.producto-menu-container {
+.producto-menu-container,
+.cliente-menu-container,
+.sucursal-menu-container {
   position: relative;
   display: inline-block;
 }

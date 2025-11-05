@@ -30,6 +30,8 @@ export class ClientesPageComponent implements OnInit {
   mostrarModalCrearSucursal = false;
   mostrarModalCrearProducto = false;
   productoDropdownAbierto: number | null = null;
+  clienteDropdownAbierto: number | null = null;
+  sucursalDropdownAbierto: number | null = null;
 
   constructor(
     private dteService: DteService,
@@ -153,6 +155,8 @@ export class ClientesPageComponent implements OnInit {
   toggleProductoDropdown(index: number, event: Event): void {
     event.stopPropagation();
     this.productoDropdownAbierto = this.productoDropdownAbierto === index ? null : index;
+    this.clienteDropdownAbierto = null;
+    this.sucursalDropdownAbierto = null;
   }
 
   cerrarProductoDropdown(): void {
@@ -171,11 +175,61 @@ export class ClientesPageComponent implements OnInit {
     console.log('Eliminar producto:', producto);
   }
 
+  toggleClienteDropdown(index: number, event: Event): void {
+    event.stopPropagation();
+    this.clienteDropdownAbierto = this.clienteDropdownAbierto === index ? null : index;
+    this.productoDropdownAbierto = null;
+    this.sucursalDropdownAbierto = null;
+  }
+
+  cerrarClienteDropdown(): void {
+    this.clienteDropdownAbierto = null;
+  }
+
+  editarCliente(cliente: any): void {
+    this.cerrarClienteDropdown();
+    // TODO: Implementar edición de cliente
+    console.log('Editar cliente:', cliente);
+  }
+
+  eliminarCliente(cliente: any): void {
+    this.cerrarClienteDropdown();
+    // TODO: Implementar eliminación de cliente
+    console.log('Eliminar cliente:', cliente);
+  }
+
+  toggleSucursalDropdown(index: number, event: Event): void {
+    event.stopPropagation();
+    this.sucursalDropdownAbierto = this.sucursalDropdownAbierto === index ? null : index;
+    this.productoDropdownAbierto = null;
+    this.clienteDropdownAbierto = null;
+  }
+
+  cerrarSucursalDropdown(): void {
+    this.sucursalDropdownAbierto = null;
+  }
+
+  editarSucursal(sucursal: any): void {
+    this.cerrarSucursalDropdown();
+    // TODO: Implementar edición de sucursal
+    console.log('Editar sucursal:', sucursal);
+  }
+
+  eliminarSucursal(sucursal: any): void {
+    this.cerrarSucursalDropdown();
+    // TODO: Implementar eliminación de sucursal
+    console.log('Eliminar sucursal:', sucursal);
+  }
+
   @HostListener('document:click', ['$event'])
   clickOutside(event: Event): void {
     const target = event.target as HTMLElement;
-    if (!target.closest('.producto-menu-container')) {
+    if (!target.closest('.producto-menu-container') && 
+        !target.closest('.cliente-menu-container') && 
+        !target.closest('.sucursal-menu-container')) {
       this.cerrarProductoDropdown();
+      this.cerrarClienteDropdown();
+      this.cerrarSucursalDropdown();
     }
   }
 }
