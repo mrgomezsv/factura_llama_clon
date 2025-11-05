@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { DteService } from '../../services/dte.service';
@@ -29,6 +29,7 @@ export class ClientesPageComponent implements OnInit {
   mostrarModalCrearCliente = false;
   mostrarModalCrearSucursal = false;
   mostrarModalCrearProducto = false;
+  productoDropdownAbierto: number | null = null;
 
   constructor(
     private dteService: DteService,
@@ -147,5 +148,34 @@ export class ClientesPageComponent implements OnInit {
       unidadMedida: producto.unidadMedida || 'UNIDAD',
       fechaCreacion: producto.fechaCreacion
     }];
+  }
+
+  toggleProductoDropdown(index: number, event: Event): void {
+    event.stopPropagation();
+    this.productoDropdownAbierto = this.productoDropdownAbierto === index ? null : index;
+  }
+
+  cerrarProductoDropdown(): void {
+    this.productoDropdownAbierto = null;
+  }
+
+  editarProducto(producto: any): void {
+    this.cerrarProductoDropdown();
+    // TODO: Implementar edición de producto
+    console.log('Editar producto:', producto);
+  }
+
+  eliminarProducto(producto: any): void {
+    this.cerrarProductoDropdown();
+    // TODO: Implementar eliminación de producto
+    console.log('Eliminar producto:', producto);
+  }
+
+  @HostListener('document:click', ['$event'])
+  clickOutside(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.producto-menu-container')) {
+      this.cerrarProductoDropdown();
+    }
   }
 }
