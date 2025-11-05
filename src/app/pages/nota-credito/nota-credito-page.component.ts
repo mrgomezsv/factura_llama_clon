@@ -2,14 +2,14 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NotaCreditoClienteComponent } from '../../components/nota-credito/nota-credito-cliente.component';
-import { NotaCreditoSucursalComponent } from '../../components/nota-credito/nota-credito-sucursal.component';
-import { NotaCreditoRetencionesComponent } from '../../components/nota-credito/nota-credito-retenciones.component';
-import { NotaCreditoDescuentosComponent } from '../../components/nota-credito/nota-credito-descuentos.component';
-import { NotaCreditoResponsablesComponent } from '../../components/nota-credito/nota-credito-responsables.component';
-import { NotaCreditoOtrosComponent } from '../../components/nota-credito/nota-credito-otros.component';
-import { NotaCreditoAppendicesComponent } from '../../components/nota-credito/nota-credito-appendices.component';
-import { NotaCreditoItemsComponent } from '../../components/nota-credito/nota-credito-items.component';
+import { NotaCreditoClienteComponent } from '../../components/nota-credito/cliente/cliente.component';
+import { NotaCreditoSucursalComponent } from '../../components/nota-credito/sucursal/sucursal.component';
+import { NotaCreditoRetencionesComponent } from '../../components/nota-credito/retenciones/retenciones.component';
+import { NotaCreditoDescuentosComponent } from '../../components/nota-credito/descuentos/descuentos.component';
+import { NotaCreditoResponsablesComponent } from '../../components/nota-credito/responsables/responsables.component';
+import { NotaCreditoOtrosComponent } from '../../components/nota-credito/otros/otros.component';
+import { NotaCreditoAppendicesComponent } from '../../components/nota-credito/appendices/appendices.component';
+import { NotaCreditoItemsComponent } from '../../components/nota-credito/items/items.component';
 
 @Component({
   selector: 'app-nota-credito-page',

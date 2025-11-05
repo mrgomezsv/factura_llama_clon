@@ -2,14 +2,14 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ComprobanteRetencionClienteComponent } from '../../components/comprobante-retencion/comprobante-retencion-cliente.component';
-import { ComprobanteRetencionSucursalComponent } from '../../components/comprobante-retencion/comprobante-retencion-sucursal.component';
-import { ComprobanteRetencionRetencionesComponent } from '../../components/comprobante-retencion/comprobante-retencion-retenciones.component';
-import { ComprobanteRetencionDescuentosComponent } from '../../components/comprobante-retencion/comprobante-retencion-descuentos.component';
-import { ComprobanteRetencionResponsablesComponent } from '../../components/comprobante-retencion/comprobante-retencion-responsables.component';
-import { ComprobanteRetencionOtrosComponent } from '../../components/comprobante-retencion/comprobante-retencion-otros.component';
-import { ComprobanteRetencionAppendicesComponent } from '../../components/comprobante-retencion/comprobante-retencion-appendices.component';
-import { ComprobanteRetencionItemsComponent } from '../../components/comprobante-retencion/comprobante-retencion-items.component';
+import { ComprobanteRetencionClienteComponent } from '../../components/comprobante-retencion/cliente/cliente.component';
+import { ComprobanteRetencionSucursalComponent } from '../../components/comprobante-retencion/sucursal/sucursal.component';
+import { ComprobanteRetencionRetencionesComponent } from '../../components/comprobante-retencion/retenciones/retenciones.component';
+import { ComprobanteRetencionDescuentosComponent } from '../../components/comprobante-retencion/descuentos/descuentos.component';
+import { ComprobanteRetencionResponsablesComponent } from '../../components/comprobante-retencion/responsables/responsables.component';
+import { ComprobanteRetencionOtrosComponent } from '../../components/comprobante-retencion/otros/otros.component';
+import { ComprobanteRetencionAppendicesComponent } from '../../components/comprobante-retencion/appendices/appendices.component';
+import { ComprobanteRetencionItemsComponent } from '../../components/comprobante-retencion/items/items.component';
 
 @Component({
   selector: 'app-comprobante-retencion-page',

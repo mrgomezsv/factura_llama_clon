@@ -2,14 +2,14 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { FacturaExportacionClienteComponent } from '../../components/factura-exportacion/factura-exportacion-cliente.component';
-import { FacturaExportacionSucursalComponent } from '../../components/factura-exportacion/factura-exportacion-sucursal.component';
-import { FacturaExportacionRetencionesComponent } from '../../components/factura-exportacion/factura-exportacion-retenciones.component';
-import { FacturaExportacionDescuentosComponent } from '../../components/factura-exportacion/factura-exportacion-descuentos.component';
-import { FacturaExportacionResponsablesComponent } from '../../components/factura-exportacion/factura-exportacion-responsables.component';
-import { FacturaExportacionOtrosComponent } from '../../components/factura-exportacion/factura-exportacion-otros.component';
-import { FacturaExportacionAppendicesComponent } from '../../components/factura-exportacion/factura-exportacion-appendices.component';
-import { FacturaExportacionItemsComponent } from '../../components/factura-exportacion/factura-exportacion-items.component';
+import { FacturaExportacionClienteComponent } from '../../components/factura-exportacion/cliente/cliente.component';
+import { FacturaExportacionSucursalComponent } from '../../components/factura-exportacion/sucursal/sucursal.component';
+import { FacturaExportacionRetencionesComponent } from '../../components/factura-exportacion/retenciones/retenciones.component';
+import { FacturaExportacionDescuentosComponent } from '../../components/factura-exportacion/descuentos/descuentos.component';
+import { FacturaExportacionResponsablesComponent } from '../../components/factura-exportacion/responsables/responsables.component';
+import { FacturaExportacionOtrosComponent } from '../../components/factura-exportacion/otros/otros.component';
+import { FacturaExportacionAppendicesComponent } from '../../components/factura-exportacion/appendices/appendices.component';
+import { FacturaExportacionItemsComponent } from '../../components/factura-exportacion/items/items.component';
 
 @Component({
   selector: 'app-factura-exportacion-page',

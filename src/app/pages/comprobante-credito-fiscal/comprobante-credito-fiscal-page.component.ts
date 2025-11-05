@@ -2,14 +2,14 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ComprobanteCreditoFiscalClienteComponent } from '../../components/comprobante-credito-fiscal/comprobante-credito-fiscal-cliente.component';
-import { ComprobanteCreditoFiscalSucursalComponent } from '../../components/comprobante-credito-fiscal/comprobante-credito-fiscal-sucursal.component';
-import { ComprobanteCreditoFiscalRetencionesComponent } from '../../components/comprobante-credito-fiscal/comprobante-credito-fiscal-retenciones.component';
-import { ComprobanteCreditoFiscalDescuentosComponent } from '../../components/comprobante-credito-fiscal/comprobante-credito-fiscal-descuentos.component';
-import { ComprobanteCreditoFiscalResponsablesComponent } from '../../components/comprobante-credito-fiscal/comprobante-credito-fiscal-responsables.component';
-import { ComprobanteCreditoFiscalOtrosComponent } from '../../components/comprobante-credito-fiscal/comprobante-credito-fiscal-otros.component';
-import { ComprobanteCreditoFiscalAppendicesComponent } from '../../components/comprobante-credito-fiscal/comprobante-credito-fiscal-appendices.component';
-import { ComprobanteCreditoFiscalItemsComponent } from '../../components/comprobante-credito-fiscal/comprobante-credito-fiscal-items.component';
+import { ComprobanteCreditoFiscalClienteComponent } from '../../components/comprobante-credito-fiscal/cliente/cliente.component';
+import { ComprobanteCreditoFiscalSucursalComponent } from '../../components/comprobante-credito-fiscal/sucursal/sucursal.component';
+import { ComprobanteCreditoFiscalRetencionesComponent } from '../../components/comprobante-credito-fiscal/retenciones/retenciones.component';
+import { ComprobanteCreditoFiscalDescuentosComponent } from '../../components/comprobante-credito-fiscal/descuentos/descuentos.component';
+import { ComprobanteCreditoFiscalResponsablesComponent } from '../../components/comprobante-credito-fiscal/responsables/responsables.component';
+import { ComprobanteCreditoFiscalOtrosComponent } from '../../components/comprobante-credito-fiscal/otros/otros.component';
+import { ComprobanteCreditoFiscalAppendicesComponent } from '../../components/comprobante-credito-fiscal/appendices/appendices.component';
+import { ComprobanteCreditoFiscalItemsComponent } from '../../components/comprobante-credito-fiscal/items/items.component';
 
 @Component({
   selector: 'app-comprobante-credito-fiscal-page',

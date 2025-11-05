@@ -2,14 +2,14 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NotaRemisionClienteComponent } from '../../components/nota-remision/nota-remision-cliente.component';
-import { NotaRemisionSucursalComponent } from '../../components/nota-remision/nota-remision-sucursal.component';
-import { NotaRemisionRetencionesComponent } from '../../components/nota-remision/nota-remision-retenciones.component';
-import { NotaRemisionDescuentosComponent } from '../../components/nota-remision/nota-remision-descuentos.component';
-import { NotaRemisionResponsablesComponent } from '../../components/nota-remision/nota-remision-responsables.component';
-import { NotaRemisionOtrosComponent } from '../../components/nota-remision/nota-remision-otros.component';
-import { NotaRemisionAppendicesComponent } from '../../components/nota-remision/nota-remision-appendices.component';
-import { NotaRemisionItemsComponent } from '../../components/nota-remision/nota-remision-items.component';
+import { NotaRemisionClienteComponent } from '../../components/nota-remision/cliente/cliente.component';
+import { NotaRemisionSucursalComponent } from '../../components/nota-remision/sucursal/sucursal.component';
+import { NotaRemisionRetencionesComponent } from '../../components/nota-remision/retenciones/retenciones.component';
+import { NotaRemisionDescuentosComponent } from '../../components/nota-remision/descuentos/descuentos.component';
+import { NotaRemisionResponsablesComponent } from '../../components/nota-remision/responsables/responsables.component';
+import { NotaRemisionOtrosComponent } from '../../components/nota-remision/otros/otros.component';
+import { NotaRemisionAppendicesComponent } from '../../components/nota-remision/appendices/appendices.component';
+import { NotaRemisionItemsComponent } from '../../components/nota-remision/items/items.component';
 
 @Component({
   selector: 'app-nota-remision-page',

@@ -2,14 +2,14 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { FacturaClienteComponent } from '../../components/factura/factura-cliente.component';
-import { FacturaSucursalComponent } from '../../components/factura/factura-sucursal.component';
-import { FacturaRetencionesComponent } from '../../components/factura/factura-retenciones.component';
-import { FacturaDescuentosComponent } from '../../components/factura/factura-descuentos.component';
-import { FacturaResponsablesComponent } from '../../components/factura/factura-responsables.component';
-import { FacturaOtrosComponent } from '../../components/factura/factura-otros.component';
-import { FacturaAppendicesComponent } from '../../components/factura/factura-appendices.component';
-import { FacturaItemsComponent } from '../../components/factura/factura-items.component';
+import { FacturaClienteComponent } from '../../components/factura/cliente/cliente.component';
+import { FacturaSucursalComponent } from '../../components/factura/sucursal/sucursal.component';
+import { FacturaRetencionesComponent } from '../../components/factura/retenciones/retenciones.component';
+import { FacturaDescuentosComponent } from '../../components/factura/descuentos/descuentos.component';
+import { FacturaResponsablesComponent } from '../../components/factura/responsables/responsables.component';
+import { FacturaOtrosComponent } from '../../components/factura/otros/otros.component';
+import { FacturaAppendicesComponent } from '../../components/factura/appendices/appendices.component';
+import { FacturaItemsComponent } from '../../components/factura/items/items.component';
 
 @Component({
   selector: 'app-factura-page',

@@ -2,14 +2,14 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { FacturaSujetoExcluidoClienteComponent } from '../../components/factura-sujeto-excluido/factura-sujeto-excluido-cliente.component';
-import { FacturaSujetoExcluidoSucursalComponent } from '../../components/factura-sujeto-excluido/factura-sujeto-excluido-sucursal.component';
-import { FacturaSujetoExcluidoRetencionesComponent } from '../../components/factura-sujeto-excluido/factura-sujeto-excluido-retenciones.component';
-import { FacturaSujetoExcluidoDescuentosComponent } from '../../components/factura-sujeto-excluido/factura-sujeto-excluido-descuentos.component';
-import { FacturaSujetoExcluidoResponsablesComponent } from '../../components/factura-sujeto-excluido/factura-sujeto-excluido-responsables.component';
-import { FacturaSujetoExcluidoOtrosComponent } from '../../components/factura-sujeto-excluido/factura-sujeto-excluido-otros.component';
-import { FacturaSujetoExcluidoAppendicesComponent } from '../../components/factura-sujeto-excluido/factura-sujeto-excluido-appendices.component';
-import { FacturaSujetoExcluidoItemsComponent } from '../../components/factura-sujeto-excluido/factura-sujeto-excluido-items.component';
+import { FacturaSujetoExcluidoClienteComponent } from '../../components/factura-sujeto-excluido/cliente/cliente.component';
+import { FacturaSujetoExcluidoSucursalComponent } from '../../components/factura-sujeto-excluido/sucursal/sucursal.component';
+import { FacturaSujetoExcluidoRetencionesComponent } from '../../components/factura-sujeto-excluido/retenciones/retenciones.component';
+import { FacturaSujetoExcluidoDescuentosComponent } from '../../components/factura-sujeto-excluido/descuentos/descuentos.component';
+import { FacturaSujetoExcluidoResponsablesComponent } from '../../components/factura-sujeto-excluido/responsables/responsables.component';
+import { FacturaSujetoExcluidoOtrosComponent } from '../../components/factura-sujeto-excluido/otros/otros.component';
+import { FacturaSujetoExcluidoAppendicesComponent } from '../../components/factura-sujeto-excluido/appendices/appendices.component';
+import { FacturaSujetoExcluidoItemsComponent } from '../../components/factura-sujeto-excluido/items/items.component';
 
 @Component({
   selector: 'app-factura-sujeto-excluido-page',
