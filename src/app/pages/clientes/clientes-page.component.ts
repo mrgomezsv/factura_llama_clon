@@ -35,6 +35,9 @@ export class ClientesPageComponent implements OnInit {
   sucursalDropdownAbierto: number | null = null;
   empresaInfoDropdownAbierto = false;
   filtrosDropdownAbierto = false;
+  
+  // Flags para evitar recargas innecesarias
+  private datosCargados = false;
 
   constructor(
     private dteService: DteService,
@@ -44,10 +47,15 @@ export class ClientesPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.determinarTabDesdeRuta();
-    this.cargarEmpresa();
-    this.cargarClientes();
-    this.cargarSucursales();
-    this.cargarProductos();
+    
+    // Cargar datos solo si no se han cargado antes
+    if (!this.datosCargados) {
+      this.cargarEmpresa();
+      this.cargarClientes();
+      this.cargarSucursales();
+      this.cargarProductos();
+      this.datosCargados = true;
+    }
 
     // Suscribirse a cambios de ruta
     this.router.events
