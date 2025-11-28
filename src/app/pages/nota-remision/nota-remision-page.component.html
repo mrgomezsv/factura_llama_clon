@@ -63,16 +63,17 @@
           </div>
           <div class="card-body">
             <div class="tabla-totales">
-              <div class="tot-row"><span>Suma de Ventas Gravadas</span><span>{{ sumaGravadas | currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row"><span>Suma de Ventas Exentas</span><span>$0.00</span></div>
-              <div class="tot-row"><span>Suma de Ventas No Sujetas</span><span>$0.00</span></div>
-              <div class="tot-row"><span>Sumatoria de Ventas</span><span>{{ sumaGravadas | currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row"><span>Descuento Global Ventas Gravadas</span><span>{{ descuentoGlobal | currency:'USD':'symbol':'1.2-2' }}</span></div>
+              <div class="tot-row"><span>Suma de Ventas Gravadas</span><span>{{ sumaVentasGravadas | currency:'USD':'symbol':'1.2-2' }}</span></div>
+              <div class="tot-row"><span>Suma de Ventas Exentas</span><span>{{ sumaVentasExentas | currency:'USD':'symbol':'1.2-2' }}</span></div>
+              <div class="tot-row"><span>Suma de Ventas No Sujetas</span><span>{{ sumaVentasNoSujetas | currency:'USD':'symbol':'1.2-2' }}</span></div>
+              <div class="tot-row"><span>Sumatoria de Ventas</span><span>{{ sumatoriaVentas | currency:'USD':'symbol':'1.2-2' }}</span></div>
+              <div class="tot-row"><span>Descuento Global Ventas Gravadas</span><span>{{ descuentoGlobalVentasGravadas | currency:'USD':'symbol':'1.2-2' }}</span></div>
               <div class="tot-row subtotal"><span>Sub Total</span><span>{{ subTotal | currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row"><span>(-)IVA Retenido</span><span>{{ retenciones.iva | currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row"><span>(-)Retención Renta</span><span>{{ retenciones.renta | currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row"><span>Monto Total de Operación</span><span>{{ totalPagar | currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row"><span>Total de Otros Montos No Afectos</span><span>$0.00</span></div>
+              <div class="tot-row"><span>(+)IVA (13%)</span><span>{{ iva | currency:'USD':'symbol':'1.2-2' }}</span></div>
+              <div class="tot-row"><span>(-)IVA Retenido</span><span>{{ ivaRetenido | currency:'USD':'symbol':'1.2-2' }}</span></div>
+              <div class="tot-row"><span>(-)Retención Renta</span><span>{{ retencionRenta | currency:'USD':'symbol':'1.2-2' }}</span></div>
+              <div class="tot-row"><span>Monto Total de Operación</span><span>{{ montoTotalOperacion | currency:'USD':'symbol':'1.2-2' }}</span></div>
+              <div class="tot-row"><span>Total de Otros Montos No Afectos</span><span>{{ totalOtrosMontosNoAfectos | currency:'USD':'symbol':'1.2-2' }}</span></div>
               <div class="tot-row total"><span>Total a Pagar</span><span>{{ totalPagar | currency:'USD':'symbol':'1.2-2' }}</span></div>
             </div>
           </div>
