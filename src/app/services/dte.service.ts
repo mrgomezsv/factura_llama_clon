@@ -1,281 +1,548 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { delay } from 'rxjs/operators';
+import { map, switchMap, first } from 'rxjs/operators';
 import { DTE } from '../models/dte.model';
 import { Empresa } from '../models/empresa.model';
 import { PeriodoTributario } from '../models/periodo-tributario.model';
 import { TipoDTE } from '../models/tipo-dte.model';
-
-// Datos mock hardcodeados (temporal hasta que Angular soporte imports JSON directamente)
-const dtesData: any[] = [
-  {
-    "controlNumber": "DTE-03-M001P001-000000000000346",
-    "tipo": "CCF",
-    "receptor": "JUAN CARLOS FERRUFINO HERNANDEZ",
-    "total": 181.93,
-    "ambiente": "PRODUCCIÓN",
-    "fechaCreacion": "2025-10-13T12:36:43"
-  },
-  {
-    "controlNumber": "DTE-03-M001P001-000000000000345",
-    "tipo": "CCF",
-    "receptor": "UNO EL SALVADOR, SOCIEDAD ANONIMA",
-    "total": 160.16,
-    "ambiente": "PRODUCCIÓN",
-    "fechaCreacion": "2025-10-13T12:06:55"
-  },
-  {
-    "controlNumber": "DTE-03-M001P001-000000000000344",
-    "tipo": "CCF",
-    "receptor": "UNO EL SALVADOR, SOCIEDAD ANONIMA",
-    "total": 206.08,
-    "ambiente": "PRODUCCIÓN",
-    "fechaCreacion": "2025-10-13T11:45:22"
-  },
-  {
-    "controlNumber": "DTE-03-M001P001-000000000000343",
-    "tipo": "CCF",
-    "receptor": "CARLOS ALBERTO MARTINEZ RODRIGUEZ",
-    "total": 203.84,
-    "ambiente": "PRODUCCIÓN",
-    "fechaCreacion": "2025-10-13T12:06:55"
-  },
-  {
-    "controlNumber": "DTE-03-M001P001-000000000000342",
-    "tipo": "CCF",
-    "receptor": "MARIA ELENA LOPEZ GARCIA",
-    "total": 644.00,
-    "ambiente": "PRODUCCIÓN",
-    "fechaCreacion": "2025-10-11T14:20:39"
-  },
-  {
-    "controlNumber": "DTE-03-M001P001-000000000000341",
-    "tipo": "CCF",
-    "receptor": "JOSE ANTONIO RAMIREZ MENDOZA",
-    "total": 143.36,
-    "ambiente": "PRODUCCIÓN",
-    "fechaCreacion": "2025-10-11T14:15:30"
-  },
-  {
-    "controlNumber": "DTE-03-M001P001-000000000000340",
-    "tipo": "CCF",
-    "receptor": "ANA CRISTINA SANCHEZ VASQUEZ",
-    "total": 287.50,
-    "ambiente": "PRODUCCIÓN",
-    "fechaCreacion": "2025-10-11T10:30:15"
-  },
-  {
-    "controlNumber": "DTE-03-M001P001-000000000000339",
-    "tipo": "CCF",
-    "receptor": "PEDRO JOSE GUTIERREZ CASTRO",
-    "total": 125.80,
-    "ambiente": "PRODUCCIÓN",
-    "fechaCreacion": "2025-10-10T16:45:12"
-  },
-  {
-    "controlNumber": "DTE-03-M001P001-000000000000338",
-    "tipo": "CCF",
-    "receptor": "LUISA FERNANDA MORALES RIVAS",
-    "total": 450.25,
-    "ambiente": "PRODUCCIÓN",
-    "fechaCreacion": "2025-10-10T09:20:45"
-  },
-  {
-    "controlNumber": "DTE-03-M001P001-000000000000337",
-    "tipo": "CCF",
-    "receptor": "ROBERTO CARLOS ESPINOZA ORTEGA",
-    "total": 320.60,
-    "ambiente": "PRODUCCIÓN",
-    "fechaCreacion": "2025-10-09T13:55:30"
-  },
-  {
-    "controlNumber": "DTE-03-M001P001-000000000000336",
-    "tipo": "CCF",
-    "receptor": "GLORIA PATRICIA HERRERA MENDEZ",
-    "total": 189.45,
-    "ambiente": "PRODUCCIÓN",
-    "fechaCreacion": "2025-10-09T11:30:20"
-  },
-  {
-    "controlNumber": "DTE-03-M001P001-000000000000335",
-    "tipo": "CCF",
-    "receptor": "FRANCISCO JAVIER TORRES VARGAS",
-    "total": 567.90,
-    "ambiente": "PRODUCCIÓN",
-    "fechaCreacion": "2025-10-08T15:40:10"
-  },
-  {
-    "controlNumber": "DTE-03-M001P001-000000000000334",
-    "tipo": "CCF",
-    "receptor": "CARMEN ROSA DIAZ ALVARADO",
-    "total": 234.75,
-    "ambiente": "PRODUCCIÓN",
-    "fechaCreacion": "2025-10-08T08:15:55"
-  },
-  {
-    "controlNumber": "DTE-03-M001P001-000000000000333",
-    "tipo": "CCF",
-    "receptor": "MANUEL ALEJANDRO CRUZ BENITEZ",
-    "total": 156.30,
-    "ambiente": "PRODUCCIÓN",
-    "fechaCreacion": "2025-10-07T17:25:40"
-  },
-  {
-    "controlNumber": "DTE-03-M001P001-000000000000332",
-    "tipo": "CCF",
-    "receptor": "LUIS ALBERTO LOPEZ PANIAGUA",
-    "total": 43.51,
-    "ambiente": "PRODUCCIÓN",
-    "fechaCreacion": "2025-10-07T07:05:21"
-  }
-];
-
-const empresasData: any[] = [
-  {
-    "id": "1",
-    "nombre": "BARLLENO APP",
-    "nit": "0614-123456-001-2",
-    "direccion": "San Salvador, El Salvador"
-  },
-  {
-    "id": "2",
-    "nombre": "COMERCIAL SAN MIGUEL S.A. DE C.V.",
-    "nit": "0614-234567-001-3",
-    "direccion": "San Miguel, El Salvador"
-  },
-  {
-    "id": "3",
-    "nombre": "DISTRIBUIDORA OCCIDENTAL LTDA",
-    "nit": "0614-345678-001-4",
-    "direccion": "Santa Ana, El Salvador"
-  }
-];
-
-const tiposDteData: any[] = [
-  {
-    "codigo": "FAC",
-    "nombre": "Factura",
-    "habilitado": true
-  },
-  {
-    "codigo": "CCF",
-    "nombre": "Comprobante Crédito Fiscal",
-    "habilitado": true
-  },
-  {
-    "codigo": "NCR",
-    "nombre": "Nota de Crédito",
-    "habilitado": true
-  },
-  {
-    "codigo": "NDB",
-    "nombre": "Nota de Débito",
-    "habilitado": true
-  },
-  {
-    "codigo": "FSE",
-    "nombre": "Factura de Sujeto Excluido",
-    "habilitado": true
-  },
-  {
-    "codigo": "FEX",
-    "nombre": "Factura de Exportación",
-    "habilitado": true
-  },
-  {
-    "codigo": "REM",
-    "nombre": "Nota de Remisión",
-    "habilitado": true
-  },
-  {
-    "codigo": "CRT",
-    "nombre": "Comprobante de Retención",
-    "habilitado": true
-  }
-];
-
-// Clientes, sucursales y productos (mock)
-import clientesData from '../data/clientes-mock.json';
-import sucursalesData from '../data/sucursales-mock.json';
-import productosData from '../data/productos-mock.json';
-import formasPagoData from '../data/formas-pago-mock.json';
+import { DatabaseService } from './database.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DteService {
+  constructor(private database: DatabaseService) {}
+
   /**
-   * Obtiene todos los DTEs (simulado)
+   * Obtiene todos los DTEs
    */
   getDTEs(filtro?: { tipoTab?: 'enviados' | 'recibidos', periodo?: PeriodoTributario }): Observable<DTE[]> {
-    let dtes = (dtesData as any[]).map(dte => DTE.fromJson(dte));
-    
-    // Filtrar por período si se proporciona
-    if (filtro?.periodo) {
-      const mes = filtro.periodo.mes;
-      const año = filtro.periodo.año;
-      dtes = dtes.filter(dte => {
-        const fecha = dte.fechaCreacion;
-        return fecha.getMonth() + 1 === mes && fecha.getFullYear() === año;
-      });
-    }
-    
-    // Simular delay de red
-    return of(dtes).pipe(delay(300));
-  }
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        let sql = 'SELECT control_number, tipo, receptor, total, ambiente, fecha_creacion FROM dtes WHERE 1=1';
+        const params: any[] = [];
 
-  /** Obtener clientes mock */
-  getClientes(): Observable<{ id: string; nombre: string; correo: string }[]> {
-    return of(clientesData as any[]).pipe(delay(150));
-  }
+        // Filtrar por período si se proporciona
+        if (filtro?.periodo) {
+          const mes = filtro.periodo.mes;
+          const año = filtro.periodo.año;
+          sql += ' AND strftime("%m", fecha_creacion) = ? AND strftime("%Y", fecha_creacion) = ?';
+          params.push(String(mes).padStart(2, '0'), String(año));
+        }
 
-  /** Obtener sucursales mock */
-  getSucursales(): Observable<{ id: string; nombre: string }[]> {
-    return of(sucursalesData as any[]).pipe(delay(150));
-  }
+        sql += ' ORDER BY fecha_creacion DESC';
 
-  /** Obtener productos mock */
-  getProductos(): Observable<{ id: string; nombre: string; codigo?: string }[]> {
-    return of(productosData as any[]).pipe(delay(150));
-  }
-
-  /** Obtener formas de pago */
-  getFormasPago(): Observable<{ id: string; nombre: string }[]> {
-    return of(formasPagoData as any[]).pipe(delay(150));
-  }
-
-  /**
-   * Obtiene todas las empresas
-   */
-  getEmpresas(): Observable<Empresa[]> {
-    const empresas = (empresasData as any[]).map(emp => new Empresa(
-      emp.id,
-      emp.nombre,
-      emp.nit,
-      emp.direccion
-    ));
-    return of(empresas).pipe(delay(200));
-  }
-
-  /**
-   * Obtiene todos los tipos de DTE
-   */
-  getTiposDTE(): Observable<TipoDTE[]> {
-    const tipos = (tiposDteData as any[]).map(tipo => new TipoDTE(
-      tipo.codigo,
-      tipo.nombre,
-      tipo.habilitado
-    ));
-    return of(tipos).pipe(delay(150));
+        return this.database.query<{
+          control_number: string;
+          tipo: string;
+          receptor: string;
+          total: number;
+          ambiente: string;
+          fecha_creacion: string;
+        }>(sql, params);
+      }),
+      map(rows => {
+        return rows.map(row => {
+          return DTE.fromJson({
+            controlNumber: row.control_number,
+            tipo: row.tipo,
+            receptor: row.receptor,
+            total: row.total,
+            ambiente: row.ambiente,
+            fechaCreacion: row.fecha_creacion
+          });
+        });
+      })
+    );
   }
 
   /**
    * Obtiene un DTE por número de control
    */
   getDTEByControlNumber(controlNumber: string): Observable<DTE | null> {
-    const dtes = (dtesData as any[]).map(dte => DTE.fromJson(dte));
-    const dte = dtes.find(d => d.controlNumber === controlNumber);
-    return of(dte || null).pipe(delay(200));
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        return this.database.query<{
+          control_number: string;
+          tipo: string;
+          receptor: string;
+          total: number;
+          ambiente: string;
+          fecha_creacion: string;
+        }>(
+          'SELECT control_number, tipo, receptor, total, ambiente, fecha_creacion FROM dtes WHERE control_number = ?',
+          [controlNumber]
+        );
+      }),
+      map(rows => {
+        if (rows.length === 0) return null;
+        const row = rows[0];
+        return DTE.fromJson({
+          controlNumber: row.control_number,
+          tipo: row.tipo,
+          receptor: row.receptor,
+          total: row.total,
+          ambiente: row.ambiente,
+          fechaCreacion: row.fecha_creacion
+        });
+      })
+    );
+  }
+
+  /**
+   * Guarda un nuevo DTE
+   */
+  saveDTE(dte: {
+    controlNumber: string;
+    tipo: string;
+    receptor: string;
+    total: number;
+    ambiente: 'PRODUCCIÓN' | 'PRUEBAS';
+    fechaCreacion: Date | string;
+    empresaId?: string;
+    clienteId?: string;
+    estado?: string;
+  }): Observable<number> {
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        const fechaCreacion = dte.fechaCreacion instanceof Date 
+          ? dte.fechaCreacion.toISOString() 
+          : dte.fechaCreacion;
+
+        return this.database.execute(
+          `INSERT INTO dtes (control_number, tipo, receptor, total, ambiente, fecha_creacion, empresa_id, cliente_id, estado)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            dte.controlNumber,
+            dte.tipo,
+            dte.receptor,
+            dte.total,
+            dte.ambiente,
+            fechaCreacion,
+            dte.empresaId || null,
+            dte.clienteId || null,
+            dte.estado || 'BORRADOR'
+          ]
+        );
+      })
+    );
+  }
+
+  /**
+   * Obtiene todos los clientes
+   */
+  getClientes(): Observable<{ id: string; nombre: string; correo: string }[]> {
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        return this.database.query<{ id: string; nombre: string; correo: string | null }>(
+          'SELECT id, nombre, correo FROM clientes WHERE active = 1 ORDER BY nombre'
+        );
+      }),
+      map(rows => {
+        return rows.map(row => ({
+          id: row.id,
+          nombre: row.nombre,
+          correo: row.correo || ''
+        }));
+      })
+    );
+  }
+
+  /**
+   * Guarda un nuevo cliente
+   */
+  saveCliente(cliente: {
+    nombre: string;
+    correo?: string;
+    nit?: string;
+    nrc?: string;
+    direccion?: string;
+    telefono?: string;
+  }): Observable<string> {
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        const id = 'c' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        return this.database.execute(
+          'INSERT INTO clientes (id, nombre, correo, nit, nrc, direccion, telefono) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          [id, cliente.nombre, cliente.correo || null, cliente.nit || null, cliente.nrc || null, cliente.direccion || null, cliente.telefono || null]
+        ).pipe(
+          map(() => id)
+        );
+      })
+    );
+  }
+
+  /**
+   * Obtiene todas las sucursales
+   */
+  getSucursales(): Observable<{ id: string; nombre: string }[]> {
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        return this.database.query<{ id: string; nombre: string }>(
+          'SELECT id, nombre FROM sucursales WHERE active = 1 ORDER BY nombre'
+        );
+      })
+    );
+  }
+
+  /**
+   * Guarda una nueva sucursal
+   */
+  saveSucursal(sucursal: {
+    nombre: string;
+    direccion?: string;
+    telefono?: string;
+    empresaId?: string;
+  }): Observable<string> {
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        const id = 's' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        return this.database.execute(
+          'INSERT INTO sucursales (id, nombre, direccion, telefono, empresa_id) VALUES (?, ?, ?, ?, ?)',
+          [id, sucursal.nombre, sucursal.direccion || null, sucursal.telefono || null, sucursal.empresaId || null]
+        ).pipe(
+          map(() => id)
+        );
+      })
+    );
+  }
+
+  /**
+   * Obtiene todos los productos
+   */
+  getProductos(): Observable<{ id: string; nombre: string; codigo?: string }[]> {
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        return this.database.query<{ id: string; nombre: string; codigo: string | null }>(
+          'SELECT id, nombre, codigo FROM productos WHERE active = 1 ORDER BY nombre'
+        );
+      }),
+      map(rows => {
+        return rows.map(row => ({
+          id: row.id,
+          nombre: row.nombre,
+          codigo: row.codigo || undefined
+        }));
+      })
+    );
+  }
+
+  /**
+   * Guarda un nuevo producto
+   */
+  saveProducto(producto: {
+    nombre: string;
+    codigo?: string;
+    descripcion?: string;
+    precioUnitario?: number;
+    unidadMedida?: string;
+  }): Observable<string> {
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        const id = 'p' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        return this.database.execute(
+          'INSERT INTO productos (id, nombre, codigo, descripcion, precio_unitario, unidad_medida) VALUES (?, ?, ?, ?, ?, ?)',
+          [
+            id,
+            producto.nombre,
+            producto.codigo || null,
+            producto.descripcion || null,
+            producto.precioUnitario || 0,
+            producto.unidadMedida || null
+          ]
+        ).pipe(
+          map(() => id)
+        );
+      })
+    );
+  }
+
+  /**
+   * Obtiene todas las formas de pago
+   */
+  getFormasPago(): Observable<{ id: string; nombre: string }[]> {
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        return this.database.query<{ id: string; nombre: string }>(
+          'SELECT id, nombre FROM formas_pago ORDER BY nombre'
+        );
+      })
+    );
+  }
+
+  /**
+   * Obtiene todas las empresas
+   */
+  getEmpresas(): Observable<Empresa[]> {
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        return this.database.query<{ id: string; nombre: string; nit: string | null; direccion: string | null }>(
+          'SELECT id, nombre, nit, direccion FROM empresas ORDER BY nombre'
+        );
+      }),
+      map(rows => {
+        return rows.map(row => new Empresa(
+          row.id,
+          row.nombre,
+          row.nit || undefined,
+          row.direccion || undefined
+        ));
+      })
+    );
+  }
+
+  /**
+   * Guarda una nueva empresa
+   */
+  saveEmpresa(empresa: {
+    nombre: string;
+    nit?: string;
+    direccion?: string;
+  }): Observable<string> {
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        const id = 'e' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        return this.database.execute(
+          'INSERT INTO empresas (id, nombre, nit, direccion) VALUES (?, ?, ?, ?)',
+          [id, empresa.nombre, empresa.nit || null, empresa.direccion || null]
+        ).pipe(
+          map(() => id)
+        );
+      })
+    );
+  }
+
+  /**
+   * Obtiene todos los tipos de DTE
+   */
+  getTiposDTE(): Observable<TipoDTE[]> {
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        return this.database.query<{ codigo: string; nombre: string; habilitado: number }>(
+          'SELECT codigo, nombre, habilitado FROM tipos_dte WHERE habilitado = 1 ORDER BY nombre'
+        );
+      }),
+      map(rows => {
+        return rows.map(row => new TipoDTE(
+          row.codigo,
+          row.nombre,
+          row.habilitado === 1
+        ));
+      })
+    );
+  }
+
+  /**
+   * Actualiza un cliente
+   */
+  updateCliente(id: string, cliente: {
+    nombre?: string;
+    correo?: string;
+    nit?: string;
+    nrc?: string;
+    direccion?: string;
+    telefono?: string;
+  }): Observable<number> {
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        const updates: string[] = [];
+        const params: any[] = [];
+
+        if (cliente.nombre !== undefined) {
+          updates.push('nombre = ?');
+          params.push(cliente.nombre);
+        }
+        if (cliente.correo !== undefined) {
+          updates.push('correo = ?');
+          params.push(cliente.correo);
+        }
+        if (cliente.nit !== undefined) {
+          updates.push('nit = ?');
+          params.push(cliente.nit);
+        }
+        if (cliente.nrc !== undefined) {
+          updates.push('nrc = ?');
+          params.push(cliente.nrc);
+        }
+        if (cliente.direccion !== undefined) {
+          updates.push('direccion = ?');
+          params.push(cliente.direccion);
+        }
+        if (cliente.telefono !== undefined) {
+          updates.push('telefono = ?');
+          params.push(cliente.telefono);
+        }
+
+        if (updates.length === 0) {
+          return of(0);
+        }
+
+        updates.push('updated_at = CURRENT_TIMESTAMP');
+        params.push(id);
+
+        return this.database.execute(
+          `UPDATE clientes SET ${updates.join(', ')} WHERE id = ?`,
+          params
+        );
+      })
+    );
+  }
+
+  /**
+   * Elimina un cliente (soft delete)
+   */
+  deleteCliente(id: string): Observable<number> {
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        return this.database.execute(
+          'UPDATE clientes SET active = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+          [id]
+        );
+      })
+    );
+  }
+
+  /**
+   * Actualiza un producto
+   */
+  updateProducto(id: string, producto: {
+    nombre?: string;
+    codigo?: string;
+    descripcion?: string;
+    precioUnitario?: number;
+    unidadMedida?: string;
+  }): Observable<number> {
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        const updates: string[] = [];
+        const params: any[] = [];
+
+        if (producto.nombre !== undefined) {
+          updates.push('nombre = ?');
+          params.push(producto.nombre);
+        }
+        if (producto.codigo !== undefined) {
+          updates.push('codigo = ?');
+          params.push(producto.codigo);
+        }
+        if (producto.descripcion !== undefined) {
+          updates.push('descripcion = ?');
+          params.push(producto.descripcion);
+        }
+        if (producto.precioUnitario !== undefined) {
+          updates.push('precio_unitario = ?');
+          params.push(producto.precioUnitario);
+        }
+        if (producto.unidadMedida !== undefined) {
+          updates.push('unidad_medida = ?');
+          params.push(producto.unidadMedida);
+        }
+
+        if (updates.length === 0) {
+          return of(0);
+        }
+
+        updates.push('updated_at = CURRENT_TIMESTAMP');
+        params.push(id);
+
+        return this.database.execute(
+          `UPDATE productos SET ${updates.join(', ')} WHERE id = ?`,
+          params
+        );
+      })
+    );
+  }
+
+  /**
+   * Elimina un producto (soft delete)
+   */
+  deleteProducto(id: string): Observable<number> {
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        return this.database.execute(
+          'UPDATE productos SET active = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+          [id]
+        );
+      })
+    );
+  }
+
+  /**
+   * Actualiza una sucursal
+   */
+  updateSucursal(id: string, sucursal: {
+    nombre?: string;
+    direccion?: string;
+    telefono?: string;
+    empresaId?: string;
+  }): Observable<number> {
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        const updates: string[] = [];
+        const params: any[] = [];
+
+        if (sucursal.nombre !== undefined) {
+          updates.push('nombre = ?');
+          params.push(sucursal.nombre);
+        }
+        if (sucursal.direccion !== undefined) {
+          updates.push('direccion = ?');
+          params.push(sucursal.direccion);
+        }
+        if (sucursal.telefono !== undefined) {
+          updates.push('telefono = ?');
+          params.push(sucursal.telefono);
+        }
+        if (sucursal.empresaId !== undefined) {
+          updates.push('empresa_id = ?');
+          params.push(sucursal.empresaId);
+        }
+
+        if (updates.length === 0) {
+          return of(0);
+        }
+
+        updates.push('updated_at = CURRENT_TIMESTAMP');
+        params.push(id);
+
+        return this.database.execute(
+          `UPDATE sucursales SET ${updates.join(', ')} WHERE id = ?`,
+          params
+        );
+      })
+    );
+  }
+
+  /**
+   * Elimina una sucursal (soft delete)
+   */
+  deleteSucursal(id: string): Observable<number> {
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        return this.database.execute(
+          'UPDATE sucursales SET active = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+          [id]
+        );
+      })
+    );
   }
 }
-
