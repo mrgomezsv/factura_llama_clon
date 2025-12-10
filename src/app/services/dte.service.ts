@@ -217,19 +217,39 @@ export class DteService {
   /**
    * Obtiene todos los productos
    */
-  getProductos(): Observable<{ id: string; nombre: string; codigo?: string }[]> {
+  getProductos(): Observable<{ 
+    id: string; 
+    nombre: string; 
+    codigo?: string;
+    descripcion?: string;
+    precioConIva?: number;
+    unidadMedida?: string;
+    fechaCreacion?: string;
+  }[]> {
     return this.database.isReady$.pipe(
       first(ready => ready),
       switchMap(() => {
-        return this.database.query<{ id: string; nombre: string; codigo: string | null }>(
-          'SELECT id, nombre, codigo FROM productos WHERE active = 1 ORDER BY nombre'
+        return this.database.query<{ 
+          id: string; 
+          nombre: string; 
+          codigo: string | null;
+          descripcion: string | null;
+          precio_unitario: number;
+          unidad_medida: string | null;
+          created_at: string;
+        }>(
+          'SELECT id, nombre, codigo, descripcion, precio_unitario, unidad_medida, created_at FROM productos WHERE active = 1 ORDER BY created_at DESC'
         );
       }),
       map(rows => {
         return rows.map(row => ({
           id: row.id,
           nombre: row.nombre,
-          codigo: row.codigo || undefined
+          codigo: row.codigo || undefined,
+          descripcion: row.descripcion || undefined,
+          precioConIva: row.precio_unitario || 0,
+          unidadMedida: row.unidad_medida || 'UNIDAD',
+          fechaCreacion: row.created_at ? new Date(row.created_at).toLocaleString('es-SV') : undefined
         }));
       })
     );
@@ -243,12 +263,14 @@ export class DteService {
     codigo?: string;
     descripcion?: string;
     precioUnitario?: number;
+    precioConIva?: number;
     unidadMedida?: string;
   }): Observable<string> {
     return this.database.isReady$.pipe(
       first(ready => ready),
       switchMap(() => {
         const id = 'p' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        const precio = producto.precioConIva !== undefined ? producto.precioConIva : (producto.precioUnitario || 0);
         return this.database.execute(
           'INSERT INTO productos (id, nombre, codigo, descripcion, precio_unitario, unidad_medida) VALUES (?, ?, ?, ?, ?, ?)',
           [
@@ -256,7 +278,7 @@ export class DteService {
             producto.nombre,
             producto.codigo || null,
             producto.descripcion || null,
-            producto.precioUnitario || 0,
+            precio,
             producto.unidadMedida || null
           ]
         ).pipe(
@@ -425,6 +447,7 @@ export class DteService {
     codigo?: string;
     descripcion?: string;
     precioUnitario?: number;
+    precioConIva?: number;
     unidadMedida?: string;
   }): Observable<number> {
     return this.database.isReady$.pipe(
@@ -445,7 +468,10 @@ export class DteService {
           updates.push('descripcion = ?');
           params.push(producto.descripcion);
         }
-        if (producto.precioUnitario !== undefined) {
+        if (producto.precioConIva !== undefined) {
+          updates.push('precio_unitario = ?');
+          params.push(producto.precioConIva);
+        } else if (producto.precioUnitario !== undefined) {
           updates.push('precio_unitario = ?');
           params.push(producto.precioUnitario);
         }
