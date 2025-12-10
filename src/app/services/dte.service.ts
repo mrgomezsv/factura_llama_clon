@@ -134,19 +134,42 @@ export class DteService {
   /**
    * Obtiene todos los clientes
    */
-  getClientes(): Observable<{ id: string; nombre: string; correo: string }[]> {
+  getClientes(): Observable<{ 
+    id: string; 
+    nombre: string; 
+    correo?: string;
+    nit?: string;
+    nrc?: string;
+    direccion?: string;
+    telefono?: string;
+    fechaCreacion?: string;
+  }[]> {
     return this.database.isReady$.pipe(
       first(ready => ready),
       switchMap(() => {
-        return this.database.query<{ id: string; nombre: string; correo: string | null }>(
-          'SELECT id, nombre, correo FROM clientes WHERE active = 1 ORDER BY nombre'
+        return this.database.query<{ 
+          id: string; 
+          nombre: string; 
+          correo: string | null;
+          nit: string | null;
+          nrc: string | null;
+          direccion: string | null;
+          telefono: string | null;
+          created_at: string;
+        }>(
+          'SELECT id, nombre, correo, nit, nrc, direccion, telefono, created_at FROM clientes WHERE active = 1 ORDER BY created_at DESC'
         );
       }),
       map(rows => {
         return rows.map(row => ({
           id: row.id,
           nombre: row.nombre,
-          correo: row.correo || ''
+          correo: row.correo || undefined,
+          nit: row.nit || undefined,
+          nrc: row.nrc || undefined,
+          direccion: row.direccion || undefined,
+          telefono: row.telefono || undefined,
+          fechaCreacion: row.created_at ? new Date(row.created_at).toLocaleString('es-SV') : undefined
         }));
       })
     );
@@ -158,18 +181,36 @@ export class DteService {
   saveCliente(cliente: {
     nombre: string;
     correo?: string;
+    correoElectronico?: string;
     nit?: string;
+    numeroDocumento?: string;
+    tipoDocumento?: string;
     nrc?: string;
     direccion?: string;
     telefono?: string;
+    alias?: string;
+    nombreComercial?: string;
+    tipoPersona?: string;
+    clasificacionTributaria?: string;
+    esSujetoExcluido?: boolean;
+    actividadEconomica?: string;
+    pais?: string;
+    departamento?: string;
+    municipio?: string;
   }): Observable<string> {
     return this.database.isReady$.pipe(
       first(ready => ready),
       switchMap(() => {
         const id = 'c' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        // Mapear campos del formulario a campos de la base de datos
+        const correo = cliente.correoElectronico || cliente.correo || null;
+        // Si el tipo de documento es NIT, usar numeroDocumento como nit
+        const nit = (cliente.tipoDocumento === 'NIT' && cliente.numeroDocumento) 
+          ? cliente.numeroDocumento 
+          : (cliente.nit || null);
         return this.database.execute(
           'INSERT INTO clientes (id, nombre, correo, nit, nrc, direccion, telefono) VALUES (?, ?, ?, ?, ?, ?, ?)',
-          [id, cliente.nombre, cliente.correo || null, cliente.nit || null, cliente.nrc || null, cliente.direccion || null, cliente.telefono || null]
+          [id, cliente.nombre, correo, nit, cliente.nrc || null, cliente.direccion || null, cliente.telefono || null]
         ).pipe(
           map(() => id)
         );
@@ -403,10 +444,22 @@ export class DteService {
   updateCliente(id: string, cliente: {
     nombre?: string;
     correo?: string;
+    correoElectronico?: string;
     nit?: string;
+    numeroDocumento?: string;
+    tipoDocumento?: string;
     nrc?: string;
     direccion?: string;
     telefono?: string;
+    alias?: string;
+    nombreComercial?: string;
+    tipoPersona?: string;
+    clasificacionTributaria?: string;
+    esSujetoExcluido?: boolean;
+    actividadEconomica?: string;
+    pais?: string;
+    departamento?: string;
+    municipio?: string;
   }): Observable<number> {
     return this.database.isReady$.pipe(
       first(ready => ready),
@@ -418,11 +471,14 @@ export class DteService {
           updates.push('nombre = ?');
           params.push(cliente.nombre);
         }
-        if (cliente.correo !== undefined) {
+        if (cliente.correoElectronico !== undefined || cliente.correo !== undefined) {
           updates.push('correo = ?');
-          params.push(cliente.correo);
+          params.push(cliente.correoElectronico || cliente.correo);
         }
-        if (cliente.nit !== undefined) {
+        if (cliente.numeroDocumento !== undefined && cliente.tipoDocumento === 'NIT') {
+          updates.push('nit = ?');
+          params.push(cliente.numeroDocumento);
+        } else if (cliente.nit !== undefined) {
           updates.push('nit = ?');
           params.push(cliente.nit);
         }
