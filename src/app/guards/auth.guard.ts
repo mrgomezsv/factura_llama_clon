@@ -1,21 +1,20 @@
 import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
-import { Auth } from '@angular/fire/auth';
+import { AuthService } from '../services/auth.service';
 import { map, take } from 'rxjs/operators';
-import { authState } from '@angular/fire/auth';
 
 /**
  * Guard que protege rutas requiriendo autenticación
  * Si el usuario no está autenticado, redirige a /login
  */
 export const authGuard: CanActivateFn = (route, state) => {
-  const auth = inject(Auth);
+  const authService = inject(AuthService);
   const router = inject(Router);
 
-  return authState(auth).pipe(
+  return authService.isAuthenticated().pipe(
     take(1),
-    map(user => {
-      if (user) {
+    map(isAuth => {
+      if (isAuth) {
         return true;
       } else {
         router.navigate(['/login'], { 
@@ -32,13 +31,13 @@ export const authGuard: CanActivateFn = (route, state) => {
  * Si el usuario está autenticado, redirige a /dtes
  */
 export const loginGuard: CanActivateFn = (route, state) => {
-  const auth = inject(Auth);
+  const authService = inject(AuthService);
   const router = inject(Router);
 
-  return authState(auth).pipe(
+  return authService.isAuthenticated().pipe(
     take(1),
-    map(user => {
-      if (user) {
+    map(isAuth => {
+      if (isAuth) {
         router.navigate(['/dtes']);
         return false;
       } else {
@@ -47,4 +46,3 @@ export const loginGuard: CanActivateFn = (route, state) => {
     })
   );
 };
-
