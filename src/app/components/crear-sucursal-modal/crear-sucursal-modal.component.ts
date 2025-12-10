@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import departamentosMunicipiosData from '../../data/departamentos-municipios-mock.json';
@@ -10,15 +10,18 @@ import departamentosMunicipiosData from '../../data/departamentos-municipios-moc
   templateUrl: './crear-sucursal-modal.component.html',
   styleUrl: './crear-sucursal-modal.component.scss'
 })
-export class CrearSucursalModalComponent implements OnInit {
+export class CrearSucursalModalComponent implements OnInit, OnChanges {
+  @Input() sucursalParaEditar: any = null;
   @Output() cerrar = new EventEmitter<void>();
   @Output() sucursalCreada = new EventEmitter<any>();
+  @Output() sucursalActualizada = new EventEmitter<any>();
 
   form: FormGroup;
   departamentos: string[] = [];
   municipios: string[] = [];
   paisSeleccionado: string = 'El Salvador';
   departamentoSeleccionado: string = '';
+  esModoEdicion = false;
 
   tiposSucursal = ['Principal', 'Secundaria', 'Almacén', 'Punto de Venta'];
 
@@ -43,8 +46,55 @@ export class CrearSucursalModalComponent implements OnInit {
     this.form.get('departamento')?.valueChanges.subscribe(depto => {
       this.departamentoSeleccionado = depto;
       this.cargarMunicipios(this.paisSeleccionado, depto);
-      this.form.get('municipio')?.setValue('');
+      if (!this.esModoEdicion) {
+        this.form.get('municipio')?.setValue('');
+      }
     });
+
+    this.cargarDatosSucursal();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['sucursalParaEditar'] && !changes['sucursalParaEditar'].firstChange) {
+      this.cargarDatosSucursal();
+    }
+  }
+
+  cargarDatosSucursal(): void {
+    if (this.sucursalParaEditar) {
+      this.esModoEdicion = true;
+      this.form.patchValue({
+        nombre: this.sucursalParaEditar.nombre || '',
+        tipoSucursal: this.sucursalParaEditar.tipoSucursal || '',
+        direccion: this.sucursalParaEditar.direccion || '',
+        complemento: this.sucursalParaEditar.complemento || '',
+        correoElectronico: this.sucursalParaEditar.correoElectronico || '',
+        telefono: this.sucursalParaEditar.telefono || '',
+        departamento: this.sucursalParaEditar.departamento || '',
+        municipio: this.sucursalParaEditar.municipio || '',
+        codigoMH: this.sucursalParaEditar.codigoMH || 'M001',
+        puntosVenta: this.sucursalParaEditar.puntosVenta || 1
+      });
+      this.departamentoSeleccionado = this.sucursalParaEditar.departamento || '';
+      if (this.departamentoSeleccionado) {
+        this.cargarMunicipios(this.paisSeleccionado, this.departamentoSeleccionado);
+      }
+    } else {
+      this.esModoEdicion = false;
+      this.form.reset({
+        nombre: '',
+        tipoSucursal: '',
+        direccion: '',
+        complemento: '',
+        correoElectronico: '',
+        telefono: '',
+        departamento: '',
+        municipio: '',
+        codigoMH: 'M001',
+        puntosVenta: 1
+      });
+      this.departamentoSeleccionado = '';
+    }
   }
 
   cargarDepartamentos(pais: string): void {
@@ -75,7 +125,13 @@ export class CrearSucursalModalComponent implements OnInit {
         ...this.form.value,
         fechaCreacion: new Date().toLocaleString('es-SV')
       };
-      this.sucursalCreada.emit(sucursal);
+      
+      if (this.esModoEdicion && this.sucursalParaEditar) {
+        sucursal.id = this.sucursalParaEditar.id;
+        this.sucursalActualizada.emit(sucursal);
+      } else {
+        this.sucursalCreada.emit(sucursal);
+      }
     }
   }
 }
