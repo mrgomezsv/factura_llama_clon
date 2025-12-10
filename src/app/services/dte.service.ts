@@ -180,13 +180,34 @@ export class DteService {
   /**
    * Obtiene todas las sucursales
    */
-  getSucursales(): Observable<{ id: string; nombre: string }[]> {
+  getSucursales(): Observable<{ 
+    id: string; 
+    nombre: string;
+    direccion?: string;
+    telefono?: string;
+    fechaCreacion?: string;
+  }[]> {
     return this.database.isReady$.pipe(
       first(ready => ready),
       switchMap(() => {
-        return this.database.query<{ id: string; nombre: string }>(
-          'SELECT id, nombre FROM sucursales WHERE active = 1 ORDER BY nombre'
+        return this.database.query<{ 
+          id: string; 
+          nombre: string;
+          direccion: string | null;
+          telefono: string | null;
+          created_at: string;
+        }>(
+          'SELECT id, nombre, direccion, telefono, created_at FROM sucursales WHERE active = 1 ORDER BY created_at DESC'
         );
+      }),
+      map(rows => {
+        return rows.map(row => ({
+          id: row.id,
+          nombre: row.nombre,
+          direccion: row.direccion || undefined,
+          telefono: row.telefono || undefined,
+          fechaCreacion: row.created_at ? new Date(row.created_at).toLocaleString('es-SV') : undefined
+        }));
       })
     );
   }
@@ -199,11 +220,20 @@ export class DteService {
     direccion?: string;
     telefono?: string;
     empresaId?: string;
+    tipoSucursal?: string;
+    complemento?: string;
+    correoElectronico?: string;
+    departamento?: string;
+    municipio?: string;
+    codigoMH?: string;
+    puntosVenta?: number;
   }): Observable<string> {
     return this.database.isReady$.pipe(
       first(ready => ready),
       switchMap(() => {
         const id = 's' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        // Por ahora solo guardamos los campos que están en la tabla de la base de datos
+        // Los demás campos (tipoSucursal, complemento, etc.) se pueden agregar después si se extiende la tabla
         return this.database.execute(
           'INSERT INTO sucursales (id, nombre, direccion, telefono, empresa_id) VALUES (?, ?, ?, ?, ?)',
           [id, sucursal.nombre, sucursal.direccion || null, sucursal.telefono || null, sucursal.empresaId || null]
@@ -518,6 +548,13 @@ export class DteService {
     direccion?: string;
     telefono?: string;
     empresaId?: string;
+    tipoSucursal?: string;
+    complemento?: string;
+    correoElectronico?: string;
+    departamento?: string;
+    municipio?: string;
+    codigoMH?: string;
+    puntosVenta?: number;
   }): Observable<number> {
     return this.database.isReady$.pipe(
       first(ready => ready),
