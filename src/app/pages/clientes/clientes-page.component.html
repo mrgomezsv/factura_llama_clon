@@ -508,7 +508,9 @@
 
 <app-crear-producto-modal 
   *ngIf="mostrarModalCrearProducto"
-  (cerrar)="mostrarModalCrearProducto = false"
+  [productoParaEditar]="productoParaEditar"
+  (cerrar)="mostrarModalCrearProducto = false; productoParaEditar = null"
   (productoCreado)="onProductoCreado($event)"
+  (productoActualizado)="onProductoActualizado($event)"
 ></app-crear-producto-modal>
 
