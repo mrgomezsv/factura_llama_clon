@@ -1,20 +1,22 @@
 import { Injectable } from '@angular/core';
-import { 
-  Auth, 
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  sendPasswordResetEmail,
-  signOut, 
-  User,
-  UserCredential 
-} from '@angular/fire/auth';
 import { Router } from '@angular/router';
-import { Observable, from, of, BehaviorSubject } from 'rxjs';
-import { map, catchError, switchMap } from 'rxjs/operators';
-import { Firestore, doc, docData, setDoc, serverTimestamp } from '@angular/fire/firestore';
+import { Observable, BehaviorSubject, of, throwError, from } from 'rxjs';
+import { map, catchError, switchMap, first } from 'rxjs/operators';
+import { DatabaseService } from './database.service';
 
 /**
- * Servicio de autenticación usando Firebase Auth
+ * Interfaz para el usuario autenticado
+ */
+export interface User {
+  id: string;
+  email: string;
+  displayName?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+/**
+ * Servicio de autenticación usando SQLite local
  */
 @Injectable({
   providedIn: 'root'
@@ -22,109 +24,172 @@ import { Firestore, doc, docData, setDoc, serverTimestamp } from '@angular/fire/
 export class AuthService {
   private userSubject = new BehaviorSubject<User | null>(null);
   public user$ = this.userSubject.asObservable();
+  private readonly SESSION_KEY = 'factura_llama_session';
 
   constructor(
-    private auth: Auth,
-    private router: Router,
-    private firestore: Firestore
+    private database: DatabaseService,
+    private router: Router
   ) {
-    // Suscribirse a cambios de estado de autenticación
-    this.auth.onAuthStateChanged((user) => {
-      this.userSubject.next(user);
-    });
+    // Restaurar sesión desde localStorage si existe
+    this.restoreSession();
+  }
+
+  /**
+   * Restaura la sesión desde localStorage
+   */
+  private restoreSession(): void {
+    const sessionData = localStorage.getItem(this.SESSION_KEY);
+    if (sessionData) {
+      try {
+        const user = JSON.parse(sessionData);
+        this.userSubject.next(user);
+      } catch (error) {
+        console.error('Error al restaurar sesión:', error);
+        localStorage.removeItem(this.SESSION_KEY);
+      }
+    }
+  }
+
+  /**
+   * Hashea una contraseña usando SHA-256
+   * Nota: Para producción, usar bcrypt o similar
+   */
+  private async hashPassword(password: string): Promise<string> {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   }
 
   /**
    * Inicia sesión con email y contraseña
    */
   login(email: string, password: string): Observable<User> {
-    return from(signInWithEmailAndPassword(this.auth, email, password)).pipe(
-      map((userCredential: UserCredential) => {
-        return userCredential.user;
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => from(this.hashPassword(password))),
+      switchMap(() => {
+        return this.database.query<{ id: string; email: string; password_hash: string; display_name: string | null }>(
+          'SELECT id, email, password_hash, display_name FROM users WHERE email = ? AND active = 1',
+          [email.toLowerCase().trim()]
+        );
+      }),
+      switchMap(users => {
+        if (users.length === 0) {
+          return throwError(() => new Error('Correo o contraseña incorrectos'));
+        }
+
+        const user = users[0];
+        return from(this.hashPassword(password)).pipe(
+          switchMap(hash => {
+            if (user.password_hash !== hash) {
+              return throwError(() => new Error('Correo o contraseña incorrectos'));
+            }
+
+            const authenticatedUser: User = {
+              id: user.id,
+              email: user.email,
+              displayName: user.display_name || undefined
+            };
+
+            // Guardar sesión
+            localStorage.setItem(this.SESSION_KEY, JSON.stringify(authenticatedUser));
+            this.userSubject.next(authenticatedUser);
+            return of(authenticatedUser);
+          })
+        );
       }),
       catchError((error) => {
-        throw this.handleAuthError(error);
+        return throwError(() => this.handleAuthError(error));
       })
     );
   }
 
   /**
    * Registra un nuevo usuario con email y contraseña
-   * Opcionalmente crea un perfil inicial en Firestore
    */
   register(
     email: string, 
     password: string, 
     displayName?: string
   ): Observable<User> {
-    return from(createUserWithEmailAndPassword(this.auth, email, password)).pipe(
-      switchMap((userCredential: UserCredential) => {
-        const user = userCredential.user;
-        
-        // Crear perfil básico en Firestore si se proporciona displayName
-        if (displayName && user.uid) {
-          return this.createUserProfile(user.uid, {
-            email: user.email || email,
-            displayName: displayName,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-          }).pipe(
-            map(() => user),
-            catchError((error) => {
-              console.error('Error al crear perfil de usuario:', error);
-              // Retornar usuario aunque falle crear perfil (se puede crear después)
-              return of(user);
-            })
-          );
+    // Validar email
+    if (!this.isValidEmail(email)) {
+      return throwError(() => new Error('Ingresa un correo electrónico válido'));
+    }
+
+    // Validar contraseña
+    if (password.length < 6) {
+      return throwError(() => new Error('La contraseña debe tener al menos 6 caracteres'));
+    }
+
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        // Verificar si el email ya existe
+        return this.database.query<{ id: string }>(
+          'SELECT id FROM users WHERE email = ?',
+          [email.toLowerCase().trim()]
+        );
+      }),
+      switchMap(existingUsers => {
+        if (existingUsers.length > 0) {
+          return throwError(() => new Error('Este correo electrónico ya está registrado'));
         }
-        
-        return of(user);
+
+        // Crear nuevo usuario
+        const userId = this.generateUserId();
+        return from(this.hashPassword(password)).pipe(
+          switchMap(hash => {
+            return this.database.execute(
+              'INSERT INTO users (id, email, password_hash, display_name) VALUES (?, ?, ?, ?)',
+              [userId, email.toLowerCase().trim(), hash, displayName || null]
+            ).pipe(
+              map(() => {
+                const newUser: User = {
+                  id: userId,
+                  email: email.toLowerCase().trim(),
+                  displayName: displayName
+                };
+
+                // Guardar sesión
+                localStorage.setItem(this.SESSION_KEY, JSON.stringify(newUser));
+                this.userSubject.next(newUser);
+                return newUser;
+              })
+            );
+          })
+        );
       }),
       catchError((error) => {
-        throw this.handleAuthError(error);
+        return throwError(() => this.handleAuthError(error));
       })
     );
-  }
-
-  /**
-   * Crea o actualiza el perfil del usuario en Firestore
-   */
-  createUserProfile(userId: string, userData: any): Observable<void> {
-    const userDocRef = doc(this.firestore, `users/${userId}`);
-    return from(setDoc(userDocRef, {
-      ...userData,
-      updatedAt: serverTimestamp()
-    }, { merge: true }));
   }
 
   /**
    * Cierra sesión del usuario
    */
   logout(): Observable<void> {
-    return from(signOut(this.auth)).pipe(
-      map(() => {
-        this.router.navigate(['/login']);
-        return undefined;
-      }),
-      catchError((error) => {
-        console.error('Error al cerrar sesión:', error);
-        throw error;
-      })
-    );
+    localStorage.removeItem(this.SESSION_KEY);
+    this.userSubject.next(null);
+    this.router.navigate(['/login']);
+    return of(undefined);
   }
 
   /**
    * Obtiene el usuario actual
    */
   getCurrentUser(): User | null {
-    return this.auth.currentUser;
+    return this.userSubject.value;
   }
 
   /**
    * Obtiene el ID del usuario actual
    */
   getCurrentUserId(): string | null {
-    return this.auth.currentUser?.uid || null;
+    return this.userSubject.value?.id || null;
   }
 
   /**
@@ -137,27 +202,167 @@ export class AuthService {
   }
 
   /**
-   * Obtiene los datos del perfil del usuario desde Firestore
+   * Obtiene los datos del perfil del usuario
    */
-  getUserProfile(userId: string): Observable<any> {
-    const userDocRef = doc(this.firestore, `users/${userId}`);
-    return docData(userDocRef).pipe(
-      catchError((error) => {
-        console.error('Error al obtener perfil de usuario:', error);
-        return of(null);
-      })
+  getUserProfile(userId: string): Observable<User | null> {
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        return this.database.query<User & { display_name?: string }>(
+          'SELECT id, email, display_name as displayName, created_at as createdAt, updated_at as updatedAt FROM users WHERE id = ?',
+          [userId]
+        );
+      }),
+      map(users => {
+        if (users.length === 0) return null;
+        const user = users[0];
+        return {
+          id: user.id,
+          email: user.email,
+          displayName: user.displayName,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt
+        };
+      }),
+      catchError(() => of(null))
     );
   }
 
   /**
    * Envía un email para restablecer la contraseña
+   * Nota: En desarrollo local, esto solo simula el proceso
    */
   sendPasswordReset(email: string): Observable<void> {
-    return from(sendPasswordResetEmail(this.auth, email)).pipe(
+    if (!this.isValidEmail(email)) {
+      return throwError(() => new Error('Ingresa un correo electrónico válido'));
+    }
+
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        return this.database.query<{ id: string }>(
+          'SELECT id FROM users WHERE email = ? AND active = 1',
+          [email.toLowerCase().trim()]
+        );
+      }),
+      switchMap(users => {
+        if (users.length === 0) {
+          // Por seguridad, no revelamos si el email existe o no
+          return of(undefined);
+        }
+
+        // En desarrollo, solo logueamos. En producción, enviarías un email real
+        console.log(`[DEV] Email de recuperación enviado a: ${email}`);
+        // Aquí podrías implementar un sistema de tokens de recuperación
+        
+        return of(undefined);
+      }),
       catchError((error) => {
-        throw this.handleAuthError(error);
+        return throwError(() => this.handleAuthError(error));
       })
     );
+  }
+
+  /**
+   * Actualiza el perfil del usuario
+   */
+  updateProfile(userId: string, data: { displayName?: string }): Observable<void> {
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        const updates: string[] = [];
+        const params: any[] = [];
+
+        if (data.displayName !== undefined) {
+          updates.push('display_name = ?');
+          params.push(data.displayName);
+        }
+
+        if (updates.length === 0) {
+          return of(undefined);
+        }
+
+        updates.push('updated_at = CURRENT_TIMESTAMP');
+        params.push(userId);
+
+        return this.database.execute(
+          `UPDATE users SET ${updates.join(', ')} WHERE id = ?`,
+          params
+        ).pipe(
+          map(() => {
+            // Actualizar usuario en sesión
+            const currentUser = this.userSubject.value;
+            if (currentUser && currentUser.id === userId) {
+              const updatedUser: User = {
+                ...currentUser,
+                displayName: data.displayName !== undefined ? data.displayName : currentUser.displayName
+              };
+              localStorage.setItem(this.SESSION_KEY, JSON.stringify(updatedUser));
+              this.userSubject.next(updatedUser);
+            }
+            return undefined;
+          })
+        );
+      })
+    );
+  }
+
+  /**
+   * Cambia la contraseña del usuario
+   */
+  changePassword(userId: string, currentPassword: string, newPassword: string): Observable<void> {
+    if (newPassword.length < 6) {
+      return throwError(() => new Error('La contraseña debe tener al menos 6 caracteres'));
+    }
+
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        return this.database.query<{ password_hash: string }>(
+          'SELECT password_hash FROM users WHERE id = ?',
+          [userId]
+        );
+      }),
+      switchMap(users => {
+        if (users.length === 0) {
+          return throwError(() => new Error('Usuario no encontrado'));
+        }
+
+        const user = users[0];
+        return from(this.hashPassword(currentPassword)).pipe(
+          switchMap(currentHash => {
+            if (user.password_hash !== currentHash) {
+              return throwError(() => new Error('Contraseña actual incorrecta'));
+            }
+
+            return from(this.hashPassword(newPassword)).pipe(
+              switchMap(newHash => {
+                return this.database.execute(
+                  'UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+                  [newHash, userId]
+                );
+              })
+            );
+          })
+        );
+      }),
+      map(() => undefined)
+    );
+  }
+
+  /**
+   * Valida formato de email
+   */
+  private isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
+  /**
+   * Genera un ID único para el usuario
+   */
+  private generateUserId(): string {
+    return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   }
 
   /**
@@ -166,43 +371,14 @@ export class AuthService {
   private handleAuthError(error: any): Error {
     let errorMessage = 'Ocurrió un error al iniciar sesión';
 
-    switch (error.code) {
-      case 'auth/user-not-found':
-      case 'auth/wrong-password':
-      case 'auth/invalid-credential':
-        errorMessage = 'Correo o contraseña incorrectos';
-        break;
-      case 'auth/invalid-email':
-        errorMessage = 'Ingresa un correo electrónico válido';
-        break;
-      case 'auth/user-disabled':
-        errorMessage = 'Esta cuenta ha sido deshabilitada';
-        break;
-      case 'auth/too-many-requests':
-        errorMessage = 'Demasiados intentos fallidos. Por favor intenta más tarde';
-        break;
-      case 'auth/network-request-failed':
-        errorMessage = 'Error de conexión. Verifica tu internet';
-        break;
-      case 'auth/weak-password':
-        errorMessage = 'La contraseña es muy débil. Debe tener al menos 6 caracteres';
-        break;
-      case 'auth/email-already-in-use':
-        errorMessage = 'Este correo electrónico ya está registrado';
-        break;
-      case 'auth/invalid-email':
-        errorMessage = 'Ingresa un correo electrónico válido';
-        break;
-      case 'auth/operation-not-allowed':
-        errorMessage = 'Esta operación no está permitida. Contacta al administrador';
-        break;
-      default:
-        errorMessage = error.message || 'Ocurrió un error inesperado';
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    } else if (error?.message) {
+      errorMessage = error.message;
     }
 
-    const customError = new Error(errorMessage);
-    (customError as any).code = error.code;
-    return customError;
+    return new Error(errorMessage);
   }
 }
-
