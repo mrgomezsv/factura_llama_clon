@@ -32,6 +32,7 @@ export class ClientesPageComponent implements OnInit {
   mostrarModalCrearProducto = false;
   productoParaEditar: any = null;
   sucursalParaEditar: any = null;
+  clienteParaEditar: any = null;
   productoDropdownAbierto: number | null = null;
   clienteDropdownAbierto: number | null = null;
   sucursalDropdownAbierto: number | null = null;
@@ -111,6 +112,7 @@ export class ClientesPageComponent implements OnInit {
     this.dteService.getClientes().subscribe(clientes => {
       this.clientes = clientes.map((c: any) => ({
         ...c,
+        correo: c.correo || '',
         fechaCreacion: c.fechaCreacion || '27/10/2025 13:23:04'
       }));
     });
@@ -165,6 +167,7 @@ export class ClientesPageComponent implements OnInit {
 
   manejarOpcionSeleccionada(opcion: string): void {
     if (opcion === 'nuevo-cliente') {
+      this.clienteParaEditar = null;
       this.mostrarModalCrearCliente = true;
     } else if (opcion === 'nueva-sucursal') {
       this.sucursalParaEditar = null;
@@ -176,13 +179,55 @@ export class ClientesPageComponent implements OnInit {
   }
 
   onClienteCreado(cliente: any): void {
-    this.mostrarModalCrearCliente = false;
-    this.clientes = [...this.clientes, {
-      id: `c${this.clientes.length + 1}`,
+    this.dteService.saveCliente({
       nombre: cliente.nombre,
-      correo: cliente.correoElectronico,
-      fechaCreacion: cliente.fechaCreacion
-    }];
+      alias: cliente.alias,
+      nombreComercial: cliente.nombreComercial,
+      correoElectronico: cliente.correoElectronico,
+      telefono: cliente.telefono,
+      tipoPersona: cliente.tipoPersona,
+      clasificacionTributaria: cliente.clasificacionTributaria,
+      esSujetoExcluido: cliente.esSujetoExcluido,
+      tipoDocumento: cliente.tipoDocumento,
+      numeroDocumento: cliente.numeroDocumento,
+      nrc: cliente.nrc,
+      actividadEconomica: cliente.actividadEconomica,
+      pais: cliente.pais,
+      departamento: cliente.departamento,
+      municipio: cliente.municipio,
+      direccion: cliente.direccion
+    }).subscribe(() => {
+      this.mostrarModalCrearCliente = false;
+      this.clienteParaEditar = null;
+      this.cargarClientes();
+    });
+  }
+
+  onClienteActualizado(cliente: any): void {
+    if (cliente.id) {
+      this.dteService.updateCliente(cliente.id, {
+        nombre: cliente.nombre,
+        alias: cliente.alias,
+        nombreComercial: cliente.nombreComercial,
+        correoElectronico: cliente.correoElectronico,
+        telefono: cliente.telefono,
+        tipoPersona: cliente.tipoPersona,
+        clasificacionTributaria: cliente.clasificacionTributaria,
+        esSujetoExcluido: cliente.esSujetoExcluido,
+        tipoDocumento: cliente.tipoDocumento,
+        numeroDocumento: cliente.numeroDocumento,
+        nrc: cliente.nrc,
+        actividadEconomica: cliente.actividadEconomica,
+        pais: cliente.pais,
+        departamento: cliente.departamento,
+        municipio: cliente.municipio,
+        direccion: cliente.direccion
+      }).subscribe(() => {
+        this.mostrarModalCrearCliente = false;
+        this.clienteParaEditar = null;
+        this.cargarClientes();
+      });
+    }
   }
 
   onSucursalCreada(sucursal: any): void {
@@ -296,14 +341,19 @@ export class ClientesPageComponent implements OnInit {
 
   editarCliente(cliente: any): void {
     this.cerrarClienteDropdown();
-    // TODO: Implementar edición de cliente
-    console.log('Editar cliente:', cliente);
+    this.clienteParaEditar = cliente;
+    this.mostrarModalCrearCliente = true;
   }
 
   eliminarCliente(cliente: any): void {
     this.cerrarClienteDropdown();
-    // TODO: Implementar eliminación de cliente
-    console.log('Eliminar cliente:', cliente);
+    if (confirm(`¿Estás seguro de que deseas eliminar el cliente "${cliente.nombre}"?`)) {
+      if (cliente.id) {
+        this.dteService.deleteCliente(cliente.id).subscribe(() => {
+          this.cargarClientes();
+        });
+      }
+    }
   }
 
   toggleSucursalDropdown(index: number, event: Event): void {
