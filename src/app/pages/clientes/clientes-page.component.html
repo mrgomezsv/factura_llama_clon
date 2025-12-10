@@ -502,8 +502,10 @@
 
 <app-crear-sucursal-modal 
   *ngIf="mostrarModalCrearSucursal"
-  (cerrar)="mostrarModalCrearSucursal = false"
+  [sucursalParaEditar]="sucursalParaEditar"
+  (cerrar)="mostrarModalCrearSucursal = false; sucursalParaEditar = null"
   (sucursalCreada)="onSucursalCreada($event)"
+  (sucursalActualizada)="onSucursalActualizada($event)"
 ></app-crear-sucursal-modal>
 
 <app-crear-producto-modal 
