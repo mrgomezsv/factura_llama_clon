@@ -1,6 +1,7 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DteService } from '../../services/dte.service';
+import { AuthService } from '../../services/auth.service';
 import { Empresa } from '../../models/empresa.model';
 import { Router, RouterModule } from '@angular/router';
 
@@ -16,7 +17,11 @@ export class HeaderComponent implements OnInit {
   empresaSeleccionada: Empresa | null = null;
   mostrarSelectorEmpresa: boolean = false;
 
-  constructor(private dteService: DteService, private router: Router) {
+  constructor(
+    private dteService: DteService, 
+    private router: Router,
+    private authService: AuthService
+  ) {
   }
 
   ngOnInit(): void {
@@ -82,7 +87,9 @@ export class HeaderComponent implements OnInit {
 
   salir(): void {
     this.mostrarSelectorEmpresa = false;
-    this.router.navigateByUrl('/login');
+    this.authService.logout().subscribe(() => {
+      // El logout ya redirige a /login, no es necesario hacerlo aquí
+    });
   }
 
   @HostListener('document:click', ['$event'])
