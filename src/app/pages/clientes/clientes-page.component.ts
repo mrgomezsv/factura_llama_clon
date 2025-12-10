@@ -30,6 +30,7 @@ export class ClientesPageComponent implements OnInit {
   mostrarModalCrearCliente = false;
   mostrarModalCrearSucursal = false;
   mostrarModalCrearProducto = false;
+  productoParaEditar: any = null;
   productoDropdownAbierto: number | null = null;
   clienteDropdownAbierto: number | null = null;
   sucursalDropdownAbierto: number | null = null;
@@ -128,7 +129,7 @@ export class ClientesPageComponent implements OnInit {
       this.productos = productos.map((p: any) => ({
         ...p,
         fechaCreacion: p.fechaCreacion || '25/03/2025 11:16:18',
-        precioConIva: p.precioConIva || p.precio || 0,
+        precioConIva: p.precioConIva || 0,
         unidadMedida: p.unidadMedida || 'UNIDAD'
       }));
     });
@@ -167,6 +168,7 @@ export class ClientesPageComponent implements OnInit {
     } else if (opcion === 'nueva-sucursal') {
       this.mostrarModalCrearSucursal = true;
     } else if (opcion === 'nuevo-producto') {
+      this.productoParaEditar = null;
       this.mostrarModalCrearProducto = true;
     }
   }
@@ -193,14 +195,33 @@ export class ClientesPageComponent implements OnInit {
   }
 
   onProductoCreado(producto: any): void {
-    this.mostrarModalCrearProducto = false;
-    this.productos = [...this.productos, {
-      id: `p${this.productos.length + 1}`,
+    this.dteService.saveProducto({
       nombre: producto.nombre,
+      codigo: producto.codigo || producto.codigoInterno,
+      descripcion: producto.descripcion,
       precioConIva: producto.precioConIva,
-      unidadMedida: producto.unidadMedida || 'UNIDAD',
-      fechaCreacion: producto.fechaCreacion
-    }];
+      unidadMedida: producto.unidadMedida || 'Otra'
+    }).subscribe(() => {
+      this.mostrarModalCrearProducto = false;
+      this.productoParaEditar = null;
+      this.cargarProductos();
+    });
+  }
+
+  onProductoActualizado(producto: any): void {
+    if (producto.id) {
+      this.dteService.updateProducto(producto.id, {
+        nombre: producto.nombre,
+        codigo: producto.codigo || producto.codigoInterno,
+        descripcion: producto.descripcion,
+        precioConIva: producto.precioConIva,
+        unidadMedida: producto.unidadMedida || 'Otra'
+      }).subscribe(() => {
+        this.mostrarModalCrearProducto = false;
+        this.productoParaEditar = null;
+        this.cargarProductos();
+      });
+    }
   }
 
   toggleProductoDropdown(index: number, event: Event): void {
@@ -216,14 +237,19 @@ export class ClientesPageComponent implements OnInit {
 
   editarProducto(producto: any): void {
     this.cerrarProductoDropdown();
-    // TODO: Implementar edición de producto
-    console.log('Editar producto:', producto);
+    this.productoParaEditar = producto;
+    this.mostrarModalCrearProducto = true;
   }
 
   eliminarProducto(producto: any): void {
     this.cerrarProductoDropdown();
-    // TODO: Implementar eliminación de producto
-    console.log('Eliminar producto:', producto);
+    if (confirm(`¿Estás seguro de que deseas eliminar el producto "${producto.nombre}"?`)) {
+      if (producto.id) {
+        this.dteService.deleteProducto(producto.id).subscribe(() => {
+          this.cargarProductos();
+        });
+      }
+    }
   }
 
   toggleClienteDropdown(index: number, event: Event): void {
