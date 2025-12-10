@@ -31,6 +31,7 @@ export class ClientesPageComponent implements OnInit {
   mostrarModalCrearSucursal = false;
   mostrarModalCrearProducto = false;
   productoParaEditar: any = null;
+  sucursalParaEditar: any = null;
   productoDropdownAbierto: number | null = null;
   clienteDropdownAbierto: number | null = null;
   sucursalDropdownAbierto: number | null = null;
@@ -166,6 +167,7 @@ export class ClientesPageComponent implements OnInit {
     if (opcion === 'nuevo-cliente') {
       this.mostrarModalCrearCliente = true;
     } else if (opcion === 'nueva-sucursal') {
+      this.sucursalParaEditar = null;
       this.mostrarModalCrearSucursal = true;
     } else if (opcion === 'nuevo-producto') {
       this.productoParaEditar = null;
@@ -184,14 +186,43 @@ export class ClientesPageComponent implements OnInit {
   }
 
   onSucursalCreada(sucursal: any): void {
-    this.mostrarModalCrearSucursal = false;
-    this.sucursales = [...this.sucursales, {
-      id: `s${this.sucursales.length + 1}`,
+    this.dteService.saveSucursal({
       nombre: sucursal.nombre,
-      tipoSucursal: sucursal.tipoSucursal,
       direccion: sucursal.direccion,
-      fechaCreacion: sucursal.fechaCreacion
-    }];
+      telefono: sucursal.telefono,
+      tipoSucursal: sucursal.tipoSucursal,
+      complemento: sucursal.complemento,
+      correoElectronico: sucursal.correoElectronico,
+      departamento: sucursal.departamento,
+      municipio: sucursal.municipio,
+      codigoMH: sucursal.codigoMH,
+      puntosVenta: sucursal.puntosVenta
+    }).subscribe(() => {
+      this.mostrarModalCrearSucursal = false;
+      this.sucursalParaEditar = null;
+      this.cargarSucursales();
+    });
+  }
+
+  onSucursalActualizada(sucursal: any): void {
+    if (sucursal.id) {
+      this.dteService.updateSucursal(sucursal.id, {
+        nombre: sucursal.nombre,
+        direccion: sucursal.direccion,
+        telefono: sucursal.telefono,
+        tipoSucursal: sucursal.tipoSucursal,
+        complemento: sucursal.complemento,
+        correoElectronico: sucursal.correoElectronico,
+        departamento: sucursal.departamento,
+        municipio: sucursal.municipio,
+        codigoMH: sucursal.codigoMH,
+        puntosVenta: sucursal.puntosVenta
+      }).subscribe(() => {
+        this.mostrarModalCrearSucursal = false;
+        this.sucursalParaEditar = null;
+        this.cargarSucursales();
+      });
+    }
   }
 
   onProductoCreado(producto: any): void {
@@ -288,14 +319,19 @@ export class ClientesPageComponent implements OnInit {
 
   editarSucursal(sucursal: any): void {
     this.cerrarSucursalDropdown();
-    // TODO: Implementar edición de sucursal
-    console.log('Editar sucursal:', sucursal);
+    this.sucursalParaEditar = sucursal;
+    this.mostrarModalCrearSucursal = true;
   }
 
   eliminarSucursal(sucursal: any): void {
     this.cerrarSucursalDropdown();
-    // TODO: Implementar eliminación de sucursal
-    console.log('Eliminar sucursal:', sucursal);
+    if (confirm(`¿Estás seguro de que deseas eliminar la sucursal "${sucursal.nombre}"?`)) {
+      if (sucursal.id) {
+        this.dteService.deleteSucursal(sucursal.id).subscribe(() => {
+          this.cargarSucursales();
+        });
+      }
+    }
   }
 
   toggleEmpresaInfoDropdown(event: Event): void {
