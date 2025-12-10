@@ -1,7 +1,7 @@
 <div class="modal-overlay" (click)="cerrarModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h2>Crear Cliente</h2>
+      <h2>{{ esModoEdicion ? 'Editar Cliente' : 'Crear Cliente' }}</h2>
       <button class="btn-cerrar" (click)="cerrarModal()" type="button">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -208,7 +208,7 @@
 
     <div class="modal-footer">
       <button class="btn-cancelar" (click)="cerrarModal()" type="button">Cancelar</button>
-      <button class="btn-crear" (click)="crearCliente()" type="button" [disabled]="!form.valid">Crear</button>
+      <button class="btn-crear" (click)="crearCliente()" type="button" [disabled]="!form.valid">{{ esModoEdicion ? 'Guardar' : 'Crear' }}</button>
     </div>
   </div>
 </div>
