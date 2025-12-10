@@ -496,8 +496,10 @@
 
 <app-crear-cliente-modal 
   *ngIf="mostrarModalCrearCliente"
-  (cerrar)="mostrarModalCrearCliente = false"
+  [clienteParaEditar]="clienteParaEditar"
+  (cerrar)="mostrarModalCrearCliente = false; clienteParaEditar = null"
   (clienteCreado)="onClienteCreado($event)"
+  (clienteActualizado)="onClienteActualizado($event)"
 ></app-crear-cliente-modal>
 
 <app-crear-sucursal-modal 
