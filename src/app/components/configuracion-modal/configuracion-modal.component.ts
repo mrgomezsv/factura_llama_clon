@@ -234,40 +234,84 @@ export class ConfiguracionModalComponent implements OnInit {
 
     this.loading = true;
     
-    if (this.empresaSeleccionada && this.empresaSeleccionada.id) {
-      this.dteService.saveEmpresaConfig(this.empresaSeleccionada.id, {
-        nombreLegal: this.empresaForm.value.nombreLegal,
-        nombreComercial: this.empresaForm.value.nombreComercial,
-        nit: this.empresaForm.value.nit,
-        nrc: this.empresaForm.value.nrc,
-        dui: this.empresaForm.value.dui,
-        actividadEconomicaPrimaria: this.empresaForm.value.actividadEconomicaPrimaria,
-        actividadEconomicaSecundaria: this.empresaForm.value.actividadEconomicaSecundaria,
-        actividadEconomicaTerciaria: this.empresaForm.value.actividadEconomicaTerciaria,
-        direccion: this.empresaForm.value.direccion,
-        codigoMH: this.empresaForm.value.codigoMH,
-        puntosVenta: this.empresaForm.value.puntosVenta,
-        sitioWeb: this.empresaForm.value.sitioWeb,
-        telefono: this.empresaForm.value.telefono,
-        correo: this.empresaForm.value.correo,
-        certificadoPrueba: this.empresaForm.value.certificadoPrueba,
-        passwordAPIPrueba: this.empresaForm.value.passwordAPIPrueba,
-        certificadoProduccion: this.empresaForm.value.certificadoProduccion,
-        passwordAPIProduccion: this.empresaForm.value.passwordAPIProduccion
+    // Si no hay empresa seleccionada, crear una nueva
+    if (!this.empresaSeleccionada || !this.empresaSeleccionada.id) {
+      // Crear empresa primero
+      this.dteService.saveEmpresa({
+        nombre: this.empresaForm.value.nombreLegal || 'Mi Empresa',
+        nit: this.empresaForm.value.nit || '',
+        direccion: this.empresaForm.value.direccion || ''
       }).subscribe({
-        next: () => {
-          this.loading = false;
-          alert('Información de empresa guardada correctamente');
+        next: (empresaId) => {
+          // Guardar configuración de la nueva empresa
+          this.dteService.saveEmpresaConfig(empresaId, {
+            nombreLegal: this.empresaForm.value.nombreLegal,
+            nombreComercial: this.empresaForm.value.nombreComercial,
+            nit: this.empresaForm.value.nit,
+            nrc: this.empresaForm.value.nrc,
+            dui: this.empresaForm.value.dui,
+            actividadEconomicaPrimaria: this.empresaForm.value.actividadEconomicaPrimaria,
+            actividadEconomicaSecundaria: this.empresaForm.value.actividadEconomicaSecundaria,
+            actividadEconomicaTerciaria: this.empresaForm.value.actividadEconomicaTerciaria,
+            direccion: this.empresaForm.value.direccion,
+            codigoMH: this.empresaForm.value.codigoMH,
+            puntosVenta: this.empresaForm.value.puntosVenta,
+            sitioWeb: this.empresaForm.value.sitioWeb,
+            telefono: this.empresaForm.value.telefono,
+            correo: this.empresaForm.value.correo,
+            certificadoPrueba: this.empresaForm.value.certificadoPrueba,
+            passwordAPIPrueba: this.empresaForm.value.passwordAPIPrueba,
+            certificadoProduccion: this.empresaForm.value.certificadoProduccion,
+            passwordAPIProduccion: this.empresaForm.value.passwordAPIProduccion
+          }).subscribe({
+            next: () => {
+              this.loading = false;
+              alert('Empresa creada y configuración guardada correctamente');
+            },
+            error: (error) => {
+              this.loading = false;
+              alert('Error al guardar la información: ' + error.message);
+            }
+          });
         },
         error: (error) => {
           this.loading = false;
-          alert('Error al guardar la información: ' + error.message);
+          alert('Error al crear la empresa: ' + error.message);
         }
       });
-    } else {
-      this.loading = false;
-      alert('No se ha seleccionado una empresa');
+      return;
     }
+    
+    // Si hay empresa seleccionada, guardar configuración
+    this.dteService.saveEmpresaConfig(this.empresaSeleccionada.id, {
+      nombreLegal: this.empresaForm.value.nombreLegal,
+      nombreComercial: this.empresaForm.value.nombreComercial,
+      nit: this.empresaForm.value.nit,
+      nrc: this.empresaForm.value.nrc,
+      dui: this.empresaForm.value.dui,
+      actividadEconomicaPrimaria: this.empresaForm.value.actividadEconomicaPrimaria,
+      actividadEconomicaSecundaria: this.empresaForm.value.actividadEconomicaSecundaria,
+      actividadEconomicaTerciaria: this.empresaForm.value.actividadEconomicaTerciaria,
+      direccion: this.empresaForm.value.direccion,
+      codigoMH: this.empresaForm.value.codigoMH,
+      puntosVenta: this.empresaForm.value.puntosVenta,
+      sitioWeb: this.empresaForm.value.sitioWeb,
+      telefono: this.empresaForm.value.telefono,
+      correo: this.empresaForm.value.correo,
+      certificadoPrueba: this.empresaForm.value.certificadoPrueba,
+      passwordAPIPrueba: this.empresaForm.value.passwordAPIPrueba,
+      certificadoProduccion: this.empresaForm.value.certificadoProduccion,
+      passwordAPIProduccion: this.empresaForm.value.passwordAPIProduccion
+    }).subscribe({
+      next: () => {
+        this.loading = false;
+        alert('Información de empresa guardada correctamente');
+      },
+      error: (error) => {
+        this.loading = false;
+        alert('Error al guardar la información: ' + error.message);
+      }
+    });
   }
 
   cerrarModal(): void {

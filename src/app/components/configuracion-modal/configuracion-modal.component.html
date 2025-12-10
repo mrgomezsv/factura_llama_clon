@@ -91,22 +91,40 @@
                 @if (miCuentaExpandida) {
                   <div class="accordion-content">
                     <div class="form-group">
-                      <label class="form-label">Nombre</label>
+                      <label class="form-label">
+                        Nombre <span class="required-asterisk">*</span>
+                      </label>
                       <input 
                         type="text" 
                         class="form-input"
+                        [class.error]="perfilForm.get('nombre')?.invalid && perfilForm.get('nombre')?.touched"
                         formControlName="nombre"
                         placeholder="Ingresa tu nombre"
                       />
+                      @if (perfilForm.get('nombre')?.invalid && perfilForm.get('nombre')?.touched) {
+                        <span class="error-message">Este campo es requerido</span>
+                      }
                     </div>
                     <div class="form-group">
-                      <label class="form-label">Correo Electrónico</label>
+                      <label class="form-label">
+                        Correo Electrónico <span class="required-asterisk">*</span>
+                      </label>
                       <input 
                         type="email" 
                         class="form-input"
+                        [class.error]="perfilForm.get('correo')?.invalid && perfilForm.get('correo')?.touched"
                         formControlName="correo"
                         placeholder="correo@ejemplo.com"
                       />
+                      @if (perfilForm.get('correo')?.invalid && perfilForm.get('correo')?.touched) {
+                        <span class="error-message">
+                          @if (perfilForm.get('correo')?.errors?.['required']) {
+                            Este campo es requerido
+                          } @else if (perfilForm.get('correo')?.errors?.['email']) {
+                            Ingresa un correo electrónico válido
+                          }
+                        </span>
+                      }
                     </div>
                     <div class="form-group">
                       <label class="form-label">Contraseña</label>
@@ -267,13 +285,19 @@
                 @if (identidadLegalExpandida) {
                   <div class="accordion-content">
                     <div class="form-group">
-                      <label class="form-label">Nombre Legal</label>
+                      <label class="form-label">
+                        Nombre Legal <span class="required-asterisk">*</span>
+                      </label>
                       <input 
                         type="text" 
                         class="form-input"
+                        [class.error]="empresaForm.get('nombreLegal')?.invalid && empresaForm.get('nombreLegal')?.touched"
                         formControlName="nombreLegal"
                         placeholder="Ingresa el nombre legal"
                       />
+                      @if (empresaForm.get('nombreLegal')?.invalid && empresaForm.get('nombreLegal')?.touched) {
+                        <span class="error-message">Este campo es requerido</span>
+                      }
                     </div>
                     <div class="form-group">
                       <label class="form-label">Nombre Comercial</label>
@@ -294,13 +318,19 @@
                       />
                     </div>
                     <div class="form-group">
-                      <label class="form-label">DUI/NIT</label>
+                      <label class="form-label">
+                        DUI/NIT <span class="required-asterisk">*</span>
+                      </label>
                       <input 
                         type="text" 
                         class="form-input"
+                        [class.error]="empresaForm.get('nit')?.invalid && empresaForm.get('nit')?.touched"
                         formControlName="nit"
                         placeholder="Ingresa el DUI o NIT"
                       />
+                      @if (empresaForm.get('nit')?.invalid && empresaForm.get('nit')?.touched) {
+                        <span class="error-message">Este campo es requerido</span>
+                      }
                     </div>
                     <div class="form-group">
                       <label class="form-label">Actividades Económicas</label>
@@ -377,14 +407,26 @@
                       />
                     </div>
                     <div class="form-group">
-                      <label class="form-label">Cantidad de Puntos de Venta</label>
+                      <label class="form-label">
+                        Cantidad de Puntos de Venta <span class="required-asterisk">*</span>
+                      </label>
                       <input 
                         type="number" 
                         class="form-input"
+                        [class.error]="empresaForm.get('puntosVenta')?.invalid && empresaForm.get('puntosVenta')?.touched"
                         formControlName="puntosVenta"
                         placeholder="1"
                         min="1"
                       />
+                      @if (empresaForm.get('puntosVenta')?.invalid && empresaForm.get('puntosVenta')?.touched) {
+                        <span class="error-message">
+                          @if (empresaForm.get('puntosVenta')?.errors?.['required']) {
+                            Este campo es requerido
+                          } @else if (empresaForm.get('puntosVenta')?.errors?.['min']) {
+                            Debe ser al menos 1
+                          }
+                        </span>
+                      }
                     </div>
                   </div>
                 }
@@ -434,9 +476,13 @@
                       <input 
                         type="email" 
                         class="form-input"
+                        [class.error]="empresaForm.get('correo')?.invalid && empresaForm.get('correo')?.touched"
                         formControlName="correo"
                         placeholder="correo@ejemplo.com"
                       />
+                      @if (empresaForm.get('correo')?.invalid && empresaForm.get('correo')?.touched) {
+                        <span class="error-message">Ingresa un correo electrónico válido</span>
+                      }
                     </div>
                   </div>
                 }
