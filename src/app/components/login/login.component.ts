@@ -17,6 +17,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   loading = false;
   errorMessage: string | null = null;
   returnUrl: string = '/dtes';
+  mostrarPassword = false;
   private subscriptions = new Subscription();
 
   constructor(
@@ -44,6 +45,28 @@ export class LoginComponent implements OnInit, OnDestroy {
       this.authService.isAuthenticated().subscribe(isAuth => {
         if (isAuth) {
           this.router.navigate([this.returnUrl]);
+        }
+      })
+    );
+
+    // Para debugging: consultar usuarios registrados
+    this.consultarUsuariosRegistrados();
+  }
+
+  /**
+   * Consulta usuarios registrados en la base de datos (solo para debugging)
+   */
+  private consultarUsuariosRegistrados(): void {
+    this.subscriptions.add(
+      this.authService.getAllUsers().subscribe(users => {
+        if (users.length > 0) {
+          console.log('=== USUARIOS REGISTRADOS EN LA BASE DE DATOS ===');
+          users.forEach(user => {
+            console.log(`- Email: ${user.email}, ID: ${user.id}, Nombre: ${user.display_name || 'Sin nombre'}, Creado: ${user.created_at}`);
+          });
+          console.log('===============================================');
+        } else {
+          console.warn('⚠️ No hay usuarios registrados en la base de datos. Usa el usuario por defecto: admin@test.com / admin123');
         }
       })
     );
@@ -121,6 +144,10 @@ export class LoginComponent implements OnInit, OnDestroy {
   hasFieldError(fieldName: string): boolean {
     const control = this.loginForm.get(fieldName);
     return !!(control && control.invalid && (control.dirty || control.touched));
+  }
+
+  toggleMostrarPassword(): void {
+    this.mostrarPassword = !this.mostrarPassword;
   }
 }
 

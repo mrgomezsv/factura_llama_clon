@@ -64,7 +64,18 @@
 .input-group .input { padding-left: 38px; padding-right: 38px; }
 .input-icon, .input-trailing { color: #9CA3AF; }
 .input-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); }
-.input-trailing { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); }
+.input-trailing { 
+  position: absolute; 
+  right: 12px; 
+  top: 50%; 
+  transform: translateY(-50%); 
+  cursor: pointer;
+  transition: color 0.2s;
+  
+  &:hover {
+    color: #5B9BD5;
+  }
+}
 .form .input:focus { outline: none; border-color: #5B9BD5; box-shadow: 0 0 0 3px rgba(91,155,213,.18); }
 
 .links-col { display: grid; gap: 6px; margin: 12px 0 16px; text-align: center; }

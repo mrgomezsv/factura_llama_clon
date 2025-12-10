@@ -63,6 +63,24 @@ export class AuthService {
   }
 
   /**
+   * Obtiene todos los usuarios registrados (útil para debugging)
+   */
+  getAllUsers(): Observable<{ id: string; email: string; display_name: string | null; created_at: string }[]> {
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        return this.database.query<{ id: string; email: string; display_name: string | null; created_at: string }>(
+          'SELECT id, email, display_name, created_at FROM users WHERE active = 1 ORDER BY created_at DESC'
+        );
+      }),
+      catchError((error) => {
+        console.error('Error al obtener usuarios:', error);
+        return of([]);
+      })
+    );
+  }
+
+  /**
    * Inicia sesión con email y contraseña
    */
   login(email: string, password: string): Observable<User> {
