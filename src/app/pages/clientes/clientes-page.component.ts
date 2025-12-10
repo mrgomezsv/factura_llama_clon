@@ -26,6 +26,10 @@ export class ClientesPageComponent implements OnInit {
   clientes: any[] = [];
   sucursales: any[] = [];
   productos: any[] = [];
+  clientesFiltrados: any[] = [];
+  sucursalesFiltradas: any[] = [];
+  productosFiltrados: any[] = [];
+  terminoBusqueda: string = '';
   empresaSeleccionada: any = null;
   mostrarModalCrearCliente = false;
   mostrarModalCrearSucursal = false;
@@ -52,6 +56,11 @@ export class ClientesPageComponent implements OnInit {
   ngOnInit(): void {
     this.determinarTabDesdeRuta();
     
+    // Inicializar arrays filtrados
+    this.clientesFiltrados = [];
+    this.sucursalesFiltradas = [];
+    this.productosFiltrados = [];
+    
     // Cargar datos solo si no se han cargado antes
     if (!this.datosCargados) {
       this.cargarEmpresa();
@@ -77,6 +86,14 @@ export class ClientesPageComponent implements OnInit {
       this.tabActiva = 'sucursales';
     } else if (url.includes('/clientes')) {
       this.tabActiva = 'clientes';
+    }
+    // Aplicar filtros según el tab activo
+    if (this.tabActiva === 'clientes') {
+      this.filtrarClientes();
+    } else if (this.tabActiva === 'sucursales') {
+      this.filtrarSucursales();
+    } else if (this.tabActiva === 'productos') {
+      this.filtrarProductos();
     }
   }
 
@@ -115,6 +132,7 @@ export class ClientesPageComponent implements OnInit {
         correo: c.correo || '',
         fechaCreacion: c.fechaCreacion || '27/10/2025 13:23:04'
       }));
+      this.filtrarClientes();
     });
   }
 
@@ -124,6 +142,7 @@ export class ClientesPageComponent implements OnInit {
         ...s,
         fechaCreacion: s.fechaCreacion || '25/03/2025 11:16:18'
       }));
+      this.filtrarSucursales();
     });
   }
 
@@ -135,31 +154,10 @@ export class ClientesPageComponent implements OnInit {
         precioConIva: p.precioConIva || 0,
         unidadMedida: p.unidadMedida || 'UNIDAD'
       }));
+      this.filtrarProductos();
     });
   }
 
-  cambiarTab(tab: 'clientes' | 'sucursales' | 'productos'): void {
-    // Cambiar el tab primero sin navegar para evitar flicker
-    const tabAnterior = this.tabActiva;
-    this.tabActiva = tab;
-    
-    // Navegar a la ruta correspondiente sin refrescar la página
-    // La estrategia de reutilización de rutas mantendrá el componente activo
-    if (tab === 'productos') {
-      this.router.navigateByUrl('/productos', { replaceUrl: false }).catch(() => {
-        // Si falla la navegación, revertir el tab
-        this.tabActiva = tabAnterior;
-      });
-    } else if (tab === 'sucursales') {
-      this.router.navigateByUrl('/sucursales', { replaceUrl: false }).catch(() => {
-        this.tabActiva = tabAnterior;
-      });
-    } else {
-      this.router.navigateByUrl('/clientes', { replaceUrl: false }).catch(() => {
-        this.tabActiva = tabAnterior;
-      });
-    }
-  }
 
   navegarAInicio(): void {
     this.router.navigateByUrl('/dtes');
@@ -429,6 +427,109 @@ export class ClientesPageComponent implements OnInit {
       this.cerrarSucursalDropdown();
       this.cerrarEmpresaInfoDropdown();
       this.cerrarFiltrosDropdown();
+    }
+  }
+
+  onBusquedaChange(termino: string): void {
+    this.terminoBusqueda = termino.toLowerCase().trim();
+    if (this.tabActiva === 'clientes') {
+      this.filtrarClientes();
+    } else if (this.tabActiva === 'sucursales') {
+      this.filtrarSucursales();
+    } else if (this.tabActiva === 'productos') {
+      this.filtrarProductos();
+    }
+  }
+
+  filtrarClientes(): void {
+    if (!this.terminoBusqueda) {
+      this.clientesFiltrados = [...this.clientes];
+      return;
+    }
+
+    this.clientesFiltrados = this.clientes.filter(cliente => {
+      const nombre = (cliente.nombre || '').toLowerCase();
+      const correo = (cliente.correo || '').toLowerCase();
+      const alias = (cliente.alias || '').toLowerCase();
+      const nit = (cliente.nit || '').toLowerCase();
+      const nrc = (cliente.nrc || '').toLowerCase();
+      
+      return nombre.includes(this.terminoBusqueda) ||
+             correo.includes(this.terminoBusqueda) ||
+             alias.includes(this.terminoBusqueda) ||
+             nit.includes(this.terminoBusqueda) ||
+             nrc.includes(this.terminoBusqueda);
+    });
+  }
+
+  filtrarSucursales(): void {
+    if (!this.terminoBusqueda) {
+      this.sucursalesFiltradas = [...this.sucursales];
+      return;
+    }
+
+    this.sucursalesFiltradas = this.sucursales.filter(sucursal => {
+      const nombre = (sucursal.nombre || '').toLowerCase();
+      const direccion = (sucursal.direccion || '').toLowerCase();
+      const telefono = (sucursal.telefono || '').toLowerCase();
+      const tipoSucursal = (sucursal.tipoSucursal || '').toLowerCase();
+      
+      return nombre.includes(this.terminoBusqueda) ||
+             direccion.includes(this.terminoBusqueda) ||
+             telefono.includes(this.terminoBusqueda) ||
+             tipoSucursal.includes(this.terminoBusqueda);
+    });
+  }
+
+  filtrarProductos(): void {
+    if (!this.terminoBusqueda) {
+      this.productosFiltrados = [...this.productos];
+      return;
+    }
+
+    this.productosFiltrados = this.productos.filter(producto => {
+      const nombre = (producto.nombre || '').toLowerCase();
+      const codigo = (producto.codigo || producto.codigoInterno || '').toLowerCase();
+      const descripcion = (producto.descripcion || '').toLowerCase();
+      
+      return nombre.includes(this.terminoBusqueda) ||
+             codigo.includes(this.terminoBusqueda) ||
+             descripcion.includes(this.terminoBusqueda);
+    });
+  }
+
+  cambiarTab(tab: 'clientes' | 'sucursales' | 'productos'): void {
+    // Cambiar el tab primero sin navegar para evitar flicker
+    const tabAnterior = this.tabActiva;
+    this.tabActiva = tab;
+    
+    // Limpiar búsqueda al cambiar de tab
+    this.terminoBusqueda = '';
+    
+    // Aplicar filtros según el tab activo
+    if (tab === 'clientes') {
+      this.filtrarClientes();
+    } else if (tab === 'sucursales') {
+      this.filtrarSucursales();
+    } else if (tab === 'productos') {
+      this.filtrarProductos();
+    }
+    
+    // Navegar a la ruta correspondiente sin refrescar la página
+    // La estrategia de reutilización de rutas mantendrá el componente activo
+    if (tab === 'productos') {
+      this.router.navigateByUrl('/productos', { replaceUrl: false }).catch(() => {
+        // Si falla la navegación, revertir el tab
+        this.tabActiva = tabAnterior;
+      });
+    } else if (tab === 'sucursales') {
+      this.router.navigateByUrl('/sucursales', { replaceUrl: false }).catch(() => {
+        this.tabActiva = tabAnterior;
+      });
+    } else {
+      this.router.navigateByUrl('/clientes', { replaceUrl: false }).catch(() => {
+        this.tabActiva = tabAnterior;
+      });
     }
   }
 }
