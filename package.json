@@ -6,7 +6,10 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "server": "node server/index.js",
+    "server:dev": "nodemon server/index.js",
+    "db:create": "node server/create-database.js"
   },
   "private": true,
   "dependencies": {
@@ -18,8 +21,14 @@
     "@angular/platform-browser": "^19.2.0",
     "@angular/platform-browser-dynamic": "^19.2.0",
     "@angular/router": "^19.2.0",
-    "@types/sql.js": "^1.4.9",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/pg": "^8.15.6",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
     "firebase": "^11.10.0",
+    "pg": "^8.16.3",
     "rxjs": "~7.8.0",
     "sql.js": "^1.13.0",
     "tslib": "^2.3.0",
