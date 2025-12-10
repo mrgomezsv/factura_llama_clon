@@ -266,52 +266,6 @@ export class DatabaseService {
       );
     });
 
-    // Clientes
-    const clientes = [
-      ['c1', 'JOSE RICARDO MORATAYA MAGARIN', 'superprintmcy@gmail.com'],
-      ['c2', 'JUAN CARLOS CARTAGENA HERNANDEZ', 'jccartagena@gmail.com'],
-      ['c3', 'SERVICIOS MULTIPLES CONSULTORES, S.A. DE C.V.', 'sermc.sv@gmail.com'],
-      ['c4', 'HIX TECHNOLOGIES, S.A. DE C.V.', 'admin@hixcompany.com']
-    ];
-
-    clientes.forEach(cliente => {
-      this.db.run(
-        'INSERT OR IGNORE INTO clientes (id, nombre, correo) VALUES (?, ?, ?)',
-        cliente
-      );
-    });
-
-    // Productos
-    const productos = [
-      ['p1', 'Viseras', 'VSR-001'],
-      ['p2', 'Sweater', 'SWT-002'],
-      ['p3', 'Chumpas', 'CHM-003'],
-      ['p4', 'Gabanas manga larga', 'GBL-004'],
-      ['p5', 'CAMISA PISTA', 'CMP-005'],
-      ['p6', 'Gabanas manga corta', 'GBC-006']
-    ];
-
-    productos.forEach(producto => {
-      this.db.run(
-        'INSERT OR IGNORE INTO productos (id, nombre, codigo) VALUES (?, ?, ?)',
-        producto
-      );
-    });
-
-    // Sucursales
-    const sucursales = [
-      ['s1', 'Sucursal Central'],
-      ['s2', 'Sucursal Escalón'],
-      ['s3', 'Sucursal San Miguel'],
-      ['s4', 'Sucursal Santa Ana']
-    ];
-
-    sucursales.forEach(sucursal => {
-      this.db.run(
-        'INSERT OR IGNORE INTO sucursales (id, nombre) VALUES (?, ?)',
-        sucursal
-      );
-    });
 
     // Formas de pago
     const formasPago = [
