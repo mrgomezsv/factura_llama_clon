@@ -15,13 +15,8 @@ export class FacturaExportacionClienteComponent {
   form: FormGroup;
   collapsed = false;
   mostrarListado = false;
-  clientes = [
-    { nombre: 'JOSE RICARDO MORATAYA MAGARIN', correo: 'superprintmcy@gmail.com' },
-    { nombre: 'JUAN CARLOS CARTAGENA HERNANDEZ', correo: 'jccartagena@gmail.com' },
-    { nombre: 'SERVICIOS MULTIPLES CONSULTORES, S.A. DE C.V.', correo: 'sermc.sv@gmail.com' },
-    { nombre: 'HIX TECHNOLOGIES, S.A. DE C.V.', correo: 'admin@hixcompany.com' }
-  ];
-  clientesFiltrados = this.clientes.slice();
+  clientes: any[] = [];
+  clientesFiltrados: any[] = [];
 
   constructor(private fb: FormBuilder, private dteService: DteService) {
     this.form = this.fb.group({
