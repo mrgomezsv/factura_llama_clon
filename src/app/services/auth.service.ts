@@ -16,7 +16,7 @@ export interface User {
 }
 
 /**
- * Servicio de autenticación usando SQLite local
+ * Servicio de autenticación usando PostgreSQL
  */
 @Injectable({
   providedIn: 'root'

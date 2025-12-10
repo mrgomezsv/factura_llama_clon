@@ -27,8 +27,8 @@ export class DteService {
         if (filtro?.periodo) {
           const mes = filtro.periodo.mes;
           const año = filtro.periodo.año;
-          sql += ' AND strftime("%m", fecha_creacion) = ? AND strftime("%Y", fecha_creacion) = ?';
-          params.push(String(mes).padStart(2, '0'), String(año));
+          sql += ' AND EXTRACT(MONTH FROM fecha_creacion) = $' + (params.length + 1) + ' AND EXTRACT(YEAR FROM fecha_creacion) = $' + (params.length + 2);
+          params.push(mes, año);
         }
 
         sql += ' ORDER BY fecha_creacion DESC';
