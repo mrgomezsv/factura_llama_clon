@@ -2,7 +2,7 @@
   <div class="modal-content" (click)="$event.stopPropagation()">
     <!-- Header -->
     <div class="modal-header">
-      <h2>Crear Producto</h2>
+      <h2>{{ esModoEdicion ? 'Editar Producto' : 'Crear Producto' }}</h2>
       <button class="btn-cerrar" type="button" (click)="cerrarModal()">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -125,7 +125,7 @@
         Cancelar
       </button>
       <button class="btn-crear" type="button" (click)="crearProducto()" [disabled]="!form.valid">
-        Crear
+        {{ esModoEdicion ? 'Guardar' : 'Crear' }}
       </button>
     </div>
   </div>
