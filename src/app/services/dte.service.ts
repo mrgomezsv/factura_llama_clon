@@ -664,4 +664,217 @@ export class DteService {
       })
     );
   }
+
+  /**
+   * Guarda o actualiza la configuración de usuario
+   */
+  saveUserConfig(userId: string, config: {
+    telefono?: string;
+    zonaHoraria?: string;
+    rol?: string;
+  }): Observable<void> {
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        // Verificar si existe configuración
+        return this.database.query<{ id: string }>(
+          'SELECT id FROM user_config WHERE user_id = ?',
+          [userId]
+        );
+      }),
+      switchMap(existing => {
+        if (existing.length > 0) {
+          // Actualizar
+          return this.database.execute(
+            `UPDATE user_config 
+             SET telefono = ?, zona_horaria = ?, rol = ?, updated_at = CURRENT_TIMESTAMP 
+             WHERE user_id = ?`,
+            [config.telefono || null, config.zonaHoraria || 'El Salvador (GMT-6)', config.rol || 'PROPIETARIO', userId]
+          );
+        } else {
+          // Crear nuevo
+          const id = 'uc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+          return this.database.execute(
+            'INSERT INTO user_config (id, user_id, telefono, zona_horaria, rol) VALUES (?, ?, ?, ?, ?)',
+            [id, userId, config.telefono || null, config.zonaHoraria || 'El Salvador (GMT-6)', config.rol || 'PROPIETARIO']
+          );
+        }
+      }),
+      map(() => undefined)
+    );
+  }
+
+  /**
+   * Guarda o actualiza la configuración de empresa
+   */
+  saveEmpresaConfig(empresaId: string, config: {
+    nombreLegal?: string;
+    nombreComercial?: string;
+    nit?: string;
+    nrc?: string;
+    dui?: string;
+    actividadEconomicaPrimaria?: string;
+    actividadEconomicaSecundaria?: string;
+    actividadEconomicaTerciaria?: string;
+    direccion?: string;
+    codigoMH?: string;
+    puntosVenta?: number;
+    sitioWeb?: string;
+    telefono?: string;
+    correo?: string;
+    certificadoPrueba?: string;
+    passwordAPIPrueba?: string;
+    certificadoProduccion?: string;
+    passwordAPIProduccion?: string;
+  }): Observable<void> {
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        // Verificar si existe configuración
+        return this.database.query<{ id: string }>(
+          'SELECT id FROM empresa_config WHERE empresa_id = ?',
+          [empresaId]
+        );
+      }),
+      switchMap(existing => {
+        if (existing.length > 0) {
+          // Actualizar
+          return this.database.execute(
+            `UPDATE empresa_config 
+             SET nombre_legal = ?, nombre_comercial = ?, nit = ?, nrc = ?, dui = ?,
+                 actividad_economica_primaria = ?, actividad_economica_secundaria = ?, actividad_economica_terciaria = ?,
+                 direccion = ?, codigo_mh = ?, puntos_venta = ?, sitio_web = ?, telefono = ?, correo = ?,
+                 certificado_prueba = ?, password_api_prueba = ?, certificado_produccion = ?, password_api_produccion = ?,
+                 updated_at = CURRENT_TIMESTAMP 
+             WHERE empresa_id = ?`,
+            [
+              config.nombreLegal || null,
+              config.nombreComercial || null,
+              config.nit || null,
+              config.nrc || null,
+              config.dui || null,
+              config.actividadEconomicaPrimaria || null,
+              config.actividadEconomicaSecundaria || null,
+              config.actividadEconomicaTerciaria || null,
+              config.direccion || null,
+              config.codigoMH || null,
+              config.puntosVenta || 1,
+              config.sitioWeb || null,
+              config.telefono || null,
+              config.correo || null,
+              config.certificadoPrueba || null,
+              config.passwordAPIPrueba || null,
+              config.certificadoProduccion || null,
+              config.passwordAPIProduccion || null,
+              empresaId
+            ]
+          );
+        } else {
+          // Crear nuevo
+          const id = 'ec_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+          return this.database.execute(
+            `INSERT INTO empresa_config 
+             (id, empresa_id, nombre_legal, nombre_comercial, nit, nrc, dui,
+              actividad_economica_primaria, actividad_economica_secundaria, actividad_economica_terciaria,
+              direccion, codigo_mh, puntos_venta, sitio_web, telefono, correo,
+              certificado_prueba, password_api_prueba, certificado_produccion, password_api_produccion) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              id,
+              empresaId,
+              config.nombreLegal || null,
+              config.nombreComercial || null,
+              config.nit || null,
+              config.nrc || null,
+              config.dui || null,
+              config.actividadEconomicaPrimaria || null,
+              config.actividadEconomicaSecundaria || null,
+              config.actividadEconomicaTerciaria || null,
+              config.direccion || null,
+              config.codigoMH || null,
+              config.puntosVenta || 1,
+              config.sitioWeb || null,
+              config.telefono || null,
+              config.correo || null,
+              config.certificadoPrueba || null,
+              config.passwordAPIPrueba || null,
+              config.certificadoProduccion || null,
+              config.passwordAPIProduccion || null
+            ]
+          );
+        }
+      }),
+      map(() => undefined)
+    );
+  }
+
+  /**
+   * Obtiene la configuración de usuario
+   */
+  getUserConfig(userId: string): Observable<any> {
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        return this.database.query<{
+          telefono: string | null;
+          zona_horaria: string;
+          rol: string;
+        }>(
+          'SELECT telefono, zona_horaria, rol FROM user_config WHERE user_id = ?',
+          [userId]
+        );
+      }),
+      map(rows => {
+        if (rows.length > 0) {
+          return {
+            telefono: rows[0].telefono || '',
+            zonaHoraria: rows[0].zona_horaria || 'El Salvador (GMT-6)',
+            rol: rows[0].rol || 'PROPIETARIO'
+          };
+        }
+        return null;
+      })
+    );
+  }
+
+  /**
+   * Obtiene la configuración de empresa
+   */
+  getEmpresaConfig(empresaId: string): Observable<any> {
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        return this.database.query<any>(
+          'SELECT * FROM empresa_config WHERE empresa_id = ?',
+          [empresaId]
+        );
+      }),
+      map(rows => {
+        if (rows.length > 0) {
+          const row = rows[0];
+          return {
+            nombreLegal: row.nombre_legal || '',
+            nombreComercial: row.nombre_comercial || '',
+            nit: row.nit || '',
+            nrc: row.nrc || '',
+            dui: row.dui || '',
+            actividadEconomicaPrimaria: row.actividad_economica_primaria || '',
+            actividadEconomicaSecundaria: row.actividad_economica_secundaria || '',
+            actividadEconomicaTerciaria: row.actividad_economica_terciaria || '',
+            direccion: row.direccion || '',
+            codigoMH: row.codigo_mh || '',
+            puntosVenta: row.puntos_venta || 1,
+            sitioWeb: row.sitio_web || '',
+            telefono: row.telefono || '',
+            correo: row.correo || '',
+            certificadoPrueba: row.certificado_prueba || '',
+            passwordAPIPrueba: row.password_api_prueba || '',
+            certificadoProduccion: row.certificado_produccion || '',
+            passwordAPIProduccion: row.password_api_produccion || ''
+          };
+        }
+        return null;
+      })
+    );
+  }
 }

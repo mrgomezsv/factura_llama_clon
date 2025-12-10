@@ -216,12 +216,53 @@ export class DatabaseService {
         FOREIGN KEY (cliente_id) REFERENCES clientes(id)
       );
 
+      -- Tabla de configuración de usuario
+      CREATE TABLE IF NOT EXISTS user_config (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        telefono TEXT,
+        zona_horaria TEXT DEFAULT 'El Salvador (GMT-6)',
+        rol TEXT DEFAULT 'PROPIETARIO',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      );
+
+      -- Tabla de configuración de empresa
+      CREATE TABLE IF NOT EXISTS empresa_config (
+        id TEXT PRIMARY KEY,
+        empresa_id TEXT NOT NULL,
+        nombre_legal TEXT,
+        nombre_comercial TEXT,
+        nit TEXT,
+        nrc TEXT,
+        dui TEXT,
+        actividad_economica_primaria TEXT,
+        actividad_economica_secundaria TEXT,
+        actividad_economica_terciaria TEXT,
+        direccion TEXT,
+        codigo_mh TEXT,
+        puntos_venta INTEGER DEFAULT 1,
+        sitio_web TEXT,
+        telefono TEXT,
+        correo TEXT,
+        certificado_prueba TEXT,
+        password_api_prueba TEXT,
+        certificado_produccion TEXT,
+        password_api_produccion TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (empresa_id) REFERENCES empresas(id)
+      );
+
       -- Índices para mejorar rendimiento
       CREATE INDEX IF NOT EXISTS idx_dtes_fecha ON dtes(fecha_creacion);
       CREATE INDEX IF NOT EXISTS idx_dtes_tipo ON dtes(tipo);
       CREATE INDEX IF NOT EXISTS idx_dtes_control_number ON dtes(control_number);
       CREATE INDEX IF NOT EXISTS idx_clientes_nombre ON clientes(nombre);
       CREATE INDEX IF NOT EXISTS idx_productos_codigo ON productos(codigo);
+      CREATE INDEX IF NOT EXISTS idx_user_config_user_id ON user_config(user_id);
+      CREATE INDEX IF NOT EXISTS idx_empresa_config_empresa_id ON empresa_config(empresa_id);
     `;
 
     this.db.run(schema);
@@ -233,19 +274,7 @@ export class DatabaseService {
   private async seedInitialData(): Promise<void> {
     if (!this.db) return;
 
-    // Empresas
-    const empresas = [
-      ['1', 'BARLLENO APP', '0614-123456-001-2', 'San Salvador, El Salvador'],
-      ['2', 'COMERCIAL SAN MIGUEL S.A. DE C.V.', '0614-234567-001-3', 'San Miguel, El Salvador'],
-      ['3', 'DISTRIBUIDORA OCCIDENTAL LTDA', '0614-345678-001-4', 'Santa Ana, El Salvador']
-    ];
-
-    empresas.forEach(emp => {
-      this.db.run(
-        'INSERT OR IGNORE INTO empresas (id, nombre, nit, direccion) VALUES (?, ?, ?, ?)',
-        emp
-      );
-    });
+    // Empresas - No se crean automáticamente, solo cuando el usuario las ingrese en configuración
 
     // Tipos de DTE
     const tiposDte = [
@@ -283,36 +312,9 @@ export class DatabaseService {
       );
     });
 
-    // Usuario de prueba por defecto (email: admin@test.com, password: admin123)
-    // Hash SHA-256 de "admin123" = 240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9
-    const defaultUser = [
-      'user_default',
-      'admin@test.com',
-      '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9',
-      'Usuario Administrador'
-    ];
+    // Usuarios - No se crean automáticamente, solo cuando el usuario se registre
 
-    this.db.run(
-      'INSERT OR IGNORE INTO users (id, email, password_hash, display_name) VALUES (?, ?, ?, ?)',
-      defaultUser
-    );
-
-    // DTEs de ejemplo (algunos de los datos mock)
-    const dtes = [
-      ['DTE-03-M001P001-000000000000346', 'CCF', 'JUAN CARLOS FERRUFINO HERNANDEZ', 181.93, 'PRODUCCIÓN', '2025-10-13T12:36:43'],
-      ['DTE-03-M001P001-000000000000345', 'CCF', 'UNO EL SALVADOR, SOCIEDAD ANONIMA', 160.16, 'PRODUCCIÓN', '2025-10-13T12:06:55'],
-      ['DTE-03-M001P001-000000000000344', 'CCF', 'UNO EL SALVADOR, SOCIEDAD ANONIMA', 206.08, 'PRODUCCIÓN', '2025-10-13T11:45:22'],
-      ['DTE-03-M001P001-000000000000343', 'CCF', 'CARLOS ALBERTO MARTINEZ RODRIGUEZ', 203.84, 'PRODUCCIÓN', '2025-10-13T12:06:55'],
-      ['DTE-03-M001P001-000000000000342', 'CCF', 'MARIA ELENA LOPEZ GARCIA', 644.00, 'PRODUCCIÓN', '2025-10-11T14:20:39'],
-      ['DTE-03-M001P001-000000000000341', 'CCF', 'JOSE ANTONIO RAMIREZ MENDOZA', 143.36, 'PRODUCCIÓN', '2025-10-11T14:15:30']
-    ];
-
-    dtes.forEach(dte => {
-      this.db.run(
-        'INSERT OR IGNORE INTO dtes (control_number, tipo, receptor, total, ambiente, fecha_creacion) VALUES (?, ?, ?, ?, ?, ?)',
-        dte
-      );
-    });
+    // DTEs - No se crean automáticamente, solo cuando el usuario los genere
   }
 
   /**

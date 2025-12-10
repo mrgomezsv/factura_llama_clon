@@ -1,0 +1,532 @@
+<div class="modal-overlay" (click)="cerrarModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <!-- Header del Modal -->
+    <div class="modal-header">
+      <h2>Configuración</h2>
+      <button class="btn-cerrar" (click)="cerrarModal()" type="button">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body-container">
+      <!-- Navegación lateral -->
+      <div class="modal-sidebar">
+        <button 
+          class="sidebar-item" 
+          [class.active]="seccionActiva === 'perfil'"
+          (click)="cambiarSeccion('perfil')"
+          type="button"
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M10 10C12.7614 10 15 7.76142 15 5C15 2.23858 12.7614 0 10 0C7.23858 0 5 2.23858 5 5C5 7.76142 7.23858 10 10 10Z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M10 12C5.58172 12 2 15.5817 2 20H18C18 15.5817 14.4183 12 10 12Z" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+          <span>Mi Perfil</span>
+        </button>
+        <button 
+          class="sidebar-item" 
+          [class.active]="seccionActiva === 'empresa'"
+          (click)="cambiarSeccion('empresa')"
+          type="button"
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M3 5H17V15H3V5Z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M3 8H17" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+          <span>Mi Empresa</span>
+        </button>
+        <button 
+          class="sidebar-item" 
+          [class.active]="seccionActiva === 'suscripcion'"
+          (click)="cambiarSeccion('suscripcion')"
+          type="button"
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M3 5H17V15H3V5Z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M3 8H17" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+          <span>Mi Suscripción</span>
+        </button>
+      </div>
+
+      <!-- Contenido principal -->
+      <div class="modal-main-content">
+        <!-- Sección: Mi Perfil -->
+        @if (seccionActiva === 'perfil') {
+          <div class="seccion-content">
+            <h3 class="seccion-title">Mi Perfil</h3>
+            
+            <div class="user-header">
+              <div class="user-avatar">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                  <path d="M6 19c0-2 1-3 3-3h6c2 0 3 1 3 3" stroke="#5B9BD5" stroke-width="1.5" stroke-linecap="round"/>
+                  <path d="M7 8v6c0 1.657 1.343 3 3 3h2a3 3 0 003-3V7l2 1" stroke="#5B9BD5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle cx="9.5" cy="6.5" r=".75" fill="#5B9BD5"/>
+                </svg>
+              </div>
+              <div class="user-name">{{ usuarioActual?.displayName || 'Usuario' }}</div>
+            </div>
+
+            <form [formGroup]="perfilForm">
+              <!-- Mi Cuenta -->
+              <div class="accordion-section">
+                <button 
+                  class="accordion-header" 
+                  type="button"
+                  (click)="toggleSeccion('miCuenta')"
+                >
+                  <span>Mi Cuenta</span>
+                  <svg 
+                    width="16" 
+                    height="16" 
+                    viewBox="0 0 16 16" 
+                    fill="none"
+                    [class.rotated]="miCuentaExpandida"
+                  >
+                    <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+                @if (miCuentaExpandida) {
+                  <div class="accordion-content">
+                    <div class="form-group">
+                      <label class="form-label">Nombre</label>
+                      <input 
+                        type="text" 
+                        class="form-input"
+                        formControlName="nombre"
+                        placeholder="Ingresa tu nombre"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Correo Electrónico</label>
+                      <input 
+                        type="email" 
+                        class="form-input"
+                        formControlName="correo"
+                        placeholder="correo@ejemplo.com"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Contraseña</label>
+                      <p class="form-hint">Cambia tu contraseña para ingresar a tu cuenta</p>
+                      <button type="button" class="btn-link">Cambiar Contraseña</button>
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <!-- Información Personal -->
+              <div class="accordion-section">
+                <button 
+                  class="accordion-header" 
+                  type="button"
+                  (click)="toggleSeccion('infoPersonal')"
+                >
+                  <span>Información Personal</span>
+                  <svg 
+                    width="16" 
+                    height="16" 
+                    viewBox="0 0 16 16" 
+                    fill="none"
+                    [class.rotated]="infoPersonalExpandida"
+                  >
+                    <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+                @if (infoPersonalExpandida) {
+                  <div class="accordion-content">
+                    <div class="form-group">
+                      <label class="form-label">Número de Teléfono</label>
+                      <input 
+                        type="tel" 
+                        class="form-input"
+                        formControlName="telefono"
+                        placeholder="Ingresa tu número de teléfono"
+                      />
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <!-- Información Profesional -->
+              <div class="accordion-section">
+                <button 
+                  class="accordion-header" 
+                  type="button"
+                  (click)="toggleSeccion('infoProfesional')"
+                >
+                  <span>Información Profesional</span>
+                  <svg 
+                    width="16" 
+                    height="16" 
+                    viewBox="0 0 16 16" 
+                    fill="none"
+                    [class.rotated]="infoProfesionalExpandida"
+                  >
+                    <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+                @if (infoProfesionalExpandida) {
+                  <div class="accordion-content">
+                    <div class="form-group">
+                      <label class="form-label">Rol en la Cuenta</label>
+                      <input 
+                        type="text" 
+                        class="form-input"
+                        formControlName="rol"
+                        placeholder="PROPIETARIO"
+                        readonly
+                      />
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <!-- Preferencias -->
+              <div class="accordion-section">
+                <button 
+                  class="accordion-header" 
+                  type="button"
+                  (click)="toggleSeccion('preferencias')"
+                >
+                  <span>Preferencias</span>
+                  <svg 
+                    width="16" 
+                    height="16" 
+                    viewBox="0 0 16 16" 
+                    fill="none"
+                    [class.rotated]="preferenciasExpandida"
+                  >
+                    <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+                @if (preferenciasExpandida) {
+                  <div class="accordion-content">
+                    <div class="form-group">
+                      <label class="form-label">Zona Horaria</label>
+                      <select class="form-select" formControlName="zonaHoraria">
+                        <option *ngFor="let zona of zonasHorarias" [value]="zona">{{ zona }}</option>
+                      </select>
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <div class="form-actions">
+                <button type="button" class="btn-cancelar" (click)="cerrarModal()">Cancelar</button>
+                <button type="button" class="btn-guardar" (click)="guardarPerfil()" [disabled]="loading">
+                  {{ loading ? 'Guardando...' : 'Guardar Cambios' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        }
+
+        <!-- Sección: Mi Empresa -->
+        @if (seccionActiva === 'empresa') {
+          <div class="seccion-content">
+            <h3 class="seccion-title">Mi Empresa</h3>
+            
+            <div class="empresa-header">
+              <div class="empresa-logo">
+                <span>INDUS. G&G TEXTILL</span>
+              </div>
+              <div class="empresa-info">
+                <div class="empresa-name">{{ empresaSeleccionada?.nombre || 'Mi Empresa' }}</div>
+                <div class="facturallama-id">
+                  FacturaLlama ID: 6f75b035-498f-4a39-b051-74ffe08487d1
+                  <button type="button" class="btn-copy">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M6 2H12C13.1046 2 14 2.89543 14 4V10C14 11.1046 13.1046 12 12 12H10" stroke="currentColor" stroke-width="1.5"/>
+                      <path d="M10 4H4C2.89543 4 2 4.89543 2 6V12C2 13.1046 2.89543 14 4 14H10C11.1046 14 12 13.1046 12 12V6C12 4.89543 11.1046 4 10 4Z" stroke="currentColor" stroke-width="1.5"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <form [formGroup]="empresaForm">
+              <!-- Identidad Legal -->
+              <div class="accordion-section">
+                <button 
+                  class="accordion-header" 
+                  type="button"
+                  (click)="toggleSeccion('identidadLegal')"
+                >
+                  <span>Identidad Legal</span>
+                  <svg 
+                    width="16" 
+                    height="16" 
+                    viewBox="0 0 16 16" 
+                    fill="none"
+                    [class.rotated]="identidadLegalExpandida"
+                  >
+                    <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+                @if (identidadLegalExpandida) {
+                  <div class="accordion-content">
+                    <div class="form-group">
+                      <label class="form-label">Nombre Legal</label>
+                      <input 
+                        type="text" 
+                        class="form-input"
+                        formControlName="nombreLegal"
+                        placeholder="Ingresa el nombre legal"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Nombre Comercial</label>
+                      <input 
+                        type="text" 
+                        class="form-input"
+                        formControlName="nombreComercial"
+                        placeholder="Ingresa el nombre comercial"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">NRC</label>
+                      <input 
+                        type="text" 
+                        class="form-input"
+                        formControlName="nrc"
+                        placeholder="Ingresa el NRC"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">DUI/NIT</label>
+                      <input 
+                        type="text" 
+                        class="form-input"
+                        formControlName="nit"
+                        placeholder="Ingresa el DUI o NIT"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Actividades Económicas</label>
+                      <p class="form-hint">Representa el giro comercial del emisor registrado en el sistema.</p>
+                      <div class="form-group">
+                        <label class="form-label-small">Primaria</label>
+                        <input 
+                          type="text" 
+                          class="form-input"
+                          formControlName="actividadEconomicaPrimaria"
+                          placeholder="Actividad económica primaria"
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label-small">Secundaria</label>
+                        <input 
+                          type="text" 
+                          class="form-input"
+                          formControlName="actividadEconomicaSecundaria"
+                          placeholder="Actividad económica secundaria"
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label-small">Terciaria</label>
+                        <input 
+                          type="text" 
+                          class="form-input"
+                          formControlName="actividadEconomicaTerciaria"
+                          placeholder="Actividad económica terciaria"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <!-- Casa Matriz -->
+              <div class="accordion-section">
+                <button 
+                  class="accordion-header" 
+                  type="button"
+                  (click)="toggleSeccion('casaMatriz')"
+                >
+                  <span>Casa Matriz</span>
+                  <svg 
+                    width="16" 
+                    height="16" 
+                    viewBox="0 0 16 16" 
+                    fill="none"
+                    [class.rotated]="casaMatrizExpandida"
+                  >
+                    <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+                @if (casaMatrizExpandida) {
+                  <div class="accordion-content">
+                    <p class="form-hint">Dirección oficial ante el Ministerio de Hacienda.</p>
+                    <div class="form-group">
+                      <label class="form-label">Dirección</label>
+                      <input 
+                        type="text" 
+                        class="form-input"
+                        formControlName="direccion"
+                        placeholder="Ingresa la dirección"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Código del Ministerio de Hacienda</label>
+                      <input 
+                        type="text" 
+                        class="form-input"
+                        formControlName="codigoMH"
+                        placeholder="M001"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Cantidad de Puntos de Venta</label>
+                      <input 
+                        type="number" 
+                        class="form-input"
+                        formControlName="puntosVenta"
+                        placeholder="1"
+                        min="1"
+                      />
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <!-- Información General -->
+              <div class="accordion-section">
+                <button 
+                  class="accordion-header" 
+                  type="button"
+                  (click)="toggleSeccion('infoGeneral')"
+                >
+                  <span>Información General</span>
+                  <svg 
+                    width="16" 
+                    height="16" 
+                    viewBox="0 0 16 16" 
+                    fill="none"
+                    [class.rotated]="infoGeneralExpandida"
+                  >
+                    <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+                @if (infoGeneralExpandida) {
+                  <div class="accordion-content">
+                    <p class="form-hint">Información para clientes y Hacienda.</p>
+                    <div class="form-group">
+                      <label class="form-label">Sitio Web</label>
+                      <input 
+                        type="url" 
+                        class="form-input"
+                        formControlName="sitioWeb"
+                        placeholder="https://www.ejemplo.com"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Teléfono</label>
+                      <input 
+                        type="tel" 
+                        class="form-input"
+                        formControlName="telefono"
+                        placeholder="Ingresa el teléfono"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Correo Electrónico</label>
+                      <input 
+                        type="email" 
+                        class="form-input"
+                        formControlName="correo"
+                        placeholder="correo@ejemplo.com"
+                      />
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <!-- Integración con Hacienda -->
+              <div class="accordion-section">
+                <button 
+                  class="accordion-header" 
+                  type="button"
+                  (click)="toggleSeccion('integracionHacienda')"
+                >
+                  <span>Integración con Hacienda</span>
+                  <svg 
+                    width="16" 
+                    height="16" 
+                    viewBox="0 0 16 16" 
+                    fill="none"
+                    [class.rotated]="integracionHaciendaExpandida"
+                  >
+                    <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+                @if (integracionHaciendaExpandida) {
+                  <div class="accordion-content">
+                    <p class="form-hint">Datos clave para la conexión con el Ministerio de Hacienda. Solo administradores pueden editar estos campos.</p>
+                    <div class="form-group">
+                      <label class="form-label">Certificado (Ambiente de Prueba)</label>
+                      <input 
+                        type="text" 
+                        class="form-input"
+                        formControlName="certificadoPrueba"
+                        placeholder="Ingresa el certificado"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Contraseña API (Ambiente de Prueba)</label>
+                      <input 
+                        type="password" 
+                        class="form-input"
+                        formControlName="passwordAPIPrueba"
+                        placeholder="Ingresa la contraseña"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Certificado (Ambiente de Producción)</label>
+                      <input 
+                        type="text" 
+                        class="form-input"
+                        formControlName="certificadoProduccion"
+                        placeholder="Ingresa el certificado"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Contraseña API (Ambiente de Producción)</label>
+                      <input 
+                        type="password" 
+                        class="form-input"
+                        formControlName="passwordAPIProduccion"
+                        placeholder="Ingresa la contraseña"
+                      />
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <div class="form-actions">
+                <button type="button" class="btn-cancelar" (click)="cerrarModal()">Cancelar</button>
+                <button type="button" class="btn-guardar" (click)="guardarEmpresa()" [disabled]="loading">
+                  {{ loading ? 'Guardando...' : 'Guardar Cambios' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        }
+
+        <!-- Sección: Mi Suscripción -->
+        @if (seccionActiva === 'suscripcion') {
+          <div class="seccion-content">
+            <h3 class="seccion-title">Mi Suscripción</h3>
+            <div class="suscripcion-content">
+              <div class="suscripcion-icon">🎉</div>
+              <p class="suscripcion-message">Ya tienes una suscripción activa</p>
+              <button type="button" class="btn-ver-suscripcion">Ver mi suscripción</button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

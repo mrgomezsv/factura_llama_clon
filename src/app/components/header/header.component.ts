@@ -4,11 +4,12 @@ import { DteService } from '../../services/dte.service';
 import { AuthService } from '../../services/auth.service';
 import { Empresa } from '../../models/empresa.model';
 import { Router, RouterModule } from '@angular/router';
+import { ConfiguracionModalComponent } from '../configuracion-modal/configuracion-modal.component';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ConfiguracionModalComponent],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
@@ -16,6 +17,7 @@ export class HeaderComponent implements OnInit {
   empresas: Empresa[] = [];
   empresaSeleccionada: Empresa | null = null;
   mostrarSelectorEmpresa: boolean = false;
+  mostrarModalConfiguracion: boolean = false;
 
   constructor(
     private dteService: DteService, 
@@ -90,6 +92,15 @@ export class HeaderComponent implements OnInit {
     this.authService.logout().subscribe(() => {
       // El logout ya redirige a /login, no es necesario hacerlo aquí
     });
+  }
+
+  abrirConfiguracion(): void {
+    this.mostrarSelectorEmpresa = false;
+    this.mostrarModalConfiguracion = true;
+  }
+
+  cerrarModalConfiguracion(): void {
+    this.mostrarModalConfiguracion = false;
   }
 
   @HostListener('document:click', ['$event'])
