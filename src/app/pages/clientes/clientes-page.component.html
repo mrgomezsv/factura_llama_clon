@@ -520,3 +520,10 @@
   (productoActualizado)="onProductoActualizado($event)"
 ></app-crear-producto-modal>
 
+<app-confirmar-eliminacion-modal
+  *ngIf="mostrarModalConfirmarEliminacion"
+  [mensaje]="getMensajeEliminacion()"
+  (confirmar)="onConfirmarEliminacion()"
+  (cancelar)="cerrarModalConfirmarEliminacion()"
+></app-confirmar-eliminacion-modal>
+

@@ -7,6 +7,7 @@ import { AddButtonDropdownComponent } from '../../components/add-button-dropdown
 import { CrearClienteModalComponent } from '../../components/crear-cliente-modal/crear-cliente-modal.component';
 import { CrearSucursalModalComponent } from '../../components/crear-sucursal-modal/crear-sucursal-modal.component';
 import { CrearProductoModalComponent } from '../../components/crear-producto-modal/crear-producto-modal.component';
+import { ConfirmarEliminacionModalComponent } from '../../components/confirmar-eliminacion-modal/confirmar-eliminacion-modal.component';
 
 @Component({
   selector: 'app-clientes-page',
@@ -16,7 +17,8 @@ import { CrearProductoModalComponent } from '../../components/crear-producto-mod
     AddButtonDropdownComponent, 
     CrearClienteModalComponent,
     CrearSucursalModalComponent,
-    CrearProductoModalComponent
+    CrearProductoModalComponent,
+    ConfirmarEliminacionModalComponent
   ],
   templateUrl: './clientes-page.component.html',
   styleUrl: './clientes-page.component.scss'
@@ -34,9 +36,11 @@ export class ClientesPageComponent implements OnInit {
   mostrarModalCrearCliente = false;
   mostrarModalCrearSucursal = false;
   mostrarModalCrearProducto = false;
+  mostrarModalConfirmarEliminacion = false;
   productoParaEditar: any = null;
   sucursalParaEditar: any = null;
   clienteParaEditar: any = null;
+  itemAEliminar: { tipo: 'cliente' | 'sucursal' | 'producto', item: any } | null = null;
   productoDropdownAbierto: number | null = null;
   clienteDropdownAbierto: number | null = null;
   sucursalDropdownAbierto: number | null = null;
@@ -317,13 +321,8 @@ export class ClientesPageComponent implements OnInit {
 
   eliminarProducto(producto: any): void {
     this.cerrarProductoDropdown();
-    if (confirm(`¿Estás seguro de que deseas eliminar el producto "${producto.nombre}"?`)) {
-      if (producto.id) {
-        this.dteService.deleteProducto(producto.id).subscribe(() => {
-          this.cargarProductos();
-        });
-      }
-    }
+    this.itemAEliminar = { tipo: 'producto', item: producto };
+    this.mostrarModalConfirmarEliminacion = true;
   }
 
   toggleClienteDropdown(index: number, event: Event): void {
@@ -345,13 +344,8 @@ export class ClientesPageComponent implements OnInit {
 
   eliminarCliente(cliente: any): void {
     this.cerrarClienteDropdown();
-    if (confirm(`¿Estás seguro de que deseas eliminar el cliente "${cliente.nombre}"?`)) {
-      if (cliente.id) {
-        this.dteService.deleteCliente(cliente.id).subscribe(() => {
-          this.cargarClientes();
-        });
-      }
-    }
+    this.itemAEliminar = { tipo: 'cliente', item: cliente };
+    this.mostrarModalConfirmarEliminacion = true;
   }
 
   toggleSucursalDropdown(index: number, event: Event): void {
@@ -373,13 +367,8 @@ export class ClientesPageComponent implements OnInit {
 
   eliminarSucursal(sucursal: any): void {
     this.cerrarSucursalDropdown();
-    if (confirm(`¿Estás seguro de que deseas eliminar la sucursal "${sucursal.nombre}"?`)) {
-      if (sucursal.id) {
-        this.dteService.deleteSucursal(sucursal.id).subscribe(() => {
-          this.cargarSucursales();
-        });
-      }
-    }
+    this.itemAEliminar = { tipo: 'sucursal', item: sucursal };
+    this.mostrarModalConfirmarEliminacion = true;
   }
 
   toggleEmpresaInfoDropdown(event: Event): void {
@@ -531,5 +520,48 @@ export class ClientesPageComponent implements OnInit {
         this.tabActiva = tabAnterior;
       });
     }
+  }
+
+  onConfirmarEliminacion(): void {
+    if (!this.itemAEliminar) return;
+
+    const { tipo, item } = this.itemAEliminar;
+
+    if (tipo === 'cliente' && item.id) {
+      this.dteService.deleteCliente(item.id).subscribe(() => {
+        this.cargarClientes();
+        this.cerrarModalConfirmarEliminacion();
+      });
+    } else if (tipo === 'sucursal' && item.id) {
+      this.dteService.deleteSucursal(item.id).subscribe(() => {
+        this.cargarSucursales();
+        this.cerrarModalConfirmarEliminacion();
+      });
+    } else if (tipo === 'producto' && item.id) {
+      this.dteService.deleteProducto(item.id).subscribe(() => {
+        this.cargarProductos();
+        this.cerrarModalConfirmarEliminacion();
+      });
+    }
+  }
+
+  cerrarModalConfirmarEliminacion(): void {
+    this.mostrarModalConfirmarEliminacion = false;
+    this.itemAEliminar = null;
+  }
+
+  getMensajeEliminacion(): string {
+    if (!this.itemAEliminar) return '';
+    const { tipo, item } = this.itemAEliminar;
+    const nombre = item.nombre || '';
+    
+    if (tipo === 'cliente') {
+      return `¿Estás seguro de que deseas eliminar el cliente "${nombre}"?`;
+    } else if (tipo === 'sucursal') {
+      return `¿Estás seguro de que deseas eliminar la sucursal "${nombre}"?`;
+    } else if (tipo === 'producto') {
+      return `¿Estás seguro de que deseas eliminar el producto "${nombre}"?`;
+    }
+    return '';
   }
 }
