@@ -47,6 +47,15 @@ export class ConfiguracionModalComponent implements OnInit {
     'Estados Unidos - Central (GMT-6)'
   ];
 
+  roles = [
+    'PROPIETARIO',
+    'ADMINISTRADOR',
+    'CONTADOR',
+    'ENCARGADO',
+    'AUDITOR',
+    'FACTURADOR'
+  ];
+
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,

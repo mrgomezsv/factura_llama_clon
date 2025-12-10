@@ -172,13 +172,11 @@
                   <div class="accordion-content">
                     <div class="form-group">
                       <label class="form-label">Rol en la Cuenta</label>
-                      <input 
-                        type="text" 
-                        class="form-input"
-                        formControlName="rol"
-                        placeholder="PROPIETARIO"
-                        readonly
-                      />
+                      <select class="form-select" formControlName="rol">
+                        @for (rol of roles; track rol) {
+                          <option [value]="rol">{{ rol }}</option>
+                        }
+                      </select>
                     </div>
                   </div>
                 }
