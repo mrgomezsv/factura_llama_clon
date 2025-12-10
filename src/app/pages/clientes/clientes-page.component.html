@@ -218,7 +218,9 @@
             </svg>
             <input 
               type="text" 
-              [placeholder]="tabActiva === 'clientes' ? 'Buscar por nombre, correo o alias...' : tabActiva === 'sucursales' ? 'Buscar por nombre, dirección...' : 'Buscar por nombre, código interno o descripción...'" 
+              [placeholder]="tabActiva === 'clientes' ? 'Buscar por nombre, correo o alias...' : tabActiva === 'sucursales' ? 'Buscar por nombre, dirección...' : 'Buscar por nombre, código interno o descripción...'"
+              [value]="terminoBusqueda"
+              (input)="onBusquedaChange($any($event.target).value)"
             />
           </div>
           <div class="filtros-container">
@@ -268,7 +270,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let cliente of clientes; let i = index">
+            <tr *ngFor="let cliente of clientesFiltrados; let i = index">
               <td>{{ cliente.nombre }}</td>
               <td>{{ cliente.correo }}</td>
               <td>{{ cliente.fechaCreacion || 'N/A' }}</td>
@@ -363,7 +365,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let sucursal of sucursales; let i = index">
+            <tr *ngFor="let sucursal of sucursalesFiltradas; let i = index">
               <td>{{ sucursal.nombre }}</td>
               <td>{{ sucursal.tipoSucursal || 'N/A' }}</td>
               <td>{{ sucursal.direccion || 'N/A' }}</td>
@@ -433,7 +435,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let producto of productos; let i = index">
+            <tr *ngFor="let producto of productosFiltrados; let i = index">
               <td>{{ producto.nombre }}</td>
               <td>${{ producto.precioConIva | number:'1.2-2' }}</td>
               <td>{{ producto.unidadMedida }}</td>
