@@ -36,6 +36,7 @@ export class ConfiguracionModalComponent implements OnInit {
 
   usuarioActual: any = null;
   loading = false;
+  loadingRecuperacion = false;
   
   // Estado del modal de notificación
   mostrarNotificacion = false;
@@ -409,5 +410,33 @@ export class ConfiguracionModalComponent implements OnInit {
          this.mensajeNotificacion.includes('guardada correctamente'))) {
       this.cerrarModal();
     }
+  }
+
+  recuperarContrasena(): void {
+    const user = this.authService.getCurrentUser();
+    if (!user || !user.email) {
+      this.mostrarNotificacionError('Error', 'No se pudo obtener el correo electrónico del usuario');
+      return;
+    }
+
+    const email = user.email;
+    this.loadingRecuperacion = true;
+
+    this.authService.sendPasswordReset(email).subscribe({
+      next: () => {
+        this.loadingRecuperacion = false;
+        this.mostrarNotificacionExito(
+          `Se ha enviado un correo a ${email} con las instrucciones para restablecer tu contraseña.`,
+          'Correo enviado'
+        );
+      },
+      error: (error) => {
+        this.loadingRecuperacion = false;
+        this.mostrarNotificacionError(
+          'Error al enviar el correo de recuperación',
+          error.message || 'Ocurrió un error al enviar el correo'
+        );
+      }
+    });
   }
 }
