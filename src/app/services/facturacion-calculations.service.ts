@@ -43,17 +43,27 @@ export class FacturacionCalculationsService {
   }
 
   /**
+   * Determinar si el tipo de DTE es exento de IVA
+   */
+  private isExemptDteType(tipoDte?: string): boolean {
+    const exemptTypes = ['FEX', 'FSE'];
+    return tipoDte ? exemptTypes.includes(tipoDte) : false;
+  }
+
+  /**
    * Calcula todos los valores de facturación según normativas de El Salvador
    */
   calcularFacturacion(parametros: ParametrosCalculoFacturacion): ResultadosCalculoFacturacion {
-    const { items, descuentoGlobal, retenciones, otrosMontosNoAfectos = 0 } = parametros;
+    const { items, descuentoGlobal, retenciones, otrosMontosNoAfectos = 0, tipoDte } = parametros;
+    const isExemptDte = this.isExemptDteType(tipoDte);
 
     // Normalizar items
     const itemsNormalizados: ItemFactura[] = items.map(item => ({
       cantidad: Number(item.cantidad || 0),
       precio: Number(item.precio || 0),
       descuento: Number(item.descuento || 0),
-      tipoVenta: item.tipoVenta || 'Gravada' as TipoVenta,
+      // Si el DTE es exento (FEX, FSE), todos los items son exentos
+      tipoVenta: (isExemptDte ? 'Exenta' : (item.tipoVenta || 'Gravada')) as TipoVenta,
       descripcion: item.descripcion || ''
     }));
 
@@ -94,7 +104,8 @@ export class FacturacionCalculationsService {
     const subTotal = Math.max(sumatoriaVentas - descuentoGlobal, 0);
 
     // IVA (13% sobre ventas gravadas netas)
-    const ivaCalculado = ventasGravadasNetas * this.IVA_RATE;
+    // NO calcular IVA si el tipo de DTE es exento (FEX, FSE)
+    const ivaCalculado = isExemptDte ? 0 : ventasGravadasNetas * this.IVA_RATE;
     const iva = Math.round(ivaCalculado * 100) / 100;
 
     // Retenciones
