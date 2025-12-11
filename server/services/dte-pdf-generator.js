@@ -39,6 +39,51 @@ class DtePdfGenerator {
   }
 
   /**
+   * Obtener contenido del logo en base64 (similar a super_pos)
+   */
+  async getLogoContent(logoUrl) {
+    if (!logoUrl) {
+      return '';
+    }
+
+    try {
+      // Si es una URL completa (http/https), usarla directamente
+      if (logoUrl.startsWith('http://') || logoUrl.startsWith('https://') || logoUrl.startsWith('data:')) {
+        return logoUrl;
+      }
+
+      // Si es un path local, convertir a base64
+      const cleanPath = logoUrl.replace(/^\//, ''); // Remover slash inicial
+      const logoPath = path.resolve(cleanPath);
+
+      // Verificar si el archivo existe
+      try {
+        await fs.access(logoPath);
+      } catch {
+        console.warn(`Logo no encontrado en ruta: ${logoPath}`);
+        return '';
+      }
+
+      // Leer archivo y convertir a base64
+      const fileBuffer = await fs.readFile(logoPath);
+      const base64String = fileBuffer.toString('base64');
+
+      // Determinar mime type
+      let mimeType = 'image/png';
+      if (logoUrl.toLowerCase().endsWith('.jpg') || logoUrl.toLowerCase().endsWith('.jpeg')) {
+        mimeType = 'image/jpeg';
+      } else if (logoUrl.toLowerCase().endsWith('.gif')) {
+        mimeType = 'image/gif';
+      }
+
+      return `data:${mimeType};base64,${base64String}`;
+    } catch (error) {
+      console.error('Error al leer logo:', error);
+      return '';
+    }
+  }
+
+  /**
    * Formatear moneda
    */
   formatCurrency(amount) {
@@ -82,7 +127,7 @@ class DtePdfGenerator {
   /**
    * Construir HTML del PDF
    */
-  buildHtmlTemplate(dteData, dteJson) {
+  async buildHtmlTemplate(dteData, dteJson) {
     const { dte, empresaConfig } = dteData;
     const identificacion = dteJson.identificacion || {};
     const receptor = dteJson.receptor || {};
@@ -96,6 +141,9 @@ class DtePdfGenerator {
 
     // Construir dirección completa
     const direccionCompleta = empresaConfig.direccion || '';
+
+    // Obtener logo en base64 si es necesario
+    const logoContent = await this.getLogoContent(empresaConfig.logoUrl);
 
     // Construir tabla de items
     const itemsTable = this.buildItemsTable(cuerpoDocumento, dte.tipoDte || identificacion.tipoDte, resumen);
@@ -117,7 +165,7 @@ class DtePdfGenerator {
         <!-- Header: Logo a la izquierda, Banner título al centro, QR a la derecha -->
         <div class="row header-row">
             <div class="col-logo">
-                ${empresaConfig.logoUrl ? `<img id="dte_logo" src="${empresaConfig.logoUrl}" alt="Logo" style="max-width: 200px; ${empresaConfig.logoUrl ? '' : 'display: none;'}"/>` : ''}
+                ${logoContent ? `<img id="dte_logo" src="${logoContent}" alt="Logo"/>` : ''}
             </div>
             <div class="col-title">
                 <div class="title-banner">
@@ -177,10 +225,16 @@ class DtePdfGenerator {
                     <div class="info-box-header">Receptor</div>
                     <div class="info-box-content">
                         <p><span class="info-label">Nombre o razon social:</span> <span class="info-value">${receptor.nombre || dte.nombreReceptor || 'CONSUMIDOR FINAL'}</span></p>
+                        <p><span class="info-label">Nombre comercial:</span> <span class="info-value">CLIENTE TIKETE</span></p>
                         <p><span class="info-label">${receptor.tipoDocumento === '36' ? 'NIT' : 'DUI'}:</span> <span class="info-value">${receptor.numDocumento || dte.nitReceptor || ''}</span></p>
                         <p><span class="info-label">NRC:</span> <span class="info-value">${receptor.nrc || dte.nrcReceptor || ''}</span></p>
+                        <p><span class="info-label">Actividad económica:</span> <span class="info-value"></span></p>
                         <p><span class="info-label">Dirección:</span> <span class="info-value">${receptor.direccion?.complemento || dte.direccionReceptor || 'SAN SALVADOR'}</span></p>
                         <p><span class="info-label">Correo electrónico:</span> <span class="info-value">${receptor.correo || dte.emailReceptor || ''}</span></p>
+                        <p><span class="info-label">Número de teléfono:</span> <span class="info-value">12345678</span></p>
+                        <p><span class="info-label">Condiciones de pago:</span> <span class="info-value">CONTADO</span></p>
+                        <p><span class="info-label">Vendedor:</span> <span class="info-value">Tienda</span></p>
+                        <p><span class="info-label">Facturado por:</span> <span class="info-value"></span></p>
                     </div>
                 </div>
             </div>
@@ -206,6 +260,30 @@ class DtePdfGenerator {
             </div>
         </div>
         
+        <!-- Cajas ENTREGADO POR y RECIBIDO POR -->
+        <div class="row delivery-row">
+            <div class="col-delivery-left">
+                <div class="delivery-box">
+                    <p class="delivery-title">Operacion superior a $25000</p>
+                    <p class="delivery-header">ENTREGADO POR:</p>
+                    <p class="delivery-label">DUI</p>
+                    <div class="delivery-signature-line"></div>
+                    <p class="delivery-label">FIRMA</p>
+                    <div class="delivery-signature-line"></div>
+                </div>
+            </div>
+            <div class="col-delivery-right">
+                <div class="delivery-box">
+                    <p class="delivery-title">Operacion superior a $25000</p>
+                    <p class="delivery-header">RECIBIDO POR:</p>
+                    <p class="delivery-label">DUI</p>
+                    <div class="delivery-signature-line"></div>
+                    <p class="delivery-label">FIRMA</p>
+                    <div class="delivery-signature-line"></div>
+                </div>
+            </div>
+        </div>
+        
         <p id="emi_filler">
             DTE generado por Factura Llama Clon - Sistema de Facturación Electrónica
         </p>
@@ -228,6 +306,7 @@ class DtePdfGenerator {
                         <th>Unidad</th>
                         <th class="desc_col_th">Descripción</th>
                         <th>Precio unitario</th>
+                        <th>Otros montos no afectos</th>
                         <th>Descuento por item</th>
     `;
 
@@ -254,6 +333,7 @@ class DtePdfGenerator {
                             <span class="line_descripcion">${item.descripcion || ''}</span>
                         </td>
                         <td class="line_precioUni">${this.formatCurrency(item.precioUnitaro || item.precioUni || 0)}</td>
+                        <td class="line_noGravado">${this.formatCurrency(item.noGravado || 0)}</td>
                         <td class="line_montoDescu">${this.formatCurrency(item.montoDescu || 0)}</td>
       `;
 
@@ -292,9 +372,12 @@ class DtePdfGenerator {
    * Construir footer con totales
    */
   buildTotalsFooter(resumen, tipoDte) {
+    // Calcular número de columnas según tipo de DTE
+    const numCols = ['11', '14'].includes(tipoDte) ? 8 : 10;
+    
     let html = `
                 <tr class="spacer-row">
-                    <td colspan="9" style="border: none; padding: 0; height: 300px; background: transparent;"></td>
+                    <td colspan="${numCols}" style="border: none; padding: 0; height: 300px; background: transparent;"></td>
                 </tr>
     `;
 
@@ -306,30 +389,46 @@ class DtePdfGenerator {
                     <td class="non_border_cell"></td>
                     <td class="non_border_cell"></td>
                     <td colspan="2" class="left_sum_line">SUMA DE VENTAS:</td>
+      `;
+      
+      if (!['11', '14'].includes(tipoDte)) {
+        html += `
                     <td class="amt_sum_line">${this.formatCurrency(resumen.totalNoSuj || 0)}</td>
                     <td class="amt_sum_line">${this.formatCurrency(resumen.totalExenta || 0)}</td>
+        `;
+      }
+      
+      html += `
                     <td class="amt_sum_line">${this.formatCurrency(resumen.totalGravada || 0)}</td>
                 </tr>
       `;
     }
 
     if (resumen.ivaRete1 > 0) {
+      const colspan = ['11', '14'].includes(tipoDte) ? 6 : 7;
       html += `
                 <tr class="total_tr">
-                    <td colspan="6" class="left_sum_line">IVA Retenido:</td>
+                    <td colspan="${colspan}" class="left_sum_line">IVA Retenido:</td>
                     <td class="amt_sum_line">${this.formatCurrency(resumen.ivaRete1 || 0)}</td>
                 </tr>
       `;
     }
 
     if (resumen.reteRenta > 0) {
+      const colspan = ['11', '14'].includes(tipoDte) ? 6 : 7;
       html += `
                 <tr class="total_tr">
-                    <td colspan="6" class="left_sum_line">Retención de Renta:</td>
+                    <td colspan="${colspan}" class="left_sum_line">Retención de Renta:</td>
                     <td class="amt_sum_line">${this.formatCurrency(resumen.reteRenta || 0)}</td>
                 </tr>
       `;
     }
+
+    html += `
+                <tr class="total_tr">
+                    <td colspan="${numCols}" style="border: none; padding: 2px; height: 5px;"></td>
+                </tr>
+    `;
 
     return html;
   }
@@ -390,11 +489,10 @@ class DtePdfGenerator {
   }
 
   /**
-   * Obtener estilos CSS
+   * Obtener estilos CSS - Exactamente iguales a super_pos
    */
   getCssStyles(tipoDte = '02') {
-    // Estilos CSS basados en treming_dte (mismo que en super_pos)
-    return `
+    const cssBase = `
         @page {
             size: A4;
             margin: 4mm;
@@ -404,6 +502,28 @@ class DtePdfGenerator {
             margin: 0;
             padding: 0;
             height: 100%;
+        }
+        
+        /* Fuente Montserrat - usando fuente del sistema como fallback */
+        @font-face {
+            font-family: 'Montserrat';
+            font-style: normal;
+            font-weight: 400;
+            src: local('Montserrat Regular'), local('Montserrat-Regular');
+        }
+        
+        @font-face {
+            font-family: 'Montserrat';
+            font-style: normal;
+            font-weight: 600;
+            src: local('Montserrat SemiBold'), local('Montserrat-SemiBold');
+        }
+        
+        @font-face {
+            font-family: 'Montserrat';
+            font-style: normal;
+            font-weight: 700;
+            src: local('Montserrat Bold'), local('Montserrat-Bold');
         }
         
         * {
@@ -430,6 +550,11 @@ class DtePdfGenerator {
             margin-bottom: 3px;
         }
         
+        .row:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* Header row: Logo, Título, QR */
         .header-row {
             display: flex;
             align-items: flex-start;
@@ -439,6 +564,9 @@ class DtePdfGenerator {
         .col-logo {
             width: 18%;
             padding-right: 3px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-start;
         }
         
         .col-title {
@@ -451,6 +579,7 @@ class DtePdfGenerator {
             padding-left: 3px;
         }
         
+        /* Banner de título azul oscuro */
         .title-banner {
             background: #001e41;
             padding: 6px 4px;
@@ -476,6 +605,7 @@ class DtePdfGenerator {
             line-height: 1.1;
         }
         
+        /* QR Container */
         .qr-container {
             border: 1px solid #001e41;
             padding: 4px;
@@ -487,6 +617,8 @@ class DtePdfGenerator {
             max-width: 70px;
             margin: 0 auto 2px auto;
             display: block;
+            margin-left: auto;
+            margin-right: auto;
         }
         
         .qr-text-bold {
@@ -503,6 +635,7 @@ class DtePdfGenerator {
             line-height: 1.0;
         }
         
+        /* Información del DTE */
         .dte-info-row {
             display: flex;
             margin-bottom: 4px;
@@ -527,6 +660,7 @@ class DtePdfGenerator {
             word-break: break-all;
         }
         
+        /* Cajas Emisor y Receptor */
         .emisor-receptor-row {
             display: flex;
             margin-bottom: 4px;
@@ -572,6 +706,19 @@ class DtePdfGenerator {
             color: black;
         }
         
+        p, p *, table {
+            margin: 0px;
+            color: black;
+        }
+        
+        #dte_logo {
+            max-width: 100%;
+            max-height: 80px;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+        }
+        
         .lines_cont {
             margin-top: 10px;
             width: 100%;
@@ -584,6 +731,10 @@ class DtePdfGenerator {
             font-weight: bold;
         }
         
+        .head_tr tr {
+            height: 0mm !important;
+        }
+        
         .head_tr th {
             text-align: center;
             vertical-align: middle;
@@ -592,6 +743,38 @@ class DtePdfGenerator {
             font-size: 8px;
             font-weight: bold;
             color: white;
+        }
+        
+        .head_tr th:nth-child(1) {
+            width: 3%;
+        }
+        
+        .head_tr th:nth-child(2) {
+            width: 5%;
+        }
+        
+        .head_tr th:nth-child(3) {
+            width: 6%;
+        }
+        
+        .head_tr th:nth-child(4) {
+            width: 25%;
+        }
+        
+        .head_tr th:nth-child(5) {
+            width: 10%;
+        }
+        
+        .head_tr th:nth-child(6) {
+            width: 10%;
+        }
+        
+        .head_tr th:nth-child(7) {
+            width: 8%;
+        }
+        
+        .head_tr th, .head_tr td {
+            border: 1px solid black !important;
         }
         
         .line_tr td {
@@ -613,6 +796,81 @@ class DtePdfGenerator {
             padding-right: 2px;
         }
         
+        .line_tr td:nth-child(n+6):nth-child(-n+7) {
+            text-align: right !important;
+            padding-right: 2px;
+        }
+        
+        .line_tr td:last-child {
+            text-align: right !important;
+            padding-right: 2px;
+        }
+        
+        tfoot {
+            border: 1px solid #001e41;
+            margin-top: 40px;
+        }
+        
+        tfoot td {
+            border: none !important;
+            padding: 1px 2px;
+            font-size: 10px;
+        }
+        
+        /* Espacio antes de SUMA DE VENTAS para separar de la tabla */
+        tfoot tr:first-child {
+            margin-top: 40px;
+        }
+        
+        .sum_line {
+            margin-top: 40px;
+        }
+        
+        .sum_line td {
+            padding-top: 20px;
+        }
+        
+        .total_tr td {
+            font-weight: 500;
+            text-align: end;
+        }
+        
+        .total_tr td:last-child {
+            text-align: right;
+            font-weight: 500;
+        }
+        
+        .sum_line td, .sum_line td span, .total_tr td span {
+            text-align: left;
+            font-weight: 500;
+        }
+        
+        tfoot * {
+            font-weight: normal !important;
+        }
+        
+        .amt_sum_line {
+            text-align: right !important;
+            padding-right: 2px;
+        }
+        
+        /* Fila espaciadora antes de SUMA DE VENTAS */
+        .spacer-row {
+            border: none !important;
+        }
+        
+        .spacer-row td {
+            border: none !important;
+            padding: 0 !important;
+            height: 300px;
+            background: transparent !important;
+        }
+        
+        .mess_holder {
+            vertical-align: top;
+        }
+        
+        /* Footer: Valor en letras y Resumen financiero */
         .footer-row {
             display: flex;
             margin-top: 4px;
@@ -655,6 +913,7 @@ class DtePdfGenerator {
             height: 7px;
         }
         
+        /* Resumen financiero */
         .financial-summary {
             border: 1px solid #001e41;
             padding: 2px;
@@ -700,15 +959,58 @@ class DtePdfGenerator {
             font-size: 10px;
         }
         
-        .spacer-row td {
-            border: none !important;
-            padding: 0 !important;
-            height: 300px;
-            background: transparent !important;
+        /* Cajas ENTREGADO POR y RECIBIDO POR */
+        .delivery-row {
+            display: flex;
+            margin-top: 3px;
+            margin-bottom: 2px;
+            gap: 3px;
         }
         
-        .sum_line td {
-            padding-top: 20px;
+        .col-delivery-left, .col-delivery-right {
+            width: 50%;
+        }
+        
+        .delivery-box {
+            border: 1px solid #001e41;
+            padding: 3px;
+            background: white;
+        }
+        
+        .delivery-title {
+            font-weight: bold;
+            color: black;
+            font-size: 6px;
+            margin: 0 0 2px 0;
+        }
+        
+        .delivery-header {
+            font-weight: bold;
+            color: black;
+            font-size: 10px;
+            text-transform: uppercase;
+            margin: 1px 0;
+        }
+        
+        .delivery-label {
+            font-weight: bold;
+            color: black;
+            font-size: 6px;
+            margin: 2px 0 1px 0;
+        }
+        
+        .delivery-signature-line {
+            border-bottom: 1px solid #001e41;
+            height: 15px;
+            margin: 1px 0 2px 0;
+        }
+        
+        .desc_col_th {
+            text-align: center !important;
+        }
+        
+        .non_border_cell {
+            border: none !important;
         }
         
         .left_sum_line {
@@ -716,13 +1018,9 @@ class DtePdfGenerator {
             font-weight: 500;
         }
         
-        .amt_sum_line {
-            text-align: right !important;
-            padding-right: 2px;
-        }
-        
-        .non_border_cell {
-            border: none !important;
+        .useless_text {
+            font-weight: 500;
+            margin: 2px 0;
         }
         
         #emi_filler {
@@ -732,12 +1030,9 @@ class DtePdfGenerator {
             margin-left: 5px;
             text-align: center;
         }
-        
-        #dte_logo {
-            max-width: 120px;
-            height: auto;
-        }
     `;
+    
+    return cssBase;
   }
 
   /**
@@ -757,8 +1052,8 @@ class DtePdfGenerator {
         }
       };
 
-      // Construir HTML
-      const htmlContent = this.buildHtmlTemplate(dteDataWithQr, dteJson);
+      // Construir HTML (ahora es async)
+      const htmlContent = await this.buildHtmlTemplate(dteDataWithQr, dteJson);
 
       // Generar PDF con Puppeteer
       const browser = await puppeteer.launch({
