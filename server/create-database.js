@@ -139,13 +139,27 @@ async function createTables(client) {
       id SERIAL PRIMARY KEY,
       control_number TEXT UNIQUE NOT NULL,
       tipo TEXT NOT NULL,
+      tipo_dte TEXT,
+      codigo_generacion TEXT UNIQUE,
+      numero_control TEXT,
+      numero_documento INTEGER,
       receptor TEXT NOT NULL,
       total REAL NOT NULL DEFAULT 0,
       ambiente TEXT NOT NULL DEFAULT 'PRUEBAS',
       fecha_creacion TIMESTAMP NOT NULL,
+      fecha_emision TIMESTAMP,
+      fecha_envio TIMESTAMP,
+      fecha_autorizacion TIMESTAMP,
       empresa_id TEXT,
       cliente_id TEXT,
       estado TEXT DEFAULT 'BORRADOR',
+      dte_json TEXT,
+      dte_firmado TEXT,
+      sello_recibido TEXT,
+      codigo_mensaje TEXT,
+      descripcion_mensaje TEXT,
+      observaciones TEXT,
+      pdf_url TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (empresa_id) REFERENCES empresas(id),
@@ -205,29 +219,118 @@ async function createTables(client) {
   await client.query(schema);
   console.log('✅ Tablas creadas exitosamente');
   
-  // Migración: Agregar campo logo_url si no existe
-  try {
-    await client.query(`
-      DO $$ 
-      BEGIN 
-        IF NOT EXISTS (
-          SELECT 1 FROM information_schema.columns 
-          WHERE table_name = 'empresa_config' AND column_name = 'logo_url'
-        ) THEN
-          ALTER TABLE empresa_config ADD COLUMN logo_url TEXT;
-          RAISE NOTICE 'Campo logo_url agregado a empresa_config';
-        END IF;
-      END $$;
-    `);
-    console.log('✅ Migración de logo_url completada');
-  } catch (error) {
-    // Si la columna ya existe o hay otro error, continuar
-    if (error.message.includes('already exists') || error.message.includes('duplicate')) {
-      console.log('ℹ️  Campo logo_url ya existe en empresa_config');
-    } else {
-      console.log('⚠️  Error en migración de logo_url:', error.message);
+  // Migraciones: Agregar campos si no existen
+  const migrations = [
+    {
+      table: 'empresa_config',
+      column: 'logo_url',
+      type: 'TEXT'
+    },
+    {
+      table: 'dtes',
+      column: 'tipo_dte',
+      type: 'TEXT'
+    },
+    {
+      table: 'dtes',
+      column: 'codigo_generacion',
+      type: 'TEXT'
+    },
+    {
+      table: 'dtes',
+      column: 'numero_control',
+      type: 'TEXT'
+    },
+    {
+      table: 'dtes',
+      column: 'numero_documento',
+      type: 'INTEGER'
+    },
+    {
+      table: 'dtes',
+      column: 'fecha_emision',
+      type: 'TIMESTAMP'
+    },
+    {
+      table: 'dtes',
+      column: 'fecha_envio',
+      type: 'TIMESTAMP'
+    },
+    {
+      table: 'dtes',
+      column: 'fecha_autorizacion',
+      type: 'TIMESTAMP'
+    },
+    {
+      table: 'dtes',
+      column: 'dte_json',
+      type: 'TEXT'
+    },
+    {
+      table: 'dtes',
+      column: 'dte_firmado',
+      type: 'TEXT'
+    },
+    {
+      table: 'dtes',
+      column: 'sello_recibido',
+      type: 'TEXT'
+    },
+    {
+      table: 'dtes',
+      column: 'codigo_mensaje',
+      type: 'TEXT'
+    },
+    {
+      table: 'dtes',
+      column: 'descripcion_mensaje',
+      type: 'TEXT'
+    },
+    {
+      table: 'dtes',
+      column: 'observaciones',
+      type: 'TEXT'
+    },
+    {
+      table: 'dtes',
+      column: 'pdf_url',
+      type: 'TEXT'
+    }
+  ];
+
+  for (const migration of migrations) {
+    try {
+      // Verificar si la columna ya existe
+      const checkColumn = await client.query(`
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = $1 AND column_name = $2
+      `, [migration.table, migration.column]);
+
+      if (checkColumn.rows.length === 0) {
+        // La columna no existe, agregarla usando formato seguro
+        const alterQuery = `ALTER TABLE "${migration.table}" ADD COLUMN "${migration.column}" ${migration.type}`;
+        await client.query(alterQuery);
+        console.log(`✅ Campo ${migration.column} agregado a ${migration.table}`);
+      } else {
+        console.log(`ℹ️  Campo ${migration.column} ya existe en ${migration.table}`);
+      }
+    } catch (error) {
+      if (!error.message.includes('already exists') && !error.message.includes('duplicate') && !error.message.includes('column') && !error.message.includes('already')) {
+        console.log(`⚠️  Error en migración de ${migration.column}:`, error.message);
+      }
     }
   }
+  
+  // Agregar índice único para codigo_generacion si no existe
+  try {
+    await client.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_dtes_codigo_generacion ON dtes(codigo_generacion) WHERE codigo_generacion IS NOT NULL;
+    `);
+  } catch (error) {
+    // Ignorar si ya existe
+  }
+  
+  console.log('✅ Migraciones completadas');
 
   // Insertar datos iniciales necesarios
   await seedInitialData(client);
