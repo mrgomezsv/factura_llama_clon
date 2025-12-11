@@ -1,6 +1,7 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { HeaderComponent } from './components/header/header.component';
 import { DteTabsComponent, TipoTab } from './components/dte-tabs/dte-tabs.component';
 import { DteTableComponent } from './components/dte-table/dte-table.component';
@@ -38,7 +39,11 @@ export class AppComponent implements OnInit {
   mostrarMenuDTE = false;
   tiposDTE: TipoDTE[] = [];
 
-  constructor(private dteService: DteService, private router: Router) {
+  constructor(
+    private dteService: DteService, 
+    private router: Router,
+    private http: HttpClient
+  ) {
     this.periodoSeleccionado = PeriodoTributario.ahora();
     this.isLoginRoute = this.isAuthRoute(this.router.url);
     this.showMainLayout = this.shouldShowMainLayout(this.router.url);
@@ -162,5 +167,71 @@ export class AppComponent implements OnInit {
     if (!target.closest('.generate-menu-container')) {
       this.mostrarMenuDTE = false;
     }
+  }
+
+  onExportarPDF(dte: DTE): void {
+    if (!dte.id) {
+      alert('Error: DTE no tiene ID');
+      return;
+    }
+
+    this.http.get(`http://localhost:3000/api/dtes/${dte.id}/pdf`, {
+      responseType: 'blob'
+    }).subscribe({
+      next: (pdfBlob: Blob) => {
+        const url = window.URL.createObjectURL(pdfBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `DTE-${dte.numeroControl || dte.controlNumber || dte.id}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      },
+      error: (error) => {
+        console.error('Error al descargar PDF:', error);
+        alert('Error al descargar el PDF: ' + (error.error?.error || error.message || 'Error desconocido'));
+      }
+    });
+  }
+
+  onExportarJSON(dte: DTE): void {
+    if (!dte.id) {
+      alert('Error: DTE no tiene ID');
+      return;
+    }
+
+    this.dteService.getDTEJSON(dte.id).subscribe({
+      next: (dteJson: any) => {
+        const jsonStr = JSON.stringify(dteJson, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `DTE-${dte.numeroControl || dte.controlNumber || dte.id}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      },
+      error: (error) => {
+        console.error('Error al descargar JSON:', error);
+        alert('Error al descargar el JSON: ' + (error.error?.error || error.message || 'Error desconocido'));
+      }
+    });
+  }
+
+  onEliminarDTE(dte: DTE): void {
+    if (confirm(`¿Está seguro de eliminar el DTE ${dte.controlNumber || dte.numeroControl}?`)) {
+      // TODO: Implementar eliminación
+      console.log('Eliminar DTE:', dte);
+      alert('Funcionalidad de eliminación pendiente de implementar');
+    }
+  }
+
+  onVerDetalles(dte: DTE): void {
+    // TODO: Implementar vista de detalles
+    console.log('Ver detalles DTE:', dte);
+    alert('Funcionalidad de detalles pendiente de implementar');
   }
 }

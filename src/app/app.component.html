@@ -73,7 +73,13 @@
               [tabActiva]="tabActiva"
               (tabCambiada)="onTabCambiada($event)"
             />
-            <app-dte-table [dtes]="dtes" />
+            <app-dte-table 
+              [dtes]="dtes"
+              (exportarPDF)="onExportarPDF($event)"
+              (exportarJSON)="onExportarJSON($event)"
+              (eliminarDTE)="onEliminarDTE($event)"
+              (verDetalles)="onVerDetalles($event)"
+            />
           </div>
           <app-upgrade-modal *ngIf="mostrarUpgrade" (close)="cerrarUpgrade()" />
         </div>
