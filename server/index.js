@@ -338,6 +338,106 @@ app.post('/api/dtes/generar', async (req, res) => {
   }
 });
 
+// Endpoint para regenerar PDF de un DTE existente
+app.get('/api/dtes/:id/pdf', async (req, res) => {
+  try {
+    const dteId = parseInt(req.params.id);
+    
+    if (isNaN(dteId)) {
+      return res.status(400).json({ error: 'ID de DTE inválido' });
+    }
+
+    // Obtener DTE de la base de datos
+    const dteResult = await pool.query(
+      `SELECT d.*, e.*, c.nombre as cliente_nombre, c.nit as cliente_nit, c.nrc as cliente_nrc, 
+              c.direccion as cliente_direccion, c.correo as cliente_correo
+       FROM dtes d
+       LEFT JOIN empresas e ON d.empresa_id = e.id
+       LEFT JOIN clientes c ON d.cliente_id = c.id
+       WHERE d.id = $1`,
+      [dteId]
+    );
+
+    if (dteResult.rows.length === 0) {
+      return res.status(404).json({ error: 'DTE no encontrado' });
+    }
+
+    const dte = dteResult.rows[0];
+    
+    if (!dte.dte_json) {
+      return res.status(400).json({ error: 'DTE no tiene JSON asociado' });
+    }
+
+    const dteJson = typeof dte.dte_json === 'string' ? JSON.parse(dte.dte_json) : dte.dte_json;
+    const identificacion = dteJson.identificacion || {};
+    const tipoDteCodigo = identificacion.tipoDte || dte.tipo_dte;
+
+    // Obtener configuración de empresa
+    const empresaConfigResult = await pool.query(
+      'SELECT * FROM empresa_config WHERE empresa_id = $1 LIMIT 1',
+      [dte.empresa_id]
+    );
+
+    if (empresaConfigResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Configuración de empresa no encontrada' });
+    }
+
+    const empresaConfig = empresaConfigResult.rows[0];
+
+    // Preparar datos para generar PDF
+    const dteData = {
+      dte: {
+        id: dte.id,
+        codigoGeneracion: dte.codigo_generacion,
+        numeroControl: dte.numero_control,
+        tipoDte: tipoDteCodigo,
+        fechaEmision: dte.fecha_emision || dte.fecha_creacion,
+        nombreReceptor: dte.receptor || dte.cliente_nombre,
+        nitReceptor: dte.cliente_nit,
+        nrcReceptor: dte.cliente_nrc,
+        direccionReceptor: dte.cliente_direccion,
+        emailReceptor: dte.cliente_correo,
+        selloRecibido: dte.sello_recibido
+      },
+      empresaConfig: {
+        nombreLegal: empresaConfig.nombre_legal || empresaConfig.nombre_comercial || '',
+        nombreComercial: empresaConfig.nombre_comercial || empresaConfig.nombre_legal || '',
+        nit: empresaConfig.nit || '',
+        nrc: empresaConfig.nrc || '',
+        direccion: empresaConfig.direccion || '',
+        telefono: empresaConfig.telefono || '',
+        correo: empresaConfig.correo || '',
+        actividadEconomicaPrimaria: empresaConfig.actividad_economica_primaria || '',
+        logoUrl: empresaConfig.logo_url || null
+      }
+    };
+
+    // Generar QR antes de generar PDF
+    const qrImage = await dtePdfGenerator.generateQrCode(dte.codigo_generacion);
+    dteData.dte.qrImage = qrImage;
+
+    // Generar PDF
+    console.log(`📄 Regenerando PDF para DTE ${dteId}...`);
+    const pdfBuffer = await dtePdfGenerator.generatePdf(dteData, dteJson);
+    
+    if (!pdfBuffer) {
+      throw new Error('Error al generar PDF');
+    }
+
+    // Retornar PDF
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="DTE-${dte.numero_control || dteId}.pdf"`);
+    res.send(pdfBuffer);
+
+  } catch (error) {
+    console.error('❌ Error al regenerar PDF:', error);
+    res.status(500).json({ 
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+});
+
 // Iniciar servidor
 app.listen(port, () => {
   console.log(`🚀 Servidor backend corriendo en http://localhost:${port}`);
