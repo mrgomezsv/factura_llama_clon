@@ -1,0 +1,42 @@
+<div class="pagination">
+  <button 
+    class="page-btn" 
+    type="button"
+    [disabled]="paginaActual === 1"
+    (click)="paginaAnterior()"
+    [class.disabled]="paginaActual === 1"
+  >
+    &lt;
+  </button>
+  
+  @if (mostrarElipsisInicio) {
+    <button class="page-btn" type="button" (click)="irAPagina(1)">1</button>
+    <span class="page-ellipsis">...</span>
+  }
+  
+  @for (pagina of paginasVisibles; track pagina) {
+    <button 
+      class="page-btn" 
+      type="button"
+      [class.active]="pagina === paginaActual"
+      (click)="irAPagina(pagina)"
+    >
+      {{ pagina }}
+    </button>
+  }
+  
+  @if (mostrarElipsisFinal) {
+    <span class="page-ellipsis">...</span>
+    <button class="page-btn" type="button" (click)="irAPagina(totalPaginas)">{{ totalPaginas }}</button>
+  }
+  
+  <button 
+    class="page-btn" 
+    type="button"
+    [disabled]="paginaActual === totalPaginas"
+    (click)="paginaSiguiente()"
+    [class.disabled]="paginaActual === totalPaginas"
+  >
+    &gt;
+  </button>
+</div>
