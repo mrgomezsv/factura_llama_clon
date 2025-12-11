@@ -30,6 +30,7 @@ export interface ParametrosCalculoFacturacion {
   descuentoGlobal: number;
   retenciones: Retenciones;
   otrosMontosNoAfectos?: number;
+  tipoDte?: string; // Tipo de DTE (FAC, CCF, FEX, FSE, etc.)
 }
 
 /**

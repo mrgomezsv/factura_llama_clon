@@ -8,7 +8,19 @@ export class DTE {
     public receptor: string,
     public total: number,
     public ambiente: 'PRODUCCIÓN' | 'PRUEBAS',
-    public fechaCreacion: Date
+    public fechaCreacion: Date,
+    public id?: number,
+    public tipoDte?: string | null,
+    public codigoGeneracion?: string | null,
+    public numeroControl?: string | null,
+    public numeroDocumento?: number | null,
+    public fechaEmision?: string | null,
+    public fechaEnvio?: string | null,
+    public fechaAutorizacion?: string | null,
+    public estado?: string | null,
+    public selloRecibido?: string | null,
+    public codigoMensaje?: string | null,
+    public descripcionMensaje?: string | null
   ) {}
 
   /**
@@ -46,7 +58,19 @@ export class DTE {
       json.receptor,
       json.total,
       json.ambiente,
-      new Date(json.fechaCreacion)
+      new Date(json.fechaCreacion),
+      json.id,
+      json.tipoDte,
+      json.codigoGeneracion,
+      json.numeroControl,
+      json.numeroDocumento,
+      json.fechaEmision,
+      json.fechaEnvio,
+      json.fechaAutorizacion,
+      json.estado,
+      json.selloRecibido,
+      json.codigoMensaje,
+      json.descripcionMensaje
     );
   }
 }
