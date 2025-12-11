@@ -8,7 +8,7 @@ const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 
 // Configuración de PostgreSQL
 const pool = new Pool({
@@ -42,10 +42,10 @@ app.get('/api/health', async (req, res) => {
 app.post('/api/query', async (req, res) => {
   try {
     let { sql, params = [] } = req.body;
-    
+
     // Convertir INSERT OR IGNORE a INSERT ... ON CONFLICT DO NOTHING
     sql = convertInsertOrIgnore(sql);
-    
+
     const result = await pool.query(sql, params);
     res.json(result.rows);
   } catch (error) {
@@ -58,14 +58,14 @@ app.post('/api/query', async (req, res) => {
 app.post('/api/execute', async (req, res) => {
   try {
     let { sql, params = [] } = req.body;
-    
+
     // Convertir INSERT OR IGNORE a INSERT ... ON CONFLICT DO NOTHING
     sql = convertInsertOrIgnore(sql);
-    
+
     const result = await pool.query(sql, params);
-    res.json({ 
+    res.json({
       rowCount: result.rowCount,
-      rows: result.rows 
+      rows: result.rows
     });
   } catch (error) {
     console.error('Error en execute:', error);
@@ -78,7 +78,7 @@ function convertInsertOrIgnore(sql) {
   if (!sql.includes('INSERT OR IGNORE')) {
     return sql;
   }
-  
+
   // Mapeo de tablas a sus claves primarias
   const primaryKeys = {
     'users': 'id',
@@ -91,14 +91,14 @@ function convertInsertOrIgnore(sql) {
     'user_config': 'id',
     'empresa_config': 'id'
   };
-  
+
   // Extraer la tabla
   const tableMatch = sql.match(/INSERT OR IGNORE INTO\s+(\w+)/i);
   if (tableMatch) {
     const table = tableMatch[1];
     const pk = primaryKeys[table] || 'id';
     sql = sql.replace(/INSERT OR IGNORE INTO/i, 'INSERT INTO');
-    
+
     // Agregar ON CONFLICT si no existe
     if (!sql.includes('ON CONFLICT')) {
       // Buscar el final de VALUES
@@ -112,7 +112,7 @@ function convertInsertOrIgnore(sql) {
   } else {
     sql = sql.replace(/INSERT OR IGNORE/gi, 'INSERT');
   }
-  
+
   return sql;
 }
 
