@@ -17,7 +17,7 @@ import { PaginacionComponent } from '../../components/paginacion/paginacion.comp
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    AddButtonDropdownComponent, 
+    AddButtonDropdownComponent,
     CrearClienteModalComponent,
     CrearSucursalModalComponent,
     CrearProductoModalComponent,
@@ -35,14 +35,14 @@ export class ClientesPageComponent implements OnInit {
   clientesFiltrados: any[] = [];
   sucursalesFiltradas: any[] = [];
   productosFiltrados: any[] = [];
-  
+
   // Paginación
   paginaActualClientes: number = 1;
   paginaActualProductos: number = 1;
   itemsPorPagina: number = 10;
   clientesPaginados: any[] = [];
   productosPaginados: any[] = [];
-  
+
   terminoBusqueda: string = '';
   empresaSeleccionada: any = null;
   mostrarModalCrearCliente = false;
@@ -58,13 +58,13 @@ export class ClientesPageComponent implements OnInit {
   sucursalDropdownAbierto: number | null = null;
   empresaInfoDropdownAbierto = false;
   filtrosDropdownAbierto = false;
-  
+
   // Estado de edición de empresa
   modoEdicionEmpresa = false;
   empresaForm: FormGroup;
   empresaImagenPreview: string | null = null;
   empresaImagenArchivo: File | null = null;
-  
+
   // Flags para evitar recargas innecesarias
   private datosCargados = false;
 
@@ -94,12 +94,12 @@ export class ClientesPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.determinarTabDesdeRuta();
-    
+
     // Inicializar arrays filtrados
     this.clientesFiltrados = [];
     this.sucursalesFiltradas = [];
     this.productosFiltrados = [];
-    
+
     // Cargar datos solo si no se han cargado antes
     if (!this.datosCargados) {
       this.cargarEmpresa();
@@ -149,6 +149,8 @@ export class ClientesPageComponent implements OnInit {
               if (this.modoEdicionEmpresa) {
                 this.empresaImagenPreview = config.logoUrl;
               }
+              // Forzar detección de cambios para que la imagen aparezca inmediatamente
+              this.cdr.detectChanges();
             }
           });
         }
@@ -419,7 +421,7 @@ export class ClientesPageComponent implements OnInit {
   editarEmpresaInfo(): void {
     this.cerrarEmpresaInfoDropdown();
     this.modoEdicionEmpresa = true;
-    
+
     // Cargar datos actuales en el formulario
     if (this.empresaSeleccionada && this.empresaSeleccionada.id) {
       // Cargar configuración completa desde la base de datos
@@ -440,7 +442,7 @@ export class ClientesPageComponent implements OnInit {
             telefono: config.telefono || this.empresaSeleccionada.telefono || '',
             email: config.correo || this.empresaSeleccionada.email || ''
           });
-          
+
           // Cargar imagen desde la base de datos
           if (config.logoUrl) {
             this.empresaImagenPreview = config.logoUrl;
@@ -464,7 +466,7 @@ export class ClientesPageComponent implements OnInit {
             telefono: this.empresaSeleccionada.telefono || '',
             email: this.empresaSeleccionada.email || ''
           });
-          
+
           // Si hay imagen, cargar preview
           if (this.empresaSeleccionada.logo) {
             this.empresaImagenPreview = this.empresaSeleccionada.logo;
@@ -491,7 +493,7 @@ export class ClientesPageComponent implements OnInit {
     }
 
     const formValue = this.empresaForm.value;
-    
+
     // Guardar configuración de empresa (incluyendo logo)
     this.dteService.saveEmpresaConfig(this.empresaSeleccionada.id, {
       nombreLegal: formValue.nombreLegal,
@@ -527,7 +529,7 @@ export class ClientesPageComponent implements OnInit {
             this.empresaSeleccionada.logo = this.empresaImagenPreview;
           }
         }
-        
+
         // Salir del modo edición y limpiar variables temporales
         this.modoEdicionEmpresa = false;
         this.empresaImagenPreview = null;
@@ -545,21 +547,21 @@ export class ClientesPageComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const file = input.files[0];
-      
+
       // Validar tipo de archivo
       if (!file.type.startsWith('image/')) {
         alert('Por favor, selecciona un archivo de imagen válido.');
         return;
       }
-      
+
       // Validar tamaño (máximo 5MB)
       if (file.size > 5 * 1024 * 1024) {
         alert('La imagen no debe superar los 5MB.');
         return;
       }
-      
+
       this.empresaImagenArchivo = file;
-      
+
       // Crear preview
       const reader = new FileReader();
       reader.onload = (e: any) => {
@@ -575,7 +577,7 @@ export class ClientesPageComponent implements OnInit {
     if (!this.modoEdicionEmpresa) {
       return;
     }
-    
+
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
@@ -600,11 +602,11 @@ export class ClientesPageComponent implements OnInit {
   @HostListener('document:click', ['$event'])
   clickOutside(event: Event): void {
     const target = event.target as HTMLElement;
-    if (!target.closest('.producto-menu-container') && 
-        !target.closest('.cliente-menu-container') && 
-        !target.closest('.sucursal-menu-container') &&
-        !target.closest('.empresa-info-menu-container') &&
-        !target.closest('.filtros-container')) {
+    if (!target.closest('.producto-menu-container') &&
+      !target.closest('.cliente-menu-container') &&
+      !target.closest('.sucursal-menu-container') &&
+      !target.closest('.empresa-info-menu-container') &&
+      !target.closest('.filtros-container')) {
       this.cerrarProductoDropdown();
       this.cerrarClienteDropdown();
       this.cerrarSucursalDropdown();
@@ -634,12 +636,12 @@ export class ClientesPageComponent implements OnInit {
         const alias = (cliente.alias || '').toLowerCase();
         const nit = (cliente.nit || '').toLowerCase();
         const nrc = (cliente.nrc || '').toLowerCase();
-        
+
         return nombre.includes(this.terminoBusqueda) ||
-               correo.includes(this.terminoBusqueda) ||
-               alias.includes(this.terminoBusqueda) ||
-               nit.includes(this.terminoBusqueda) ||
-               nrc.includes(this.terminoBusqueda);
+          correo.includes(this.terminoBusqueda) ||
+          alias.includes(this.terminoBusqueda) ||
+          nit.includes(this.terminoBusqueda) ||
+          nrc.includes(this.terminoBusqueda);
       });
     }
     // Resetear a página 1 cuando se filtra
@@ -658,11 +660,11 @@ export class ClientesPageComponent implements OnInit {
       const direccion = (sucursal.direccion || '').toLowerCase();
       const telefono = (sucursal.telefono || '').toLowerCase();
       const tipoSucursal = (sucursal.tipoSucursal || '').toLowerCase();
-      
+
       return nombre.includes(this.terminoBusqueda) ||
-             direccion.includes(this.terminoBusqueda) ||
-             telefono.includes(this.terminoBusqueda) ||
-             tipoSucursal.includes(this.terminoBusqueda);
+        direccion.includes(this.terminoBusqueda) ||
+        telefono.includes(this.terminoBusqueda) ||
+        tipoSucursal.includes(this.terminoBusqueda);
     });
   }
 
@@ -674,10 +676,10 @@ export class ClientesPageComponent implements OnInit {
         const nombre = (producto.nombre || '').toLowerCase();
         const codigo = (producto.codigo || producto.codigoInterno || '').toLowerCase();
         const descripcion = (producto.descripcion || '').toLowerCase();
-        
+
         return nombre.includes(this.terminoBusqueda) ||
-               codigo.includes(this.terminoBusqueda) ||
-               descripcion.includes(this.terminoBusqueda);
+          codigo.includes(this.terminoBusqueda) ||
+          descripcion.includes(this.terminoBusqueda);
       });
     }
     // Resetear a página 1 cuando se filtra
@@ -689,10 +691,10 @@ export class ClientesPageComponent implements OnInit {
     // Cambiar el tab primero sin navegar para evitar flicker
     const tabAnterior = this.tabActiva;
     this.tabActiva = tab;
-    
+
     // Limpiar búsqueda al cambiar de tab
     this.terminoBusqueda = '';
-    
+
     // Aplicar filtros según el tab activo
     if (tab === 'clientes') {
       this.filtrarClientes();
@@ -701,7 +703,7 @@ export class ClientesPageComponent implements OnInit {
     } else if (tab === 'productos') {
       this.filtrarProductos();
     }
-    
+
     // Navegar a la ruta correspondiente sin refrescar la página
     // La estrategia de reutilización de rutas mantendrá el componente activo
     if (tab === 'productos') {
@@ -752,7 +754,7 @@ export class ClientesPageComponent implements OnInit {
     if (!this.itemAEliminar) return '';
     const { tipo, item } = this.itemAEliminar;
     const nombre = item.nombre || '';
-    
+
     if (tipo === 'cliente') {
       return `¿Estás seguro de que deseas eliminar el cliente "${nombre}"?`;
     } else if (tipo === 'sucursal') {
