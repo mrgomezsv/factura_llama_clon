@@ -45,7 +45,7 @@ export class FacturaSujetoExcluidoClienteComponent {
   seleccionarCliente(c: any) {
     this.form.patchValue({ nombre: c.nombre, correo: c.correo, busqueda: '' });
     this.mostrarListado = false;
-    this.changed.emit(this.form.value);
+    this.changed.emit({ ...this.form.value, id: c.id, nit: c.nit, nrc: c.nrc, direccion: c.direccion, telefono: c.telefono });
   }
 }
 
