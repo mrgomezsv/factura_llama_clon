@@ -46,38 +46,61 @@
         <span class="badge-verificada">VERIFICADA</span>
 
         <div class="empresa-logo">
-          <div class="logo-placeholder">
-            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-              <path d="M20 20C23.3137 20 26 17.3137 26 14C26 10.6863 23.3137 8 20 8C16.6863 8 14 10.6863 14 14C14 17.3137 16.6863 20 20 20Z" stroke="currentColor" stroke-width="2"/>
-              <path d="M20 22C14.4772 22 10 26.4772 10 32V34H30V32C30 26.4772 25.5228 22 20 22Z" stroke="currentColor" stroke-width="2"/>
-            </svg>
-            <span class="logo-text">{{ empresaSeleccionada.nombre }}</span>
-          </div>
-          <button class="edit-logo-btn" type="button">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M11.3333 2.00004C11.5084 1.82493 11.7163 1.68602 11.9444 1.59129C12.1726 1.49657 12.4163 1.44775 12.6625 1.44775C12.9087 1.44775 13.1524 1.49657 13.3806 1.59129C13.6087 1.68602 13.8166 1.82493 13.9917 2.00004C14.1668 2.17515 14.3057 2.38303 14.4004 2.61118C14.4951 2.83933 14.5439 3.08305 14.5439 3.32926C14.5439 3.57547 14.4951 3.81919 14.4004 4.04734C14.3057 4.27549 14.1668 4.48337 13.9917 4.65848L5.65833 13L1.33333 14.3334L2.66667 10.0084L11 1.66671L11.3333 2.00004Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
+          @if (modoEdicionEmpresa && empresaImagenPreview) {
+            <!-- En modo edición, mostrar preview de la imagen seleccionada -->
+            <img [src]="empresaImagenPreview" alt="Logo empresa" class="logo-image" />
+          } @else if (!modoEdicionEmpresa && empresaSeleccionada?.logo) {
+            <!-- Fuera de modo edición, mostrar logo guardado -->
+            <img [src]="empresaSeleccionada.logo" alt="Logo empresa" class="logo-image" />
+          } @else {
+            <!-- Placeholder cuando no hay imagen -->
+            <div class="logo-placeholder">
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                <path d="M20 20C23.3137 20 26 17.3137 26 14C26 10.6863 23.3137 8 20 8C16.6863 8 14 10.6863 14 14C14 17.3137 16.6863 20 20 20Z" stroke="currentColor" stroke-width="2"/>
+                <path d="M20 22C14.4772 22 10 26.4772 10 32V34H30V32C30 26.4772 25.5228 22 20 22Z" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              <span class="logo-text">{{ empresaSeleccionada.nombre }}</span>
+            </div>
+          }
+          @if (modoEdicionEmpresa) {
+            <button class="edit-logo-btn" type="button" (click)="abrirSelectorImagen()">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M11.3333 2.00004C11.5084 1.82493 11.7163 1.68602 11.9444 1.59129C12.1726 1.49657 12.4163 1.44775 12.6625 1.44775C12.9087 1.44775 13.1524 1.49657 13.3806 1.59129C13.6087 1.68602 13.8166 1.82493 13.9917 2.00004C14.1668 2.17515 14.3057 2.38303 14.4004 2.61118C14.4951 2.83933 14.5439 3.08305 14.5439 3.32926C14.5439 3.57547 14.4951 3.81919 14.4004 4.04734C14.3057 4.27549 14.1668 4.48337 13.9917 4.65848L5.65833 13L1.33333 14.3334L2.66667 10.0084L11 1.66671L11.3333 2.00004Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          }
         </div>
 
-        <div class="empresa-info">
+        <form [formGroup]="empresaForm" class="empresa-info">
           <div class="info-row">
             <span class="info-label">ID:</span>
             <span class="info-value">{{ empresaSeleccionada.id || 'N/A' }}</span>
           </div>
           <div class="info-row">
             <span class="info-label">Nombre Legal:</span>
-            <span class="info-value">{{ empresaSeleccionada.nombreLegal || 'N/A' }}</span>
+            @if (modoEdicionEmpresa) {
+              <input type="text" formControlName="nombreLegal" class="form-input-edit" />
+            } @else {
+              <span class="info-value">{{ empresaSeleccionada.nombreLegal || 'N/A' }}</span>
+            }
           </div>
           <div class="info-row">
             <span class="info-label">Nombre Comercial:</span>
-            <span class="info-value">{{ empresaSeleccionada.nombre || 'N/A' }}</span>
+            @if (modoEdicionEmpresa) {
+              <input type="text" formControlName="nombreComercial" class="form-input-edit" />
+            } @else {
+              <span class="info-value">{{ empresaSeleccionada.nombre || 'N/A' }}</span>
+            }
           </div>
           <div class="info-row">
             <span class="info-label">NRC:</span>
-            <span class="info-value">{{ empresaSeleccionada.nrc || 'N/A' }}</span>
+            @if (modoEdicionEmpresa) {
+              <input type="text" formControlName="nrc" class="form-input-edit" />
+            } @else {
+              <span class="info-value">{{ empresaSeleccionada.nrc || 'N/A' }}</span>
+            }
           </div>
-          <div class="info-row" *ngIf="empresaSeleccionada.actividadesEconomicas">
+          <div class="info-row" *ngIf="empresaSeleccionada.actividadesEconomicas && !modoEdicionEmpresa">
             <span class="info-label">Actividades Económicas:</span>
             <div class="info-value-list">
               <span *ngFor="let actividad of empresaSeleccionada.actividadesEconomicas" class="actividad-item">{{ actividad }}</span>
@@ -85,33 +108,61 @@
           </div>
           <div class="info-row">
             <span class="info-label">DUI/NIT:</span>
-            <span class="info-value">{{ empresaSeleccionada.nit || 'N/A' }}</span>
+            @if (modoEdicionEmpresa) {
+              <input type="text" formControlName="nit" class="form-input-edit" />
+            } @else {
+              <span class="info-value">{{ empresaSeleccionada.nit || 'N/A' }}</span>
+            }
           </div>
           
           <div class="section-header">Casa Matriz</div>
           <div class="info-row">
             <span class="info-label">Dirección:</span>
-            <span class="info-value">{{ empresaSeleccionada.direccion || '-' }}</span>
+            @if (modoEdicionEmpresa) {
+              <input type="text" formControlName="direccion" class="form-input-edit" />
+            } @else {
+              <span class="info-value">{{ empresaSeleccionada.direccion || '-' }}</span>
+            }
           </div>
           <div class="info-row">
             <span class="info-label">Complemento:</span>
-            <span class="info-value">{{ empresaSeleccionada.complemento || '-' }}</span>
+            @if (modoEdicionEmpresa) {
+              <input type="text" formControlName="complemento" class="form-input-edit" />
+            } @else {
+              <span class="info-value">{{ empresaSeleccionada.complemento || '-' }}</span>
+            }
           </div>
           <div class="info-row">
             <span class="info-label">Departamento:</span>
-            <span class="info-value">{{ empresaSeleccionada.departamento || 'N/A' }}</span>
+            @if (modoEdicionEmpresa) {
+              <input type="text" formControlName="departamento" class="form-input-edit" />
+            } @else {
+              <span class="info-value">{{ empresaSeleccionada.departamento || 'N/A' }}</span>
+            }
           </div>
           <div class="info-row">
             <span class="info-label">Municipio:</span>
-            <span class="info-value">{{ empresaSeleccionada.municipio || 'N/A' }}</span>
+            @if (modoEdicionEmpresa) {
+              <input type="text" formControlName="municipio" class="form-input-edit" />
+            } @else {
+              <span class="info-value">{{ empresaSeleccionada.municipio || 'N/A' }}</span>
+            }
           </div>
           <div class="info-row">
             <span class="info-label">Código del Ministerio de Hacienda:</span>
-            <span class="info-value">{{ empresaSeleccionada.codigoMH || 'N/A' }}</span>
+            @if (modoEdicionEmpresa) {
+              <input type="text" formControlName="codigoMH" class="form-input-edit" />
+            } @else {
+              <span class="info-value">{{ empresaSeleccionada.codigoMH || 'N/A' }}</span>
+            }
           </div>
           <div class="info-row">
             <span class="info-label">Cantidad de Puntos de Venta:</span>
-            <span class="info-value">{{ empresaSeleccionada.puntosVenta || 'N/A' }}</span>
+            @if (modoEdicionEmpresa) {
+              <input type="number" formControlName="puntosVenta" class="form-input-edit" min="1" />
+            } @else {
+              <span class="info-value">{{ empresaSeleccionada.puntosVenta || 'N/A' }}</span>
+            }
           </div>
 
           <div class="section-header">Contacto</div>
@@ -122,7 +173,11 @@
                 <path d="M1 15V12C1 10.3431 2.34315 9 4 9H12C13.6569 9 15 10.3431 15 12V15" stroke="currentColor" stroke-width="1.5"/>
               </svg>
             </span>
-            <span class="info-value">{{ empresaSeleccionada.website || '-' }}</span>
+            @if (modoEdicionEmpresa) {
+              <input type="text" formControlName="website" class="form-input-edit" placeholder="https://..." />
+            } @else {
+              <span class="info-value">{{ empresaSeleccionada.website || '-' }}</span>
+            }
           </div>
           <div class="info-row">
             <span class="info-label">
@@ -131,7 +186,11 @@
                 <path d="M2 5.33333L8 9.33333L14 5.33333" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </span>
-            <span class="info-value">{{ empresaSeleccionada.telefono || 'N/A' }}</span>
+            @if (modoEdicionEmpresa) {
+              <input type="tel" formControlName="telefono" class="form-input-edit" />
+            } @else {
+              <span class="info-value">{{ empresaSeleccionada.telefono || 'N/A' }}</span>
+            }
           </div>
           <div class="info-row">
             <span class="info-label">
@@ -140,7 +199,11 @@
                 <path d="M2 5.33333L8 9.33333L14 5.33333" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </span>
-            <span class="info-value">{{ empresaSeleccionada.email || 'N/A' }}</span>
+            @if (modoEdicionEmpresa) {
+              <input type="email" formControlName="email" class="form-input-edit" />
+            } @else {
+              <span class="info-value">{{ empresaSeleccionada.email || 'N/A' }}</span>
+            }
           </div>
 
           <div class="section-header">Ministerio de Hacienda</div>
@@ -176,7 +239,14 @@
             </span>
             <span class="info-value">Contraseña API (LIVE)</span>
           </div>
-        </div>
+
+          @if (modoEdicionEmpresa) {
+            <div class="empresa-edit-actions">
+              <button type="button" class="btn-cancelar" (click)="cancelarEdicionEmpresa()">Cancelar</button>
+              <button type="button" class="btn-guardar" (click)="guardarEmpresaInfo()">Guardar</button>
+            </div>
+          }
+        </form>
       </div>
     </aside>
 
@@ -260,76 +330,90 @@
 
       <!-- Contenido de Tab Clientes -->
       <div class="tab-content" *ngIf="tabActiva === 'clientes'">
-        <table class="clientes-table">
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Correo Electrónico</th>
-              <th>Fecha de Creación</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let cliente of clientesFiltrados; let i = index">
-              <td>{{ cliente.nombre }}</td>
-              <td>{{ cliente.correo }}</td>
-              <td>{{ cliente.fechaCreacion || 'N/A' }}</td>
-              <td>
-                <div class="cliente-menu-container">
-                  <button 
-                    class="btn-menu" 
-                    type="button"
-                    (click)="toggleClienteDropdown(i, $event)"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <circle cx="8" cy="4" r="1" fill="currentColor"/>
-                      <circle cx="8" cy="8" r="1" fill="currentColor"/>
-                      <circle cx="8" cy="12" r="1" fill="currentColor"/>
-                    </svg>
-                  </button>
-                  @if (clienteDropdownAbierto === i) {
-                    <div class="producto-dropdown-menu">
-                      <button 
-                        class="dropdown-item-edit" 
-                        type="button"
-                        (click)="editarCliente(cliente)"
-                      >
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                          <path d="M11.3333 2.00004C11.5084 1.82493 11.7163 1.68602 11.9444 1.59129C12.1726 1.49657 12.4163 1.44775 12.6625 1.44775C12.9087 1.44775 13.1524 1.49657 13.3806 1.59129C13.6087 1.68602 13.8166 1.82493 13.9917 2.00004C14.1668 2.17515 14.3057 2.38303 14.4004 2.61118C14.4951 2.83933 14.5439 3.08305 14.5439 3.32926C14.5439 3.57547 14.4951 3.81919 14.4004 4.04734C14.3057 4.27549 14.1668 4.48337 13.9917 4.65848L5.65833 13L1.33333 14.3334L2.66667 10.0084L11 1.66671L11.3333 2.00004Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <span>Editar</span>
-                      </button>
-                      <div class="dropdown-divider"></div>
-                      <button 
-                        class="dropdown-item-delete" 
-                        type="button"
-                        (click)="eliminarCliente(cliente)"
-                      >
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                          <path d="M2 4H14M5.33333 4V2.66667C5.33333 2.31305 5.47381 1.97391 5.72386 1.72386C5.97391 1.47381 6.31305 1.33333 6.66667 1.33333H9.33333C9.68696 1.33333 10.0261 1.47381 10.2761 1.72386C10.5262 1.97391 10.6667 2.31305 10.6667 2.66667V4M13.3333 4V13.3333C13.3333 13.687 13.1929 14.0261 12.9428 14.2761C12.6928 14.5262 12.3536 14.6667 12 14.6667H4C3.64638 14.6667 3.30724 14.5262 3.05719 14.2761C2.80714 14.0261 2.66667 13.687 2.66667 13.3333V4H13.3333Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <span>Eliminar</span>
-                      </button>
-                    </div>
-                  }
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        @if (clientesFiltrados.length === 0) {
+          <div class="empty-state">
+            <svg width="140" height="140" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M35 85L70 65L105 85V105L70 125L35 105V85Z" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5"/>
+              <path d="M70 65L105 85L105 105L70 125L70 105L70 65Z" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="1.5"/>
+              <path d="M35 85L70 105L70 125L35 105V85Z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+              <path d="M40 78Q45 72 55 70Q65 68 75 70Q85 72 90 78" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" fill="none"/>
+              <ellipse cx="70" cy="130" rx="35" ry="8" fill="#e2e8f0" opacity="0.5"/>
+            </svg>
+            <h3 class="empty-state-title">Aún no tienes clientes</h3>
+            <p class="empty-state-text">Haz click en 'Agregar Cliente' para añadir el primero.</p>
+            <button class="btn-agregar" type="button" (click)="manejarOpcionSeleccionada('nuevo-cliente')">
+              Agregar Cliente
+            </button>
+          </div>
+        } @else {
+          <table class="clientes-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Correo Electrónico</th>
+                <th>Fecha de Creación</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let cliente of clientesPaginados; let i = index">
+                <td>{{ cliente.nombre }}</td>
+                <td>{{ cliente.correo }}</td>
+                <td>{{ cliente.fechaCreacion || 'N/A' }}</td>
+                <td>
+                  <div class="cliente-menu-container">
+                    <button 
+                      class="btn-menu" 
+                      type="button"
+                      (click)="toggleClienteDropdown(i, $event)"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <circle cx="8" cy="4" r="1" fill="currentColor"/>
+                        <circle cx="8" cy="8" r="1" fill="currentColor"/>
+                        <circle cx="8" cy="12" r="1" fill="currentColor"/>
+                      </svg>
+                    </button>
+                    @if (clienteDropdownAbierto === cliente.id) {
+                      <div class="producto-dropdown-menu">
+                        <button 
+                          class="dropdown-item-edit" 
+                          type="button"
+                          (click)="editarCliente(cliente)"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M11.3333 2.00004C11.5084 1.82493 11.7163 1.68602 11.9444 1.59129C12.1726 1.49657 12.4163 1.44775 12.6625 1.44775C12.9087 1.44775 13.1524 1.49657 13.3806 1.59129C13.6087 1.68602 13.8166 1.82493 13.9917 2.00004C14.1668 2.17515 14.3057 2.38303 14.4004 2.61118C14.4951 2.83933 14.5439 3.08305 14.5439 3.32926C14.5439 3.57547 14.4951 3.81919 14.4004 4.04734C14.3057 4.27549 14.1668 4.48337 13.9917 4.65848L5.65833 13L1.33333 14.3334L2.66667 10.0084L11 1.66671L11.3333 2.00004Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                          <span>Editar</span>
+                        </button>
+                        <div class="dropdown-divider"></div>
+                        <button 
+                          class="dropdown-item-delete" 
+                          type="button"
+                          (click)="eliminarCliente(cliente)"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M2 4H14M5.33333 4V2.66667C5.33333 2.31305 5.47381 1.97391 5.72386 1.72386C5.97391 1.47381 6.31305 1.33333 6.66667 1.33333H9.33333C9.68696 1.33333 10.0261 1.47381 10.2761 1.72386C10.5262 1.97391 10.6667 2.31305 10.6667 2.66667V4M13.3333 4V13.3333C13.3333 13.687 13.1929 14.0261 12.9428 14.2761C12.6928 14.5262 12.3536 14.6667 12 14.6667H4C3.64638 14.6667 3.30724 14.5262 3.05719 14.2761C2.80714 14.0261 2.66667 13.687 2.66667 13.3333V4H13.3333Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                          <span>Eliminar</span>
+                        </button>
+                      </div>
+                    }
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-        <!-- Paginación -->
-        <div class="pagination">
-          <button class="page-btn" type="button">&lt;</button>
-          <button class="page-btn active" type="button">1</button>
-          <button class="page-btn" type="button">2</button>
-          <button class="page-btn" type="button">3</button>
-          <button class="page-btn" type="button">4</button>
-          <button class="page-btn" type="button">5</button>
-          <span class="page-ellipsis">...</span>
-          <button class="page-btn" type="button">9</button>
-          <button class="page-btn" type="button">&gt;</button>
-        </div>
+          <!-- Paginación -->
+          @if (clientesFiltrados.length > 10) {
+            <app-paginacion
+              [paginaActual]="paginaActualClientes"
+              [totalPaginas]="totalPaginasClientes"
+              [totalItems]="clientesFiltrados.length"
+              (cambiarPagina)="cambiarPaginaClientes($event)"
+            ></app-paginacion>
+          }
+        }
       </div>
 
       <!-- Contenido de Tab Sucursales -->
@@ -424,73 +508,92 @@
 
       <!-- Contenido de Tab Productos -->
       <div class="tab-content" *ngIf="tabActiva === 'productos'">
-        <table class="clientes-table">
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Precio con IVA</th>
-              <th>Unidad de Medida</th>
-              <th>Fecha de Creación</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let producto of productosFiltrados; let i = index">
-              <td>{{ producto.nombre }}</td>
-              <td>${{ producto.precioConIva | number:'1.2-2' }}</td>
-              <td>{{ producto.unidadMedida }}</td>
-              <td>{{ producto.fechaCreacion || 'N/A' }}</td>
-              <td>
-                <div class="producto-menu-container">
-                  <button 
-                    class="btn-menu" 
-                    type="button"
-                    (click)="toggleProductoDropdown(i, $event)"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <circle cx="8" cy="4" r="1" fill="currentColor"/>
-                      <circle cx="8" cy="8" r="1" fill="currentColor"/>
-                      <circle cx="8" cy="12" r="1" fill="currentColor"/>
-                    </svg>
-                  </button>
-                  @if (productoDropdownAbierto === i) {
-                    <div class="producto-dropdown-menu">
-                      <button 
-                        class="dropdown-item-edit" 
-                        type="button"
-                        (click)="editarProducto(producto)"
-                      >
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                          <path d="M11.3333 2.00004C11.5084 1.82493 11.7163 1.68602 11.9444 1.59129C12.1726 1.49657 12.4163 1.44775 12.6625 1.44775C12.9087 1.44775 13.1524 1.49657 13.3806 1.59129C13.6087 1.68602 13.8166 1.82493 13.9917 2.00004C14.1668 2.17515 14.3057 2.38303 14.4004 2.61118C14.4951 2.83933 14.5439 3.08305 14.5439 3.32926C14.5439 3.57547 14.4951 3.81919 14.4004 4.04734C14.3057 4.27549 14.1668 4.48337 13.9917 4.65848L5.65833 13L1.33333 14.3334L2.66667 10.0084L11 1.66671L11.3333 2.00004Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <span>Editar</span>
-                      </button>
-                      <div class="dropdown-divider"></div>
-                      <button 
-                        class="dropdown-item-delete" 
-                        type="button"
-                        (click)="eliminarProducto(producto)"
-                      >
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                          <path d="M2 4H14M5.33333 4V2.66667C5.33333 2.31305 5.47381 1.97391 5.72386 1.72386C5.97391 1.47381 6.31305 1.33333 6.66667 1.33333H9.33333C9.68696 1.33333 10.0261 1.47381 10.2761 1.72386C10.5262 1.97391 10.6667 2.31305 10.6667 2.66667V4M13.3333 4V13.3333C13.3333 13.687 13.1929 14.0261 12.9428 14.2761C12.6928 14.5262 12.3536 14.6667 12 14.6667H4C3.64638 14.6667 3.30724 14.5262 3.05719 14.2761C2.80714 14.0261 2.66667 13.687 2.66667 13.3333V4H13.3333Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <span>Eliminar</span>
-                      </button>
-                    </div>
-                  }
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        @if (productosFiltrados.length === 0) {
+          <div class="empty-state">
+            <svg width="140" height="140" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M35 85L70 65L105 85V105L70 125L35 105V85Z" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5"/>
+              <path d="M70 65L105 85L105 105L70 125L70 105L70 65Z" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="1.5"/>
+              <path d="M35 85L70 105L70 125L35 105V85Z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+              <path d="M40 78Q45 72 55 70Q65 68 75 70Q85 72 90 78" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" fill="none"/>
+              <ellipse cx="70" cy="130" rx="35" ry="8" fill="#e2e8f0" opacity="0.5"/>
+            </svg>
+            <h3 class="empty-state-title">Aún no tienes productos</h3>
+            <p class="empty-state-text">Haz click en 'Agregar Producto' para añadir el primero.</p>
+            <button class="btn-agregar" type="button" (click)="manejarOpcionSeleccionada('nuevo-producto')">
+              Agregar Producto
+            </button>
+          </div>
+        } @else {
+          <table class="clientes-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Precio con IVA</th>
+                <th>Unidad de Medida</th>
+                <th>Fecha de Creación</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let producto of productosPaginados; let i = index">
+                <td>{{ producto.nombre }}</td>
+                <td>${{ producto.precioConIva | number:'1.2-2' }}</td>
+                <td>{{ producto.unidadMedida }}</td>
+                <td>{{ producto.fechaCreacion || 'N/A' }}</td>
+                <td>
+                  <div class="producto-menu-container">
+                    <button 
+                      class="btn-menu" 
+                      type="button"
+                      (click)="toggleProductoDropdown(i, $event)"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <circle cx="8" cy="4" r="1" fill="currentColor"/>
+                        <circle cx="8" cy="8" r="1" fill="currentColor"/>
+                        <circle cx="8" cy="12" r="1" fill="currentColor"/>
+                      </svg>
+                    </button>
+                    @if (productoDropdownAbierto === producto.id) {
+                      <div class="producto-dropdown-menu">
+                        <button 
+                          class="dropdown-item-edit" 
+                          type="button"
+                          (click)="editarProducto(producto)"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M11.3333 2.00004C11.5084 1.82493 11.7163 1.68602 11.9444 1.59129C12.1726 1.49657 12.4163 1.44775 12.6625 1.44775C12.9087 1.44775 13.1524 1.49657 13.3806 1.59129C13.6087 1.68602 13.8166 1.82493 13.9917 2.00004C14.1668 2.17515 14.3057 2.38303 14.4004 2.61118C14.4951 2.83933 14.5439 3.08305 14.5439 3.32926C14.5439 3.57547 14.4951 3.81919 14.4004 4.04734C14.3057 4.27549 14.1668 4.48337 13.9917 4.65848L5.65833 13L1.33333 14.3334L2.66667 10.0084L11 1.66671L11.3333 2.00004Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                          <span>Editar</span>
+                        </button>
+                        <div class="dropdown-divider"></div>
+                        <button 
+                          class="dropdown-item-delete" 
+                          type="button"
+                          (click)="eliminarProducto(producto)"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M2 4H14M5.33333 4V2.66667C5.33333 2.31305 5.47381 1.97391 5.72386 1.72386C5.97391 1.47381 6.31305 1.33333 6.66667 1.33333H9.33333C9.68696 1.33333 10.0261 1.47381 10.2761 1.72386C10.5262 1.97391 10.6667 2.31305 10.6667 2.66667V4M13.3333 4V13.3333C13.3333 13.687 13.1929 14.0261 12.9428 14.2761C12.6928 14.5262 12.3536 14.6667 12 14.6667H4C3.64638 14.6667 3.30724 14.5262 3.05719 14.2761C2.80714 14.0261 2.66667 13.687 2.66667 13.3333V4H13.3333Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                          <span>Eliminar</span>
+                        </button>
+                      </div>
+                    }
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-        <!-- Paginación -->
-        <div class="pagination">
-          <button class="page-btn" type="button">&lt;</button>
-          <button class="page-btn active" type="button">1</button>
-          <button class="page-btn" type="button">2</button>
-          <button class="page-btn" type="button">&gt;</button>
-        </div>
+          <!-- Paginación -->
+          @if (productosFiltrados.length > 10) {
+            <app-paginacion
+              [paginaActual]="paginaActualProductos"
+              [totalPaginas]="totalPaginasProductos"
+              [totalItems]="productosFiltrados.length"
+              (cambiarPagina)="cambiarPaginaProductos($event)"
+            ></app-paginacion>
+          }
+        }
       </div>
     </main>
   </div>
