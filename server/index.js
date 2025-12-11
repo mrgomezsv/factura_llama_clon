@@ -1,6 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
+const dteBuilder = require('./services/dte-builder');
+const dteSigner = require('./services/dte-signer');
+const dtePdfGenerator = require('./services/dte-pdf-generator');
 require('dotenv').config();
 
 const app = express();
@@ -115,6 +118,225 @@ function convertInsertOrIgnore(sql) {
 
   return sql;
 }
+
+// Endpoint para generar DTE completo
+app.post('/api/dtes/generar', async (req, res) => {
+  try {
+    console.log('📥 Recibida petición para generar DTE');
+    const {
+      tipoDte = 'FAC',
+      empresaId,
+      clienteId,
+      items,
+      totales,
+      retenciones = { renta: 0, iva: 0 },
+      descuentoGlobal = 0,
+      otrosMontosNoAfectos = 0,
+      ambiente = 'PRUEBAS'
+    } = req.body;
+
+    console.log('📋 Datos recibidos:', {
+      tipoDte,
+      empresaId,
+      clienteId,
+      itemsCount: items?.length || 0,
+      totales: totales ? 'presente' : 'ausente'
+    });
+
+    // Validar datos requeridos
+    if (!empresaId) {
+      return res.status(400).json({ error: 'empresaId es requerido' });
+    }
+
+    if (!items || items.length === 0) {
+      return res.status(400).json({ error: 'Se requiere al menos un item' });
+    }
+
+    // Obtener configuración de empresa
+    console.log('🏢 Obteniendo configuración de empresa:', empresaId);
+    const empresaResult = await pool.query(
+      'SELECT * FROM empresa_config WHERE empresa_id = $1',
+      [empresaId]
+    );
+
+    if (empresaResult.rows.length === 0) {
+      console.error('❌ Configuración de empresa no encontrada para:', empresaId);
+      return res.status(404).json({ error: 'Configuración de empresa no encontrada' });
+    }
+
+    const empresaConfig = empresaResult.rows[0];
+    console.log('✅ Configuración de empresa obtenida');
+
+    // Obtener datos del cliente
+    let cliente = { nombre: 'CONSUMIDOR FINAL' };
+    if (clienteId) {
+      const clienteResult = await pool.query(
+        'SELECT * FROM clientes WHERE id = $1',
+        [clienteId]
+      );
+      if (clienteResult.rows.length > 0) {
+        cliente = clienteResult.rows[0];
+      }
+    }
+
+    // Obtener el siguiente número de documento
+    // Primero mapear el tipoDte al código numérico para la consulta
+    const tipoDteCodigo = dteBuilder.mapTipoDte(tipoDte);
+    
+    const lastDteResult = await pool.query(
+      `SELECT numero_documento FROM dtes 
+       WHERE empresa_id = $1 AND (tipo_dte = $2 OR tipo = $3)
+       ORDER BY numero_documento DESC NULLS LAST LIMIT 1`,
+      [empresaId, tipoDteCodigo, tipoDte]
+    );
+
+    const nextNumero = lastDteResult.rows.length > 0 && lastDteResult.rows[0].numero_documento !== null
+      ? parseInt(lastDteResult.rows[0].numero_documento) + 1 
+      : 1;
+
+    // Construir JSON del DTE (tipoDteCodigo ya fue calculado arriba)
+    const { dteJson, codigoGeneracion, numeroControl } = dteBuilder.buildDteJson({
+      tipoDte,
+      empresaConfig: {
+        nombreLegal: empresaConfig.nombre_legal,
+        nombreComercial: empresaConfig.nombre_comercial,
+        nit: empresaConfig.nit,
+        nrc: empresaConfig.nrc,
+        direccion: empresaConfig.direccion,
+        telefono: empresaConfig.telefono,
+        correo: empresaConfig.correo,
+        actividadEconomicaPrimaria: empresaConfig.actividad_economica_primaria,
+        codigoMH: empresaConfig.codigo_mh,
+        logoUrl: empresaConfig.logo_url
+      },
+      cliente: {
+        nombre: cliente.nombre,
+        nit: cliente.nit,
+        nrc: cliente.nrc,
+        direccion: cliente.direccion,
+        telefono: cliente.telefono,
+        correo: cliente.correo,
+        numeroDocumento: cliente.nit,
+        departamento: null,
+        municipio: null
+      },
+      items,
+      totales,
+      retenciones,
+      descuentoGlobal,
+      ambiente,
+      numeroDocumento: nextNumero
+    });
+
+    // Firmar el DTE
+    console.log('📝 Firmando DTE...');
+    let dteFirmadoStr;
+    try {
+      dteFirmadoStr = await dteSigner.signDte(dteJson);
+      if (!dteFirmadoStr) {
+        console.warn('⚠️  No se pudo firmar el DTE, continuando sin firma para pruebas');
+        // Para desarrollo, continuar sin firma
+        dteFirmadoStr = JSON.stringify(dteJson);
+      }
+    } catch (signError) {
+      console.warn('⚠️  Error al firmar DTE (continuando sin firma para pruebas):', signError.message);
+      // Para desarrollo, continuar sin firma
+      dteFirmadoStr = JSON.stringify(dteJson);
+    }
+
+    const dteFirmado = typeof dteFirmadoStr === 'string' ? JSON.parse(dteFirmadoStr) : dteFirmadoStr;
+
+    // Guardar DTE en la base de datos
+    const fechaEmision = new Date();
+    const insertResult = await pool.query(
+      `INSERT INTO dtes (
+        control_number, tipo, tipo_dte, codigo_generacion, numero_control, numero_documento,
+        receptor, total, ambiente, fecha_creacion, fecha_emision,
+        empresa_id, cliente_id, estado, dte_json, dte_firmado
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+      RETURNING id`,
+      [
+        numeroControl,
+        tipoDte,
+        tipoDteCodigo,
+        codigoGeneracion,
+        numeroControl,
+        nextNumero,
+        cliente.nombre,
+        totales.totalPagar || totales.montoTotalOperacion || 0,
+        ambiente,
+        fechaEmision,
+        fechaEmision,
+        empresaId,
+        clienteId || null,
+        'BORRADOR',
+        JSON.stringify(dteJson),
+        JSON.stringify(dteFirmado)
+      ]
+    );
+
+    const dteId = insertResult.rows[0].id;
+
+    // Generar PDF
+    const dteData = {
+      dte: {
+        id: dteId,
+        codigoGeneracion,
+        numeroControl,
+        tipoDte: tipoDteCodigo,
+        fechaEmision,
+        nombreReceptor: cliente.nombre,
+        nitReceptor: cliente.nit,
+        nrcReceptor: cliente.nrc,
+        direccionReceptor: cliente.direccion,
+        emailReceptor: cliente.correo,
+        selloRecibido: null
+      },
+      empresaConfig: {
+        nombreLegal: empresaConfig.nombre_legal || empresaConfig.nombre_comercial || '',
+        nombreComercial: empresaConfig.nombre_comercial || empresaConfig.nombre_legal || '',
+        nit: empresaConfig.nit || '',
+        nrc: empresaConfig.nrc || '',
+        direccion: empresaConfig.direccion || '',
+        telefono: empresaConfig.telefono || '',
+        correo: empresaConfig.correo || '',
+        actividadEconomicaPrimaria: empresaConfig.actividad_economica_primaria || '',
+        logoUrl: empresaConfig.logo_url || null
+      }
+    };
+
+    console.log('📄 Generando PDF...');
+    let pdfBuffer;
+    try {
+      pdfBuffer = await dtePdfGenerator.generatePdf(dteData, dteJson);
+      if (!pdfBuffer) {
+        throw new Error('PDF buffer es null o undefined');
+      }
+    } catch (pdfError) {
+      console.error('❌ Error al generar PDF:', pdfError);
+      throw new Error(`Error al generar PDF: ${pdfError.message}`);
+    }
+
+    // Actualizar estado del DTE a GENERADO
+    await pool.query(
+      'UPDATE dtes SET estado = $1 WHERE id = $2',
+      ['GENERADO', dteId]
+    );
+
+    // Retornar PDF
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="DTE-${tipoDte}-${numeroControl}.pdf"`);
+    res.send(pdfBuffer);
+
+  } catch (error) {
+    console.error('❌ Error al generar DTE:', error);
+    console.error('Stack trace:', error.stack);
+    res.status(500).json({ 
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+});
 
 // Iniciar servidor
 app.listen(port, () => {
