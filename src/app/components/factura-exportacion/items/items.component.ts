@@ -48,10 +48,26 @@ export class FacturaExportacionItemsComponent {
     const v = this.form.value;
     const item = this.fb.group({
       producto: [v.producto], descripcion: [v.descripcion], cantidad: [Number(v.cantidad)||1],
-      precio: [Number(v.precio)||0], descuento: [Number(v.descuento)||0], tipoVenta: [v.tipoVenta]
+      precio: [Number(v.precio)||0], descuento: [Number(v.descuento)||0], tipoVenta: [v.tipoVenta],
+      unidad: [v.unidad], codigo: [v.codigo]
     });
     this.items.push(item);
     this.itemsChanged.emit(this.items.value);
+    
+    // Limpiar el formulario después de agregar el item
+    this.form.patchValue({
+      producto: '',
+      codigo: '',
+      descripcion: '',
+      cantidad: 1,
+      precio: 0,
+      descuento: 0,
+      tipoProducto: 'Bienes',
+      unidad: 'Unidad',
+      tipoVenta: 'Gravada',
+      tributos: ''
+    });
+    this.selectedTaxes = [];
   }
 
   eliminarItem(i: number): void {
