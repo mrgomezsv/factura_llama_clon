@@ -20,37 +20,92 @@ export class DteService {
     return this.database.isReady$.pipe(
       first(ready => ready),
       switchMap(() => {
-        let sql = 'SELECT control_number, tipo, receptor, total, ambiente, fecha_creacion FROM dtes WHERE 1=1';
+        // Obtener todos los campos disponibles de la tabla dtes
+        let sql = `SELECT 
+          id,
+          control_number, 
+          tipo, 
+          tipo_dte,
+          codigo_generacion,
+          numero_control,
+          numero_documento,
+          receptor, 
+          total, 
+          ambiente, 
+          fecha_creacion,
+          fecha_emision,
+          fecha_envio,
+          fecha_autorizacion,
+          empresa_id,
+          cliente_id,
+          estado,
+          sello_recibido,
+          codigo_mensaje,
+          descripcion_mensaje
+        FROM dtes WHERE 1=1`;
         const params: any[] = [];
 
         // Filtrar por período si se proporciona
         if (filtro?.periodo) {
           const mes = filtro.periodo.mes;
           const año = filtro.periodo.año;
-          sql += ' AND EXTRACT(MONTH FROM fecha_creacion) = $' + (params.length + 1) + ' AND EXTRACT(YEAR FROM fecha_creacion) = $' + (params.length + 2);
+          sql += ' AND EXTRACT(MONTH FROM fecha_creacion) = ? AND EXTRACT(YEAR FROM fecha_creacion) = ?';
           params.push(mes, año);
         }
 
-        sql += ' ORDER BY fecha_creacion DESC';
+        // Filtrar por estado según el tipo de tab
+        if (filtro?.tipoTab === 'enviados') {
+          // Mostrar todos los DTEs generados/enviados (no borradores)
+          sql += ' AND (estado IS NULL OR estado != ?)';
+          params.push('BORRADOR');
+        }
+
+        sql += ' ORDER BY fecha_creacion DESC, fecha_emision DESC NULLS LAST';
 
         return this.database.query<{
+          id: number;
           control_number: string;
           tipo: string;
+          tipo_dte: string | null;
+          codigo_generacion: string | null;
+          numero_control: string | null;
+          numero_documento: number | null;
           receptor: string;
           total: number;
           ambiente: string;
           fecha_creacion: string;
+          fecha_emision: string | null;
+          fecha_envio: string | null;
+          fecha_autorizacion: string | null;
+          empresa_id: string | null;
+          cliente_id: string | null;
+          estado: string | null;
+          sello_recibido: string | null;
+          codigo_mensaje: string | null;
+          descripcion_mensaje: string | null;
         }>(sql, params);
       }),
       map(rows => {
         return rows.map(row => {
           return DTE.fromJson({
-            controlNumber: row.control_number,
+            id: row.id,
+            controlNumber: row.control_number || row.numero_control || '',
             tipo: row.tipo,
+            tipoDte: row.tipo_dte,
+            codigoGeneracion: row.codigo_generacion,
+            numeroControl: row.numero_control,
+            numeroDocumento: row.numero_documento,
             receptor: row.receptor,
             total: row.total,
             ambiente: row.ambiente,
-            fechaCreacion: row.fecha_creacion
+            fechaCreacion: row.fecha_creacion,
+            fechaEmision: row.fecha_emision,
+            fechaEnvio: row.fecha_envio,
+            fechaAutorizacion: row.fecha_autorizacion,
+            estado: row.estado || 'BORRADOR',
+            selloRecibido: row.sello_recibido,
+            codigoMensaje: row.codigo_mensaje,
+            descripcionMensaje: row.descripcion_mensaje
           });
         });
       })
