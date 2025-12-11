@@ -947,4 +947,31 @@ export class DteService {
       })
     );
   }
+
+  /**
+   * Obtener JSON de un DTE específico
+   */
+  getDTEJSON(dteId: number): Observable<any> {
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        const sql = `
+          SELECT dte_json 
+          FROM dtes 
+          WHERE id = ?
+        `;
+        
+        return this.database.query(sql, [dteId]).pipe(
+          map((rows: any[]) => {
+            if (rows.length > 0 && rows[0].dte_json) {
+              return typeof rows[0].dte_json === 'string' 
+                ? JSON.parse(rows[0].dte_json) 
+                : rows[0].dte_json;
+            }
+            return null;
+          })
+        );
+      })
+    );
+  }
 }
