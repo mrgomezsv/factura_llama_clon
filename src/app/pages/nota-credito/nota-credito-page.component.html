@@ -82,7 +82,9 @@
     </div>
     <div class="drawer-footer">
       <button class="btn" type="button" (click)="cerrar()">Cancelar</button>
-      <button class="btn btn-primary" type="button">Generar DTE</button>
+      <button class="btn btn-primary" type="button" (click)="generarDTE()" [disabled]="generandoDTE">
+        {{ generandoDTE ? 'Generando...' : 'Generar DTE' }}
+      </button>
     </div>
   </div>
 </div>
