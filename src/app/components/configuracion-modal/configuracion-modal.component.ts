@@ -4,11 +4,12 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { AuthService } from '../../services/auth.service';
 import { DteService } from '../../services/dte.service';
 import { first, switchMap } from 'rxjs/operators';
+import { NotificacionModalComponent } from '../notificacion-modal/notificacion-modal.component';
 
 @Component({
   selector: 'app-configuracion-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, NotificacionModalComponent],
   templateUrl: './configuracion-modal.component.html',
   styleUrl: './configuracion-modal.component.scss'
 })
@@ -35,6 +36,16 @@ export class ConfiguracionModalComponent implements OnInit {
 
   usuarioActual: any = null;
   loading = false;
+  
+  // Estado del modal de notificación
+  mostrarNotificacion = false;
+  tipoNotificacion: 'exito' | 'error' = 'exito';
+  tituloNotificacion = '';
+  mensajeNotificacion = '';
+  
+  // Estado de imagen de empresa
+  empresaImagenPreview: string | null = null;
+  empresaImagenArchivo: File | null = null;
 
   zonasHorarias = [
     'El Salvador (GMT-6)',
@@ -120,6 +131,13 @@ export class ConfiguracionModalComponent implements OnInit {
       this.dteService.getEmpresaConfig(this.empresaSeleccionada.id).subscribe(config => {
         if (config) {
           this.empresaForm.patchValue(config);
+          // Cargar imagen desde la base de datos
+          if (config.logoUrl) {
+            this.empresaImagenPreview = config.logoUrl;
+          } else if (this.empresaSeleccionada.logo) {
+            // Fallback a logo en objeto empresa si no hay en DB
+            this.empresaImagenPreview = this.empresaSeleccionada.logo;
+          }
         } else {
           // Si no hay configuración guardada, usar datos de empresa seleccionada
           this.empresaForm.patchValue({
@@ -134,9 +152,54 @@ export class ConfiguracionModalComponent implements OnInit {
             telefono: this.empresaSeleccionada.telefono || '',
             correo: this.empresaSeleccionada.email || ''
           });
+          // Cargar imagen si existe en objeto empresa
+          if (this.empresaSeleccionada.logo) {
+            this.empresaImagenPreview = this.empresaSeleccionada.logo;
+          }
         }
       });
     }
+  }
+
+  onImagenEmpresaSeleccionada(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      
+      // Validar tipo de archivo
+      if (!file.type.startsWith('image/')) {
+        this.mostrarNotificacionError('Error', 'Por favor, selecciona un archivo de imagen válido.');
+        return;
+      }
+      
+      // Validar tamaño (máximo 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        this.mostrarNotificacionError('Error', 'La imagen no debe superar los 5MB.');
+        return;
+      }
+      
+      this.empresaImagenArchivo = file;
+      
+      // Crear preview
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.empresaImagenPreview = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  abrirSelectorImagen(): void {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e: Event) => this.onImagenEmpresaSeleccionada(e);
+    input.click();
+  }
+
+  eliminarImagen(): void {
+    this.empresaImagenPreview = null;
+    this.empresaImagenArchivo = null;
   }
 
   cargarDatosUsuario(): void {
@@ -210,17 +273,17 @@ export class ConfiguracionModalComponent implements OnInit {
           }).subscribe({
             next: () => {
               this.loading = false;
-              alert('Perfil actualizado correctamente');
+              this.mostrarNotificacionExito('Perfil actualizado correctamente');
             },
             error: (error) => {
               this.loading = false;
-              alert('Error al guardar la configuración: ' + error.message);
+              this.mostrarNotificacionError('Error al guardar la configuración', error.message);
             }
           });
         },
         error: (error) => {
           this.loading = false;
-          alert('Error al actualizar el perfil: ' + error.message);
+          this.mostrarNotificacionError('Error al actualizar el perfil', error.message);
         }
       });
     }
@@ -243,7 +306,7 @@ export class ConfiguracionModalComponent implements OnInit {
         direccion: this.empresaForm.value.direccion || ''
       }).subscribe({
         next: (empresaId) => {
-          // Guardar configuración de la nueva empresa
+          // Guardar configuración de la nueva empresa (incluyendo logo)
           this.dteService.saveEmpresaConfig(empresaId, {
             nombreLegal: this.empresaForm.value.nombreLegal,
             nombreComercial: this.empresaForm.value.nombreComercial,
@@ -259,6 +322,7 @@ export class ConfiguracionModalComponent implements OnInit {
             sitioWeb: this.empresaForm.value.sitioWeb,
             telefono: this.empresaForm.value.telefono,
             correo: this.empresaForm.value.correo,
+            logoUrl: this.empresaImagenPreview || undefined,
             certificadoPrueba: this.empresaForm.value.certificadoPrueba,
             passwordAPIPrueba: this.empresaForm.value.passwordAPIPrueba,
             certificadoProduccion: this.empresaForm.value.certificadoProduccion,
@@ -266,23 +330,23 @@ export class ConfiguracionModalComponent implements OnInit {
           }).subscribe({
             next: () => {
               this.loading = false;
-              alert('Empresa creada y configuración guardada correctamente');
+              this.mostrarNotificacionExito('Empresa creada y configuración guardada correctamente');
             },
             error: (error) => {
               this.loading = false;
-              alert('Error al guardar la información: ' + error.message);
+              this.mostrarNotificacionError('Error al guardar la información', error.message);
             }
           });
         },
         error: (error) => {
           this.loading = false;
-          alert('Error al crear la empresa: ' + error.message);
+          this.mostrarNotificacionError('Error al crear la empresa', error.message);
         }
       });
       return;
     }
     
-    // Si hay empresa seleccionada, guardar configuración
+    // Si hay empresa seleccionada, guardar configuración (incluyendo logo)
     this.dteService.saveEmpresaConfig(this.empresaSeleccionada.id, {
       nombreLegal: this.empresaForm.value.nombreLegal,
       nombreComercial: this.empresaForm.value.nombreComercial,
@@ -298,23 +362,52 @@ export class ConfiguracionModalComponent implements OnInit {
       sitioWeb: this.empresaForm.value.sitioWeb,
       telefono: this.empresaForm.value.telefono,
       correo: this.empresaForm.value.correo,
+      logoUrl: this.empresaImagenPreview || undefined,
       certificadoPrueba: this.empresaForm.value.certificadoPrueba,
       passwordAPIPrueba: this.empresaForm.value.passwordAPIPrueba,
       certificadoProduccion: this.empresaForm.value.certificadoProduccion,
       passwordAPIProduccion: this.empresaForm.value.passwordAPIProduccion
     }).subscribe({
       next: () => {
+        // Actualizar logo en objeto empresa local
+        if (this.empresaSeleccionada) {
+          this.empresaSeleccionada.logo = this.empresaImagenPreview;
+        }
         this.loading = false;
-        alert('Información de empresa guardada correctamente');
+        this.mostrarNotificacionExito('Información de empresa guardada correctamente');
       },
       error: (error) => {
         this.loading = false;
-        alert('Error al guardar la información: ' + error.message);
+        this.mostrarNotificacionError('Error al guardar la información', error.message);
       }
     });
   }
 
   cerrarModal(): void {
     this.cerrar.emit();
+  }
+
+  mostrarNotificacionExito(mensaje: string, titulo: string = 'Éxito'): void {
+    this.tipoNotificacion = 'exito';
+    this.tituloNotificacion = titulo;
+    this.mensajeNotificacion = mensaje;
+    this.mostrarNotificacion = true;
+  }
+
+  mostrarNotificacionError(mensaje: string, detalle?: string, titulo: string = 'Error'): void {
+    this.tipoNotificacion = 'error';
+    this.tituloNotificacion = titulo;
+    this.mensajeNotificacion = detalle ? `${mensaje}: ${detalle}` : mensaje;
+    this.mostrarNotificacion = true;
+  }
+
+  cerrarNotificacion(): void {
+    this.mostrarNotificacion = false;
+    // Si es una notificación de éxito sobre empresa creada, cerrar también el modal de configuración
+    if (this.tipoNotificacion === 'exito' && 
+        (this.mensajeNotificacion.includes('Empresa creada') || 
+         this.mensajeNotificacion.includes('guardada correctamente'))) {
+      this.cerrarModal();
+    }
   }
 }

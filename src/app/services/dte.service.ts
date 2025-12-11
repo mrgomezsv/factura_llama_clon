@@ -722,6 +722,7 @@ export class DteService {
     sitioWeb?: string;
     telefono?: string;
     correo?: string;
+    logoUrl?: string;
     certificadoPrueba?: string;
     passwordAPIPrueba?: string;
     certificadoProduccion?: string;
@@ -743,7 +744,7 @@ export class DteService {
             `UPDATE empresa_config 
              SET nombre_legal = ?, nombre_comercial = ?, nit = ?, nrc = ?, dui = ?,
                  actividad_economica_primaria = ?, actividad_economica_secundaria = ?, actividad_economica_terciaria = ?,
-                 direccion = ?, codigo_mh = ?, puntos_venta = ?, sitio_web = ?, telefono = ?, correo = ?,
+                 direccion = ?, codigo_mh = ?, puntos_venta = ?, sitio_web = ?, telefono = ?, correo = ?, logo_url = ?,
                  certificado_prueba = ?, password_api_prueba = ?, certificado_produccion = ?, password_api_produccion = ?,
                  updated_at = CURRENT_TIMESTAMP 
              WHERE empresa_id = ?`,
@@ -762,6 +763,7 @@ export class DteService {
               config.sitioWeb || null,
               config.telefono || null,
               config.correo || null,
+              config.logoUrl || null,
               config.certificadoPrueba || null,
               config.passwordAPIPrueba || null,
               config.certificadoProduccion || null,
@@ -776,9 +778,9 @@ export class DteService {
             `INSERT INTO empresa_config 
              (id, empresa_id, nombre_legal, nombre_comercial, nit, nrc, dui,
               actividad_economica_primaria, actividad_economica_secundaria, actividad_economica_terciaria,
-              direccion, codigo_mh, puntos_venta, sitio_web, telefono, correo,
+              direccion, codigo_mh, puntos_venta, sitio_web, telefono, correo, logo_url,
               certificado_prueba, password_api_prueba, certificado_produccion, password_api_produccion) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               id,
               empresaId,
@@ -796,6 +798,7 @@ export class DteService {
               config.sitioWeb || null,
               config.telefono || null,
               config.correo || null,
+              config.logoUrl || null,
               config.certificadoPrueba || null,
               config.passwordAPIPrueba || null,
               config.certificadoProduccion || null,
@@ -867,6 +870,7 @@ export class DteService {
             sitioWeb: row.sitio_web || '',
             telefono: row.telefono || '',
             correo: row.correo || '',
+            logoUrl: row.logo_url || '',
             certificadoPrueba: row.certificado_prueba || '',
             passwordAPIPrueba: row.password_api_prueba || '',
             certificadoProduccion: row.certificado_produccion || '',

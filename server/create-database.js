@@ -182,6 +182,7 @@ async function createTables(client) {
       sitio_web TEXT,
       telefono TEXT,
       correo TEXT,
+      logo_url TEXT,
       certificado_prueba TEXT,
       password_api_prueba TEXT,
       certificado_produccion TEXT,
@@ -203,6 +204,30 @@ async function createTables(client) {
 
   await client.query(schema);
   console.log('✅ Tablas creadas exitosamente');
+  
+  // Migración: Agregar campo logo_url si no existe
+  try {
+    await client.query(`
+      DO $$ 
+      BEGIN 
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'empresa_config' AND column_name = 'logo_url'
+        ) THEN
+          ALTER TABLE empresa_config ADD COLUMN logo_url TEXT;
+          RAISE NOTICE 'Campo logo_url agregado a empresa_config';
+        END IF;
+      END $$;
+    `);
+    console.log('✅ Migración de logo_url completada');
+  } catch (error) {
+    // Si la columna ya existe o hay otro error, continuar
+    if (error.message.includes('already exists') || error.message.includes('duplicate')) {
+      console.log('ℹ️  Campo logo_url ya existe en empresa_config');
+    } else {
+      console.log('⚠️  Error en migración de logo_url:', error.message);
+    }
+  }
 
   // Insertar datos iniciales necesarios
   await seedInitialData(client);

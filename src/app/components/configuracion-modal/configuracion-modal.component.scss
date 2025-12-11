@@ -172,6 +172,13 @@
   padding-bottom: 24px;
   border-bottom: 1px solid #e2e8f0;
 
+  .empresa-logo-container {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+  }
+
   .empresa-logo {
     width: 64px;
     height: 64px;
@@ -180,11 +187,83 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 600;
     color: #5B9BD5;
     text-align: center;
     padding: 8px;
+    line-height: 1.2;
+    word-break: break-word;
+  }
+
+  .empresa-logo-image {
+    width: 64px;
+    height: 64px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid #e2e8f0;
+  }
+
+  .btn-upload-logo {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #3b82f6;
+    color: #fff;
+    border: 2px solid #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+    padding: 0;
+
+    &:hover {
+      background: #2563eb;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      transform: scale(1.05);
+    }
+
+    svg {
+      width: 12px;
+      height: 12px;
+    }
+  }
+
+  .btn-remove-logo {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #ef4444;
+    color: #fff;
+    border: 2px solid #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+    padding: 0;
+
+    &:hover {
+      background: #dc2626;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      transform: scale(1.05);
+    }
+
+    svg {
+      width: 10px;
+      height: 10px;
+    }
   }
 
   .empresa-info {

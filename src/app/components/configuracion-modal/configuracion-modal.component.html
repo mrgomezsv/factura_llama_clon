@@ -246,13 +246,31 @@
             <h3 class="seccion-title">Mi Empresa</h3>
             
             <div class="empresa-header">
-              <div class="empresa-logo">
-                <span>INDUS. G&G TEXTILL</span>
+              <div class="empresa-logo-container">
+                @if (empresaImagenPreview) {
+                  <img [src]="empresaImagenPreview" alt="Logo empresa" class="empresa-logo-image" />
+                } @else {
+                  <div class="empresa-logo">
+                    <span>{{ (empresaSeleccionada?.nombre || 'Mi Empresa').substring(0, 15) }}</span>
+                  </div>
+                }
+                <button type="button" class="btn-upload-logo" (click)="abrirSelectorImagen()" title="Subir imagen">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M11.3333 2.00004C11.5084 1.82493 11.7163 1.68602 11.9444 1.59129C12.1726 1.49657 12.4163 1.44775 12.6625 1.44775C12.9087 1.44775 13.1524 1.49657 13.3806 1.59129C13.6087 1.68602 13.8166 1.82493 13.9917 2.00004C14.1668 2.17515 14.3057 2.38303 14.4004 2.61118C14.4951 2.83933 14.5439 3.08305 14.5439 3.32926C14.5439 3.57547 14.4951 3.81919 14.4004 4.04734C14.3057 4.27549 14.1668 4.48337 13.9917 4.65848L5.65833 13L1.33333 14.3334L2.66667 10.0084L11 1.66671L11.3333 2.00004Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+                @if (empresaImagenPreview) {
+                  <button type="button" class="btn-remove-logo" (click)="eliminarImagen()" title="Eliminar imagen">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                      <path d="M3.5 3.5L10.5 10.5M10.5 3.5L3.5 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                }
               </div>
               <div class="empresa-info">
                 <div class="empresa-name">{{ empresaSeleccionada?.nombre || 'Mi Empresa' }}</div>
                 <div class="facturallama-id">
-                  FacturaLlama ID: 6f75b035-498f-4a39-b051-74ffe08487d1
+                  FacturaLlama ID: {{ empresaSeleccionada?.id || '6f75b035-498f-4a39-b051-74ffe08487d1' }}
                   <button type="button" class="btn-copy">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                       <path d="M6 2H12C13.1046 2 14 2.89543 14 4V10C14 11.1046 13.1046 12 12 12H10" stroke="currentColor" stroke-width="1.5"/>
@@ -574,3 +592,12 @@
     </div>
   </div>
 </div>
+
+@if (mostrarNotificacion) {
+  <app-notificacion-modal
+    [tipo]="tipoNotificacion"
+    [titulo]="tituloNotificacion"
+    [mensaje]="mensajeNotificacion"
+    (cerrar)="cerrarNotificacion()"
+  ></app-notificacion-modal>
+}
