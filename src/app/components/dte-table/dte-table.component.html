@@ -15,14 +15,15 @@
         <th>Tipo</th>
         <th>Receptor</th>
         <th>Total</th>
+        <th>Estado</th>
         <th>Ambiente</th>
-        <th>FechaDeCreacion</th>
+        <th>Fecha de Creación</th>
       </tr>
     </thead>
     <tbody>
       @if (dtesPaginados.length === 0) {
         <tr>
-          <td colspan="6" class="empty-state">
+          <td colspan="7" class="empty-state">
             No hay DTEs disponibles
           </td>
         </tr>
@@ -43,6 +44,18 @@
             <td>{{ dte.tipo }}</td>
             <td>{{ dte.receptor }}</td>
             <td class="text-right">{{ dte.formattedTotal }}</td>
+            <td>
+              @if (dte.estado) {
+                <span class="badge" 
+                  [class.badge-success]="dte.estado === 'GENERADO' || dte.estado === 'AUTORIZADO'"
+                  [class.badge-warning]="dte.estado === 'BORRADOR' || dte.estado === 'ENVIADO'"
+                  [class.badge-danger]="dte.estado === 'RECHAZADO' || dte.estado === 'ANULADO'">
+                  {{ dte.estado }}
+                </span>
+              } @else {
+                <span class="badge badge-warning">BORRADOR</span>
+              }
+            </td>
             <td>
               <span class="badge badge-success">{{ dte.ambiente }}</span>
             </td>
