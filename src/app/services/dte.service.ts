@@ -11,7 +11,7 @@ import { DatabaseService } from './database.service';
   providedIn: 'root'
 })
 export class DteService {
-  constructor(private database: DatabaseService) {}
+  constructor(private database: DatabaseService) { }
 
   /**
    * Obtiene todos los DTEs
@@ -108,8 +108,8 @@ export class DteService {
     return this.database.isReady$.pipe(
       first(ready => ready),
       switchMap(() => {
-        const fechaCreacion = dte.fechaCreacion instanceof Date 
-          ? dte.fechaCreacion.toISOString() 
+        const fechaCreacion = dte.fechaCreacion instanceof Date
+          ? dte.fechaCreacion.toISOString()
           : dte.fechaCreacion;
 
         return this.database.execute(
@@ -134,9 +134,9 @@ export class DteService {
   /**
    * Obtiene todos los clientes
    */
-  getClientes(): Observable<{ 
-    id: string; 
-    nombre: string; 
+  getClientes(): Observable<{
+    id: string;
+    nombre: string;
     correo?: string;
     nit?: string;
     nrc?: string;
@@ -147,9 +147,9 @@ export class DteService {
     return this.database.isReady$.pipe(
       first(ready => ready),
       switchMap(() => {
-        return this.database.query<{ 
-          id: string; 
-          nombre: string; 
+        return this.database.query<{
+          id: string;
+          nombre: string;
           correo: string | null;
           nit: string | null;
           nrc: string | null;
@@ -205,8 +205,8 @@ export class DteService {
         // Mapear campos del formulario a campos de la base de datos
         const correo = cliente.correoElectronico || cliente.correo || null;
         // Si el tipo de documento es NIT, usar numeroDocumento como nit
-        const nit = (cliente.tipoDocumento === 'NIT' && cliente.numeroDocumento) 
-          ? cliente.numeroDocumento 
+        const nit = (cliente.tipoDocumento === 'NIT' && cliente.numeroDocumento)
+          ? cliente.numeroDocumento
           : (cliente.nit || null);
         return this.database.execute(
           'INSERT INTO clientes (id, nombre, correo, nit, nrc, direccion, telefono) VALUES (?, ?, ?, ?, ?, ?, ?)',
@@ -221,8 +221,8 @@ export class DteService {
   /**
    * Obtiene todas las sucursales
    */
-  getSucursales(): Observable<{ 
-    id: string; 
+  getSucursales(): Observable<{
+    id: string;
     nombre: string;
     direccion?: string;
     telefono?: string;
@@ -231,8 +231,8 @@ export class DteService {
     return this.database.isReady$.pipe(
       first(ready => ready),
       switchMap(() => {
-        return this.database.query<{ 
-          id: string; 
+        return this.database.query<{
+          id: string;
           nombre: string;
           direccion: string | null;
           telefono: string | null;
@@ -288,9 +288,9 @@ export class DteService {
   /**
    * Obtiene todos los productos
    */
-  getProductos(): Observable<{ 
-    id: string; 
-    nombre: string; 
+  getProductos(): Observable<{
+    id: string;
+    nombre: string;
     codigo?: string;
     descripcion?: string;
     precioConIva?: number;
@@ -300,9 +300,9 @@ export class DteService {
     return this.database.isReady$.pipe(
       first(ready => ready),
       switchMap(() => {
-        return this.database.query<{ 
-          id: string; 
-          nombre: string; 
+        return this.database.query<{
+          id: string;
+          nombre: string;
           codigo: string | null;
           descripcion: string | null;
           precio_unitario: number;
@@ -406,6 +406,17 @@ export class DteService {
     return this.database.isReady$.pipe(
       first(ready => ready),
       switchMap(() => {
+        // Verificar si ya existe una empresa con el mismo nombre
+        return this.database.query<{ id: string }>(
+          'SELECT id FROM empresas WHERE LOWER(nombre) = LOWER(?)',
+          [empresa.nombre]
+        );
+      }),
+      switchMap(existing => {
+        if (existing.length > 0) {
+          throw new Error('Ya existe una empresa con este nombre');
+        }
+
         const id = 'e' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         return this.database.execute(
           'INSERT INTO empresas (id, nombre, nit, direccion) VALUES (?, ?, ?, ?)',
