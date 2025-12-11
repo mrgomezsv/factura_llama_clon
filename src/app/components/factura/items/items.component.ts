@@ -48,10 +48,26 @@ export class FacturaItemsComponent {
     const v = this.form.value;
     const item = this.fb.group({
       producto: [v.producto], descripcion: [v.descripcion], cantidad: [Number(v.cantidad)||1],
-      precio: [Number(v.precio)||0], descuento: [Number(v.descuento)||0], tipoVenta: [v.tipoVenta]
+      precio: [Number(v.precio)||0], descuento: [Number(v.descuento)||0], tipoVenta: [v.tipoVenta],
+      unidad: [v.unidad], codigo: [v.codigo]
     });
     this.items.push(item);
     this.itemsChanged.emit(this.items.value);
+    
+    // Limpiar el formulario después de agregar el item, manteniendo valores por defecto
+    this.form.patchValue({
+      producto: '',
+      codigo: '',
+      descripcion: '',
+      cantidad: 1,
+      precio: 0,
+      descuento: 0,
+      tipoProducto: 'Bienes',
+      unidad: 'Unidad',
+      tipoVenta: 'Gravada',
+      tributos: ''
+    });
+    this.selectedTaxes = [];
   }
 
   eliminarItem(i: number): void {
@@ -83,14 +99,40 @@ export class FacturaItemsComponent {
 
   // Productos dropdown (búsqueda simple al tipear en campo producto)
   productMenu = false;
-  allProducts: Array<{ id:string; nombre:string; codigo?: string }> = [];
-  filteredProducts: Array<{ id:string; nombre:string; codigo?: string }> = [];
+  allProducts: Array<{ id:string; nombre:string; codigo?: string; precioConIva?: number; unidadMedida?: string; descripcion?: string }> = [];
+  filteredProducts: Array<{ id:string; nombre:string; codigo?: string; precioConIva?: number; unidadMedida?: string; descripcion?: string }> = [];
   openProducts(){ this.productMenu = true; this.filterProducts(); }
   filterProducts(){
     const q = (this.form.value.producto || '').toLowerCase();
     this.filteredProducts = this.allProducts.filter(p => p.nombre.toLowerCase().includes(q) || (p.codigo||'').toLowerCase().includes(q));
   }
-  chooseProduct(p: any){ this.form.patchValue({ producto: p.nombre, codigo: p.codigo||'' }); this.productMenu = false; }
+  chooseProduct(p: any){ 
+    // Establecer nombre, código, precio y unidad de medida del producto seleccionado
+    const precio = p.precioConIva !== undefined && p.precioConIva !== null ? Number(p.precioConIva) : 0;
+    const unidad = p.unidadMedida || 'Unidad';
+    const descripcion = p.descripcion || '';
+    
+    // Establecer los valores en el formulario
+    this.form.patchValue({ 
+      producto: p.nombre, 
+      codigo: p.codigo || '',
+      descripcion: descripcion,
+      unidad: unidad
+    }); 
+    
+    // Establecer el precio directamente en el control para asegurar que se muestre
+    const precioControl = this.form.get('precio');
+    if (precioControl && precio > 0) {
+      precioControl.setValue(precio, { emitEvent: false });
+      // Formatear el precio con 4 decimales
+      const precioFormateado = precio.toFixed(4);
+      precioControl.setValue(precioFormateado, { emitEvent: false });
+    } else if (precioControl) {
+      precioControl.setValue(0, { emitEvent: false });
+    }
+    
+    this.productMenu = false; 
+  }
 }
 
 
