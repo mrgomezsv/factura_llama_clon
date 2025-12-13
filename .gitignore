@@ -67,3 +67,7 @@ cypress/screenshots/
 cypress/videos/
 playwright-report/
 test-results/
+
+# Documentación
+/md/
+/Doc_Actualizados_Implementacion_DTE/
