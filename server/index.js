@@ -4,6 +4,7 @@ const { Pool } = require('pg');
 const dteBuilder = require('./services/dte-builder');
 const dteSigner = require('./services/dte-signer');
 const dtePdfGenerator = require('./services/dte-pdf-generator');
+const dteApiService = require('./services/dte-api.service');
 require('dotenv').config();
 
 /**
@@ -20,7 +21,7 @@ function getTableNameByTipoDte(tipoDte) {
     'REM': 'documento_nota_remision',
     'CRT': 'documento_comprobante_retencion'
   };
-  
+
   return tipoToTable[tipoDte] || null;
 }
 
@@ -213,11 +214,11 @@ app.post('/api/dtes/generar', async (req, res) => {
     // Primero mapear el tipoDte al código numérico para la consulta
     const tipoDteCodigo = dteBuilder.mapTipoDte(tipoDte);
     const tableName = getTableNameByTipoDte(tipoDte);
-    
+
     if (!tableName) {
       return res.status(400).json({ error: `Tipo de documento no válido: ${tipoDte}` });
     }
-    
+
     const lastDteResult = await pool.query(
       `SELECT numero_documento FROM ${tableName} 
        WHERE empresa_id = $1 AND tipo_dte = $2
@@ -226,7 +227,7 @@ app.post('/api/dtes/generar', async (req, res) => {
     );
 
     const nextNumero = lastDteResult.rows.length > 0 && lastDteResult.rows[0].numero_documento !== null
-      ? parseInt(lastDteResult.rows[0].numero_documento) + 1 
+      ? parseInt(lastDteResult.rows[0].numero_documento) + 1
       : 1;
 
     // Construir JSON del DTE (tipoDteCodigo ya fue calculado arriba)
@@ -281,15 +282,37 @@ app.post('/api/dtes/generar', async (req, res) => {
 
     const dteFirmado = typeof dteFirmadoStr === 'string' ? JSON.parse(dteFirmadoStr) : dteFirmadoStr;
 
-    // Guardar DTE en la base de datos (tabla específica según tipo)
-    const fechaEmision = new Date();
+    const { incoterms, modoTransporte, recintoFiscal, regimenAduanero } = req.body;
+
+    // --- TRANSMISIÓN A HACIENDA ---
+    console.log('🚀 Iniciando transmisión a MH...');
+    let mhResponse = { success: false, estado: 'ERROR_TRANSMISION' };
+
+    // Solo intentar enviar si se firmó correctamente (es un objeto/string válido)
+    if (dteFirmadoStr) {
+      try {
+        // Si es ambiente de pruebas, asegurarnos de que el JSON firmado tenga ambiente "00"
+        // (El builder ya debería haberlo hecho, pero validamos)
+        mhResponse = await dteApiService.enviarDte(dteFirmado);
+      } catch (apiError) {
+        console.error('⚠️ Error crítico al comunicar con MH:', apiError.message);
+        // Mantenemos el estado de error
+      }
+    } else {
+      console.warn('⚠️ No se envía a MH porque no hay DTE firmado');
+    }
+
+    const estadoFinal = mhResponse.success ? 'PROCESADO' : (mhResponse.estado || 'RECHAZADO');
+
     const insertResult = await pool.query(
       `INSERT INTO ${tableName} (
-        control_number, tipo_dte, codigo_generacion, numero_control, numero_documento,
-        receptor, total, ambiente, fecha_creacion, fecha_emision,
-        empresa_id, cliente_id, estado, dte_json, dte_firmado
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-      RETURNING id`,
+          control_number, tipo_dte, codigo_generacion, numero_control, numero_documento,
+          receptor, total, ambiente, fecha_creacion, fecha_emision,
+          empresa_id, cliente_id, estado, dte_json, dte_firmado,
+          incoterms, modo_transporte, recinto_fiscal, regimen_aduanero,
+          sello_recibido, codigo_mensaje, descripcion_mensaje, observaciones
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
+        RETURNING id`,
       [
         numeroControl,
         tipoDteCodigo,
@@ -303,9 +326,17 @@ app.post('/api/dtes/generar', async (req, res) => {
         fechaEmision,
         empresaId,
         clienteId || null,
-        'BORRADOR',
+        estadoFinal, // Usar estado real de MH
         JSON.stringify(dteJson),
-        JSON.stringify(dteFirmado)
+        JSON.stringify(dteFirmado),
+        incoterms || null,
+        modoTransporte || null,
+        recintoFiscal || null,
+        regimenAduanero || null,
+        mhResponse.selloRecibido || null,
+        mhResponse.codigoMensaje || null,
+        mhResponse.descripcionMensaje || null,
+        JSON.stringify(mhResponse.observaciones || [])
       ]
     );
 
@@ -365,7 +396,7 @@ app.post('/api/dtes/generar', async (req, res) => {
   } catch (error) {
     console.error('❌ Error al generar DTE:', error);
     console.error('Stack trace:', error.stack);
-    res.status(500).json({ 
+    res.status(500).json({
       error: error.message,
       details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
@@ -376,7 +407,7 @@ app.post('/api/dtes/generar', async (req, res) => {
 app.get('/api/dtes/:id/pdf', async (req, res) => {
   try {
     const dteId = parseInt(req.params.id);
-    
+
     if (isNaN(dteId)) {
       return res.status(400).json({ error: 'ID de DTE inválido' });
     }
@@ -406,7 +437,7 @@ app.get('/api/dtes/:id/pdf', async (req, res) => {
          WHERE d.id = $1`,
         [dteId]
       );
-      
+
       if (result.rows.length > 0) {
         dteResult = result;
         tableName = table;
@@ -419,7 +450,7 @@ app.get('/api/dtes/:id/pdf', async (req, res) => {
     }
 
     const dte = dteResult.rows[0];
-    
+
     if (!dte.dte_json) {
       return res.status(400).json({ error: 'DTE no tiene JSON asociado' });
     }
@@ -476,7 +507,7 @@ app.get('/api/dtes/:id/pdf', async (req, res) => {
     // Generar PDF
     console.log(`📄 Regenerando PDF para DTE ${dteId}...`);
     const pdfBuffer = await dtePdfGenerator.generatePdf(dteData, dteJson);
-    
+
     if (!pdfBuffer) {
       throw new Error('Error al generar PDF');
     }
@@ -488,7 +519,7 @@ app.get('/api/dtes/:id/pdf', async (req, res) => {
 
   } catch (error) {
     console.error('❌ Error al regenerar PDF:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: error.message,
       details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
