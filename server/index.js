@@ -6,6 +6,24 @@ const dteSigner = require('./services/dte-signer');
 const dtePdfGenerator = require('./services/dte-pdf-generator');
 require('dotenv').config();
 
+/**
+ * Mapea el tipo de documento a su tabla correspondiente
+ */
+function getTableNameByTipoDte(tipoDte) {
+  const tipoToTable = {
+    'FAC': 'documento_factura',
+    'CCF': 'documento_credito_fiscal',
+    'NCR': 'documento_nota_credito',
+    'NDB': 'documento_nota_debito',
+    'FSE': 'documento_factura_sujeto_excluido',
+    'FEX': 'documento_factura_exportacion',
+    'REM': 'documento_nota_remision',
+    'CRT': 'documento_comprobante_retencion'
+  };
+  
+  return tipoToTable[tipoDte] || null;
+}
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -182,12 +200,17 @@ app.post('/api/dtes/generar', async (req, res) => {
     // Obtener el siguiente número de documento
     // Primero mapear el tipoDte al código numérico para la consulta
     const tipoDteCodigo = dteBuilder.mapTipoDte(tipoDte);
+    const tableName = getTableNameByTipoDte(tipoDte);
+    
+    if (!tableName) {
+      return res.status(400).json({ error: `Tipo de documento no válido: ${tipoDte}` });
+    }
     
     const lastDteResult = await pool.query(
-      `SELECT numero_documento FROM dtes 
-       WHERE empresa_id = $1 AND (tipo_dte = $2 OR tipo = $3)
+      `SELECT numero_documento FROM ${tableName} 
+       WHERE empresa_id = $1 AND tipo_dte = $2
        ORDER BY numero_documento DESC NULLS LAST LIMIT 1`,
-      [empresaId, tipoDteCodigo, tipoDte]
+      [empresaId, tipoDteCodigo]
     );
 
     const nextNumero = lastDteResult.rows.length > 0 && lastDteResult.rows[0].numero_documento !== null
@@ -246,18 +269,17 @@ app.post('/api/dtes/generar', async (req, res) => {
 
     const dteFirmado = typeof dteFirmadoStr === 'string' ? JSON.parse(dteFirmadoStr) : dteFirmadoStr;
 
-    // Guardar DTE en la base de datos
+    // Guardar DTE en la base de datos (tabla específica según tipo)
     const fechaEmision = new Date();
     const insertResult = await pool.query(
-      `INSERT INTO dtes (
-        control_number, tipo, tipo_dte, codigo_generacion, numero_control, numero_documento,
+      `INSERT INTO ${tableName} (
+        control_number, tipo_dte, codigo_generacion, numero_control, numero_documento,
         receptor, total, ambiente, fecha_creacion, fecha_emision,
         empresa_id, cliente_id, estado, dte_json, dte_firmado
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
       RETURNING id`,
       [
         numeroControl,
-        tipoDte,
         tipoDteCodigo,
         codigoGeneracion,
         numeroControl,
@@ -319,7 +341,7 @@ app.post('/api/dtes/generar', async (req, res) => {
 
     // Actualizar estado del DTE a GENERADO
     await pool.query(
-      'UPDATE dtes SET estado = $1 WHERE id = $2',
+      `UPDATE ${tableName} SET estado = $1 WHERE id = $2`,
       ['GENERADO', dteId]
     );
 
@@ -347,18 +369,40 @@ app.get('/api/dtes/:id/pdf', async (req, res) => {
       return res.status(400).json({ error: 'ID de DTE inválido' });
     }
 
-    // Obtener DTE de la base de datos
-    const dteResult = await pool.query(
-      `SELECT d.*, e.*, c.nombre as cliente_nombre, c.nit as cliente_nit, c.nrc as cliente_nrc, 
-              c.direccion as cliente_direccion, c.correo as cliente_correo
-       FROM dtes d
-       LEFT JOIN empresas e ON d.empresa_id = e.id
-       LEFT JOIN clientes c ON d.cliente_id = c.id
-       WHERE d.id = $1`,
-      [dteId]
-    );
+    // Buscar el DTE en todas las tablas posibles
+    const tables = [
+      'documento_factura',
+      'documento_credito_fiscal',
+      'documento_nota_credito',
+      'documento_nota_debito',
+      'documento_factura_sujeto_excluido',
+      'documento_factura_exportacion',
+      'documento_nota_remision',
+      'documento_comprobante_retencion'
+    ];
 
-    if (dteResult.rows.length === 0) {
+    let dteResult = null;
+    let tableName = null;
+
+    for (const table of tables) {
+      const result = await pool.query(
+        `SELECT d.*, e.*, c.nombre as cliente_nombre, c.nit as cliente_nit, c.nrc as cliente_nrc, 
+                c.direccion as cliente_direccion, c.correo as cliente_correo
+         FROM ${table} d
+         LEFT JOIN empresas e ON d.empresa_id = e.id
+         LEFT JOIN clientes c ON d.cliente_id = c.id
+         WHERE d.id = $1`,
+        [dteId]
+      );
+      
+      if (result.rows.length > 0) {
+        dteResult = result;
+        tableName = table;
+        break;
+      }
+    }
+
+    if (!dteResult || dteResult.rows.length === 0) {
       return res.status(404).json({ error: 'DTE no encontrado' });
     }
 
