@@ -291,9 +291,15 @@ app.post('/api/dtes/generar', async (req, res) => {
     // Solo intentar enviar si se firmó correctamente (es un objeto/string válido)
     if (dteFirmadoStr) {
       try {
-        // Si es ambiente de pruebas, asegurarnos de que el JSON firmado tenga ambiente "00"
-        // (El builder ya debería haberlo hecho, pero validamos)
-        mhResponse = await dteApiService.enviarDte(dteFirmado);
+        // Configurar credenciales dinámicas desde la BD
+        const mhConfig = {
+          user: empresaConfig.nit, // El usuario suele ser el NIT
+          pwd: ambiente === 'PRODUCCIÓN' ? empresaConfig.password_api_produccion : empresaConfig.password_api_prueba,
+          nit: empresaConfig.nit
+        };
+
+        // Enviar a MH usando las credenciales de la empresa
+        mhResponse = await dteApiService.enviarDte(dteFirmado, null, mhConfig);
       } catch (apiError) {
         console.error('⚠️ Error crítico al comunicar con MH:', apiError.message);
         // Mantenemos el estado de error
