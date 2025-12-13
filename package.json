@@ -11,7 +11,8 @@
     "server:dev": "nodemon server/index.js",
     "db:create": "node server/create-database.js",
     "db:migrate": "node server/migrate-to-separate-tables.js",
-    "db:remove-old": "node server/remove-old-tables.js --confirm"
+    "db:remove-old": "node server/remove-old-tables.js --confirm",
+    "db:fix-codes": "node server/fix-tipo-dte-codes.js"
   },
   "private": true,
   "dependencies": {
