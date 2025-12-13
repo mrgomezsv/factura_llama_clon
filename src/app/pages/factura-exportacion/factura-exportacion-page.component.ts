@@ -11,6 +11,7 @@ import { FacturaExportacionResponsablesComponent } from '../../components/factur
 import { FacturaExportacionOtrosComponent } from '../../components/factura-exportacion/otros/otros.component';
 import { FacturaExportacionAppendicesComponent } from '../../components/factura-exportacion/appendices/appendices.component';
 import { FacturaExportacionItemsComponent } from '../../components/factura-exportacion/items/items.component';
+import { FacturaExportacionLogisticaComponent } from '../../components/factura-exportacion/logistica/logistica.component';
 import { FacturacionCalculationsService } from '../../services/facturacion-calculations.service';
 import { DteService } from '../../services/dte.service';
 import { ItemFactura, Retenciones, ResultadosCalculoFacturacion } from '../../models/facturacion.model';
@@ -23,6 +24,7 @@ import { ItemFactura, Retenciones, ResultadosCalculoFacturacion } from '../../mo
     FormsModule,
     FacturaExportacionClienteComponent,
     FacturaExportacionSucursalComponent,
+    FacturaExportacionLogisticaComponent, // Nuevo componente
     FacturaExportacionRetencionesComponent,
     FacturaExportacionDescuentosComponent,
     FacturaExportacionResponsablesComponent,
@@ -35,7 +37,7 @@ import { ItemFactura, Retenciones, ResultadosCalculoFacturacion } from '../../mo
 })
 export class FacturaExportacionPageComponent {
   @ViewChild(FacturaExportacionItemsComponent) itemsComponent!: FacturaExportacionItemsComponent;
-  
+
   cliente: any = {};
   items: ItemFactura[] = [];
   itemsRaw: any[] = [];
@@ -47,7 +49,10 @@ export class FacturaExportacionPageComponent {
   vistaPrevia = true;
   empresaSeleccionada: any = null;
   generandoDTE = false;
-  
+
+  // Datos de Logística
+  logisticaData: any = {};
+
   constructor(
     private router: Router,
     private facturacionService: FacturacionCalculationsService,
@@ -62,7 +67,7 @@ export class FacturaExportacionPageComponent {
     });
   }
 
-  onCliente(v: any) { 
+  onCliente(v: any) {
     this.cliente = {
       id: v.id,
       nombre: v.nombre,
@@ -74,9 +79,14 @@ export class FacturaExportacionPageComponent {
       numeroDocumento: v.nit
     };
   }
+
+  onLogistica(data: any) {
+    this.logisticaData = data;
+  }
+
   onDescuento(v: number) { this.descuentoGlobal = v || 0; }
   onRetenciones(v: Retenciones) { this.retenciones = v; }
-  onItems(items: any[]) { 
+  onItems(items: any[]) {
     this.itemsRaw = items || [];
     this.items = (items || []).map(item => ({
       cantidad: Number(item.cantidad || 0),
@@ -168,7 +178,13 @@ export class FacturaExportacionPageComponent {
       retenciones: this.retenciones,
       descuentoGlobal: this.descuentoGlobal,
       otrosMontosNoAfectos: this.otrosMontosNoAfectos,
-      ambiente: this.ambienteProduccion ? 'PRODUCCIÓN' : 'PRUEBAS'
+      ambiente: this.ambienteProduccion ? 'PRODUCCIÓN' : 'PRUEBAS',
+
+      // Datos Logística
+      incoterms: this.logisticaData.incoterms,
+      modoTransporte: this.logisticaData.modoTransporte,
+      recintoFiscal: this.logisticaData.recintoFiscal,
+      regimenAduanero: this.logisticaData.regimenAduanero
     };
 
     this.http.post('http://localhost:3000/api/dtes/generar', datosDTE, {
