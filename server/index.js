@@ -24,6 +24,18 @@ function getTableNameByTipoDte(tipoDte) {
   return tipoToTable[tipoDte] || null;
 }
 
+/**
+ * Normaliza códigos antiguos de tipo_dte a los nuevos según esquemas JSON
+ * Convierte '02' (antiguo código de FAC) a '01' (nuevo código según fe-fc-v1.json)
+ */
+function normalizeTipoDteCodigo(tipoDteCodigo) {
+  // Si el código es '02', convertir a '01' (FAC según fe-fc-v1.json)
+  if (tipoDteCodigo === '02') {
+    return '01';
+  }
+  return tipoDteCodigo;
+}
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -414,7 +426,8 @@ app.get('/api/dtes/:id/pdf', async (req, res) => {
 
     const dteJson = typeof dte.dte_json === 'string' ? JSON.parse(dte.dte_json) : dte.dte_json;
     const identificacion = dteJson.identificacion || {};
-    const tipoDteCodigo = identificacion.tipoDte || dte.tipo_dte;
+    // Normalizar código: preferir el del JSON, si no existe usar el de la BD y normalizarlo
+    let tipoDteCodigo = identificacion.tipoDte || normalizeTipoDteCodigo(dte.tipo_dte);
 
     // Obtener configuración de empresa
     const empresaConfigResult = await pool.query(
