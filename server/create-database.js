@@ -134,7 +134,256 @@ async function createTables(client) {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
-    -- Tabla de DTEs
+    -- Estructura base común para todas las tablas de documentos
+    -- Tabla de Facturas Consumidor Final
+    CREATE TABLE IF NOT EXISTS documento_factura (
+      id SERIAL PRIMARY KEY,
+      control_number TEXT UNIQUE NOT NULL,
+      tipo_dte TEXT NOT NULL,
+      codigo_generacion TEXT UNIQUE,
+      numero_control TEXT,
+      numero_documento INTEGER,
+      receptor TEXT NOT NULL,
+      total REAL NOT NULL DEFAULT 0,
+      ambiente TEXT NOT NULL DEFAULT 'PRUEBAS',
+      fecha_creacion TIMESTAMP NOT NULL,
+      fecha_emision TIMESTAMP,
+      fecha_envio TIMESTAMP,
+      fecha_autorizacion TIMESTAMP,
+      empresa_id TEXT,
+      cliente_id TEXT,
+      estado TEXT DEFAULT 'BORRADOR',
+      dte_json TEXT,
+      dte_firmado TEXT,
+      sello_recibido TEXT,
+      codigo_mensaje TEXT,
+      descripcion_mensaje TEXT,
+      observaciones TEXT,
+      pdf_url TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (empresa_id) REFERENCES empresas(id),
+      FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+    );
+
+    -- Tabla de Créditos Fiscales
+    CREATE TABLE IF NOT EXISTS documento_credito_fiscal (
+      id SERIAL PRIMARY KEY,
+      control_number TEXT UNIQUE NOT NULL,
+      tipo_dte TEXT NOT NULL,
+      codigo_generacion TEXT UNIQUE,
+      numero_control TEXT,
+      numero_documento INTEGER,
+      receptor TEXT NOT NULL,
+      total REAL NOT NULL DEFAULT 0,
+      ambiente TEXT NOT NULL DEFAULT 'PRUEBAS',
+      fecha_creacion TIMESTAMP NOT NULL,
+      fecha_emision TIMESTAMP,
+      fecha_envio TIMESTAMP,
+      fecha_autorizacion TIMESTAMP,
+      empresa_id TEXT,
+      cliente_id TEXT,
+      estado TEXT DEFAULT 'BORRADOR',
+      dte_json TEXT,
+      dte_firmado TEXT,
+      sello_recibido TEXT,
+      codigo_mensaje TEXT,
+      descripcion_mensaje TEXT,
+      observaciones TEXT,
+      pdf_url TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (empresa_id) REFERENCES empresas(id),
+      FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+    );
+
+    -- Tabla de Notas de Crédito
+    CREATE TABLE IF NOT EXISTS documento_nota_credito (
+      id SERIAL PRIMARY KEY,
+      control_number TEXT UNIQUE NOT NULL,
+      tipo_dte TEXT NOT NULL,
+      codigo_generacion TEXT UNIQUE,
+      numero_control TEXT,
+      numero_documento INTEGER,
+      receptor TEXT NOT NULL,
+      total REAL NOT NULL DEFAULT 0,
+      ambiente TEXT NOT NULL DEFAULT 'PRUEBAS',
+      fecha_creacion TIMESTAMP NOT NULL,
+      fecha_emision TIMESTAMP,
+      fecha_envio TIMESTAMP,
+      fecha_autorizacion TIMESTAMP,
+      empresa_id TEXT,
+      cliente_id TEXT,
+      estado TEXT DEFAULT 'BORRADOR',
+      dte_json TEXT,
+      dte_firmado TEXT,
+      sello_recibido TEXT,
+      codigo_mensaje TEXT,
+      descripcion_mensaje TEXT,
+      observaciones TEXT,
+      pdf_url TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (empresa_id) REFERENCES empresas(id),
+      FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+    );
+
+    -- Tabla de Notas de Débito
+    CREATE TABLE IF NOT EXISTS documento_nota_debito (
+      id SERIAL PRIMARY KEY,
+      control_number TEXT UNIQUE NOT NULL,
+      tipo_dte TEXT NOT NULL,
+      codigo_generacion TEXT UNIQUE,
+      numero_control TEXT,
+      numero_documento INTEGER,
+      receptor TEXT NOT NULL,
+      total REAL NOT NULL DEFAULT 0,
+      ambiente TEXT NOT NULL DEFAULT 'PRUEBAS',
+      fecha_creacion TIMESTAMP NOT NULL,
+      fecha_emision TIMESTAMP,
+      fecha_envio TIMESTAMP,
+      fecha_autorizacion TIMESTAMP,
+      empresa_id TEXT,
+      cliente_id TEXT,
+      estado TEXT DEFAULT 'BORRADOR',
+      dte_json TEXT,
+      dte_firmado TEXT,
+      sello_recibido TEXT,
+      codigo_mensaje TEXT,
+      descripcion_mensaje TEXT,
+      observaciones TEXT,
+      pdf_url TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (empresa_id) REFERENCES empresas(id),
+      FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+    );
+
+    -- Tabla de Facturas Sujeto Excluido
+    CREATE TABLE IF NOT EXISTS documento_factura_sujeto_excluido (
+      id SERIAL PRIMARY KEY,
+      control_number TEXT UNIQUE NOT NULL,
+      tipo_dte TEXT NOT NULL,
+      codigo_generacion TEXT UNIQUE,
+      numero_control TEXT,
+      numero_documento INTEGER,
+      receptor TEXT NOT NULL,
+      total REAL NOT NULL DEFAULT 0,
+      ambiente TEXT NOT NULL DEFAULT 'PRUEBAS',
+      fecha_creacion TIMESTAMP NOT NULL,
+      fecha_emision TIMESTAMP,
+      fecha_envio TIMESTAMP,
+      fecha_autorizacion TIMESTAMP,
+      empresa_id TEXT,
+      cliente_id TEXT,
+      estado TEXT DEFAULT 'BORRADOR',
+      dte_json TEXT,
+      dte_firmado TEXT,
+      sello_recibido TEXT,
+      codigo_mensaje TEXT,
+      descripcion_mensaje TEXT,
+      observaciones TEXT,
+      pdf_url TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (empresa_id) REFERENCES empresas(id),
+      FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+    );
+
+    -- Tabla de Facturas de Exportación
+    CREATE TABLE IF NOT EXISTS documento_factura_exportacion (
+      id SERIAL PRIMARY KEY,
+      control_number TEXT UNIQUE NOT NULL,
+      tipo_dte TEXT NOT NULL,
+      codigo_generacion TEXT UNIQUE,
+      numero_control TEXT,
+      numero_documento INTEGER,
+      receptor TEXT NOT NULL,
+      total REAL NOT NULL DEFAULT 0,
+      ambiente TEXT NOT NULL DEFAULT 'PRUEBAS',
+      fecha_creacion TIMESTAMP NOT NULL,
+      fecha_emision TIMESTAMP,
+      fecha_envio TIMESTAMP,
+      fecha_autorizacion TIMESTAMP,
+      empresa_id TEXT,
+      cliente_id TEXT,
+      estado TEXT DEFAULT 'BORRADOR',
+      dte_json TEXT,
+      dte_firmado TEXT,
+      sello_recibido TEXT,
+      codigo_mensaje TEXT,
+      descripcion_mensaje TEXT,
+      observaciones TEXT,
+      pdf_url TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (empresa_id) REFERENCES empresas(id),
+      FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+    );
+
+    -- Tabla de Notas de Remisión
+    CREATE TABLE IF NOT EXISTS documento_nota_remision (
+      id SERIAL PRIMARY KEY,
+      control_number TEXT UNIQUE NOT NULL,
+      tipo_dte TEXT NOT NULL,
+      codigo_generacion TEXT UNIQUE,
+      numero_control TEXT,
+      numero_documento INTEGER,
+      receptor TEXT NOT NULL,
+      total REAL NOT NULL DEFAULT 0,
+      ambiente TEXT NOT NULL DEFAULT 'PRUEBAS',
+      fecha_creacion TIMESTAMP NOT NULL,
+      fecha_emision TIMESTAMP,
+      fecha_envio TIMESTAMP,
+      fecha_autorizacion TIMESTAMP,
+      empresa_id TEXT,
+      cliente_id TEXT,
+      estado TEXT DEFAULT 'BORRADOR',
+      dte_json TEXT,
+      dte_firmado TEXT,
+      sello_recibido TEXT,
+      codigo_mensaje TEXT,
+      descripcion_mensaje TEXT,
+      observaciones TEXT,
+      pdf_url TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (empresa_id) REFERENCES empresas(id),
+      FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+    );
+
+    -- Tabla de Comprobantes de Retención
+    CREATE TABLE IF NOT EXISTS documento_comprobante_retencion (
+      id SERIAL PRIMARY KEY,
+      control_number TEXT UNIQUE NOT NULL,
+      tipo_dte TEXT NOT NULL,
+      codigo_generacion TEXT UNIQUE,
+      numero_control TEXT,
+      numero_documento INTEGER,
+      receptor TEXT NOT NULL,
+      total REAL NOT NULL DEFAULT 0,
+      ambiente TEXT NOT NULL DEFAULT 'PRUEBAS',
+      fecha_creacion TIMESTAMP NOT NULL,
+      fecha_emision TIMESTAMP,
+      fecha_envio TIMESTAMP,
+      fecha_autorizacion TIMESTAMP,
+      empresa_id TEXT,
+      cliente_id TEXT,
+      estado TEXT DEFAULT 'BORRADOR',
+      dte_json TEXT,
+      dte_firmado TEXT,
+      sello_recibido TEXT,
+      codigo_mensaje TEXT,
+      descripcion_mensaje TEXT,
+      observaciones TEXT,
+      pdf_url TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (empresa_id) REFERENCES empresas(id),
+      FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+    );
+
+    -- Tabla de DTEs (mantener para compatibilidad con datos antiguos)
     CREATE TABLE IF NOT EXISTS dtes (
       id SERIAL PRIMARY KEY,
       control_number TEXT UNIQUE NOT NULL,
@@ -207,9 +456,69 @@ async function createTables(client) {
     );
 
     -- Índices para mejorar rendimiento
+    -- Índices para tablas de documentos
+    CREATE INDEX IF NOT EXISTS idx_documento_factura_fecha ON documento_factura(fecha_creacion);
+    CREATE INDEX IF NOT EXISTS idx_documento_factura_control_number ON documento_factura(control_number);
+    CREATE INDEX IF NOT EXISTS idx_documento_factura_numero_documento ON documento_factura(numero_documento);
+    CREATE INDEX IF NOT EXISTS idx_documento_factura_empresa_id ON documento_factura(empresa_id);
+    CREATE INDEX IF NOT EXISTS idx_documento_factura_cliente_id ON documento_factura(cliente_id);
+    CREATE INDEX IF NOT EXISTS idx_documento_factura_estado ON documento_factura(estado);
+
+    CREATE INDEX IF NOT EXISTS idx_documento_credito_fiscal_fecha ON documento_credito_fiscal(fecha_creacion);
+    CREATE INDEX IF NOT EXISTS idx_documento_credito_fiscal_control_number ON documento_credito_fiscal(control_number);
+    CREATE INDEX IF NOT EXISTS idx_documento_credito_fiscal_numero_documento ON documento_credito_fiscal(numero_documento);
+    CREATE INDEX IF NOT EXISTS idx_documento_credito_fiscal_empresa_id ON documento_credito_fiscal(empresa_id);
+    CREATE INDEX IF NOT EXISTS idx_documento_credito_fiscal_cliente_id ON documento_credito_fiscal(cliente_id);
+    CREATE INDEX IF NOT EXISTS idx_documento_credito_fiscal_estado ON documento_credito_fiscal(estado);
+
+    CREATE INDEX IF NOT EXISTS idx_documento_nota_credito_fecha ON documento_nota_credito(fecha_creacion);
+    CREATE INDEX IF NOT EXISTS idx_documento_nota_credito_control_number ON documento_nota_credito(control_number);
+    CREATE INDEX IF NOT EXISTS idx_documento_nota_credito_numero_documento ON documento_nota_credito(numero_documento);
+    CREATE INDEX IF NOT EXISTS idx_documento_nota_credito_empresa_id ON documento_nota_credito(empresa_id);
+    CREATE INDEX IF NOT EXISTS idx_documento_nota_credito_cliente_id ON documento_nota_credito(cliente_id);
+    CREATE INDEX IF NOT EXISTS idx_documento_nota_credito_estado ON documento_nota_credito(estado);
+
+    CREATE INDEX IF NOT EXISTS idx_documento_nota_debito_fecha ON documento_nota_debito(fecha_creacion);
+    CREATE INDEX IF NOT EXISTS idx_documento_nota_debito_control_number ON documento_nota_debito(control_number);
+    CREATE INDEX IF NOT EXISTS idx_documento_nota_debito_numero_documento ON documento_nota_debito(numero_documento);
+    CREATE INDEX IF NOT EXISTS idx_documento_nota_debito_empresa_id ON documento_nota_debito(empresa_id);
+    CREATE INDEX IF NOT EXISTS idx_documento_nota_debito_cliente_id ON documento_nota_debito(cliente_id);
+    CREATE INDEX IF NOT EXISTS idx_documento_nota_debito_estado ON documento_nota_debito(estado);
+
+    CREATE INDEX IF NOT EXISTS idx_documento_factura_sujeto_excluido_fecha ON documento_factura_sujeto_excluido(fecha_creacion);
+    CREATE INDEX IF NOT EXISTS idx_documento_factura_sujeto_excluido_control_number ON documento_factura_sujeto_excluido(control_number);
+    CREATE INDEX IF NOT EXISTS idx_documento_factura_sujeto_excluido_numero_documento ON documento_factura_sujeto_excluido(numero_documento);
+    CREATE INDEX IF NOT EXISTS idx_documento_factura_sujeto_excluido_empresa_id ON documento_factura_sujeto_excluido(empresa_id);
+    CREATE INDEX IF NOT EXISTS idx_documento_factura_sujeto_excluido_cliente_id ON documento_factura_sujeto_excluido(cliente_id);
+    CREATE INDEX IF NOT EXISTS idx_documento_factura_sujeto_excluido_estado ON documento_factura_sujeto_excluido(estado);
+
+    CREATE INDEX IF NOT EXISTS idx_documento_factura_exportacion_fecha ON documento_factura_exportacion(fecha_creacion);
+    CREATE INDEX IF NOT EXISTS idx_documento_factura_exportacion_control_number ON documento_factura_exportacion(control_number);
+    CREATE INDEX IF NOT EXISTS idx_documento_factura_exportacion_numero_documento ON documento_factura_exportacion(numero_documento);
+    CREATE INDEX IF NOT EXISTS idx_documento_factura_exportacion_empresa_id ON documento_factura_exportacion(empresa_id);
+    CREATE INDEX IF NOT EXISTS idx_documento_factura_exportacion_cliente_id ON documento_factura_exportacion(cliente_id);
+    CREATE INDEX IF NOT EXISTS idx_documento_factura_exportacion_estado ON documento_factura_exportacion(estado);
+
+    CREATE INDEX IF NOT EXISTS idx_documento_nota_remision_fecha ON documento_nota_remision(fecha_creacion);
+    CREATE INDEX IF NOT EXISTS idx_documento_nota_remision_control_number ON documento_nota_remision(control_number);
+    CREATE INDEX IF NOT EXISTS idx_documento_nota_remision_numero_documento ON documento_nota_remision(numero_documento);
+    CREATE INDEX IF NOT EXISTS idx_documento_nota_remision_empresa_id ON documento_nota_remision(empresa_id);
+    CREATE INDEX IF NOT EXISTS idx_documento_nota_remision_cliente_id ON documento_nota_remision(cliente_id);
+    CREATE INDEX IF NOT EXISTS idx_documento_nota_remision_estado ON documento_nota_remision(estado);
+
+    CREATE INDEX IF NOT EXISTS idx_documento_comprobante_retencion_fecha ON documento_comprobante_retencion(fecha_creacion);
+    CREATE INDEX IF NOT EXISTS idx_documento_comprobante_retencion_control_number ON documento_comprobante_retencion(control_number);
+    CREATE INDEX IF NOT EXISTS idx_documento_comprobante_retencion_numero_documento ON documento_comprobante_retencion(numero_documento);
+    CREATE INDEX IF NOT EXISTS idx_documento_comprobante_retencion_empresa_id ON documento_comprobante_retencion(empresa_id);
+    CREATE INDEX IF NOT EXISTS idx_documento_comprobante_retencion_cliente_id ON documento_comprobante_retencion(cliente_id);
+    CREATE INDEX IF NOT EXISTS idx_documento_comprobante_retencion_estado ON documento_comprobante_retencion(estado);
+
+    -- Índices para tabla dtes (compatibilidad)
     CREATE INDEX IF NOT EXISTS idx_dtes_fecha ON dtes(fecha_creacion);
     CREATE INDEX IF NOT EXISTS idx_dtes_tipo ON dtes(tipo);
     CREATE INDEX IF NOT EXISTS idx_dtes_control_number ON dtes(control_number);
+
+    -- Índices generales
     CREATE INDEX IF NOT EXISTS idx_clientes_nombre ON clientes(nombre);
     CREATE INDEX IF NOT EXISTS idx_productos_codigo ON productos(codigo);
     CREATE INDEX IF NOT EXISTS idx_user_config_user_id ON user_config(user_id);
