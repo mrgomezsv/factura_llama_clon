@@ -9,7 +9,9 @@
     "test": "ng test",
     "server": "node server/index.js",
     "server:dev": "nodemon server/index.js",
-    "db:create": "node server/create-database.js"
+    "db:create": "node server/create-database.js",
+    "db:migrate": "node server/migrate-to-separate-tables.js",
+    "db:remove-old": "node server/remove-old-tables.js --confirm"
   },
   "private": true,
   "dependencies": {
