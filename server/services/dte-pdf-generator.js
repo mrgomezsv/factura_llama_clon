@@ -109,8 +109,7 @@ class DtePdfGenerator {
    */
   getTipoDteName(tipoDte) {
     const tipoDteNames = {
-      '01': 'FACTURA',
-      '02': 'FACTURA CONSUMIDOR FINAL',
+      '01': 'FACTURA CONSUMIDOR FINAL',  // Corregido según fe-fc-v1.json
       '03': 'CRÉDITO FISCAL',
       '04': 'NOTA DE REMISIÓN',
       '05': 'NOTA DE CRÉDITO',
@@ -326,13 +325,13 @@ class DtePdfGenerator {
     cuerpoDocumento.forEach(item => {
       rows += `
                     <tr class="line_tr">
-                        <td>${item.numeroLinea || ''}</td>
+                        <td>${item.numItem || item.numeroLinea || ''}</td>
                         <td>${parseFloat(item.cantidad || 0).toFixed(2)}</td>
                         <td class="line_uniMedida">${item.uniMedida || 'UNI'}</td>
                         <td class="line_descripcion_td">
                             <span class="line_descripcion">${item.descripcion || ''}</span>
                         </td>
-                        <td class="line_precioUni">${this.formatCurrency(item.precioUnitaro || item.precioUni || 0)}</td>
+                        <td class="line_precioUni">${this.formatCurrency(item.precioUni || 0)}</td>
                         <td class="line_noGravado">${this.formatCurrency(item.noGravado || 0)}</td>
                         <td class="line_montoDescu">${this.formatCurrency(item.montoDescu || 0)}</td>
       `;
@@ -491,7 +490,7 @@ class DtePdfGenerator {
   /**
    * Obtener estilos CSS - Exactamente iguales a super_pos
    */
-  getCssStyles(tipoDte = '02') {
+  getCssStyles(tipoDte = '01') {
     const cssBase = `
         @page {
             size: A4;
