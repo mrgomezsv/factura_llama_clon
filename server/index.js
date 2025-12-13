@@ -261,7 +261,17 @@ app.post('/api/dtes/generar', async (req, res) => {
       retenciones,
       descuentoGlobal,
       ambiente,
-      numeroDocumento: nextNumero
+      items,
+      totales,
+      retenciones,
+      descuentoGlobal,
+      ambiente,
+      numeroDocumento: nextNumero,
+      // Nuevos campos para exportación
+      incoterms: req.body.incoterms,
+      modoTransporte: req.body.modoTransporte,
+      recintoFiscal: req.body.recintoFiscal,
+      regimenAduanero: req.body.regimenAduanero
     });
 
     // Firmar el DTE

@@ -112,7 +112,7 @@ class DteBuilder {
   buildIdentificacion(tipoDte, numeroControl, codigoGeneracion, fechaEmision, ambiente) {
     const version = this.getVersion(tipoDte);
     const tipoDteCodigo = this.mapTipoDte(tipoDte);
-    
+
     return {
       version: version,
       ambiente: ambiente === 'PRODUCCIÓN' ? '01' : '00',
@@ -169,7 +169,7 @@ class DteBuilder {
       const descuento = parseFloat(item.descuento || 0);
       const subtotal = cantidad * precioUnitario;
       const tipoVenta = (item.tipoVenta || 'Gravada').trim();
-      
+
       let ventaGravada = 0;
       let ventaExenta = 0;
       let ventaNoSujeta = 0;
@@ -189,7 +189,7 @@ class DteBuilder {
 
       const itemObj = {
         numItem: index + 1,
-        tipoItem: 1, // Bien
+        tipoItem: item.tipoItem ? parseInt(item.tipoItem) : 1, // 1=Bien, 2=Servicio (Por defecto 1)
         numeroDocumento: null,
         codigo: item.codigo || null,
         codTributo: null,
@@ -370,7 +370,7 @@ class DteBuilder {
     const codigoGeneracion = this.generateUUID();
     const tipoDteCodigo = '01';
     const fechaEmision = new Date();
-    
+
     const codigoEstablecimiento = empresaConfig.codigoMH?.substring(0, 4) || '0001';
     const puntoEmision = empresaConfig.codigoMH?.substring(4, 7) || '001';
     const numeroControl = this.buildControlNumber('FAC', codigoEstablecimiento, puntoEmision, numeroDocumento);
@@ -464,7 +464,7 @@ class DteBuilder {
     const codigoGeneracion = this.generateUUID();
     const tipoDteCodigo = '03';
     const fechaEmision = new Date();
-    
+
     const codigoEstablecimiento = empresaConfig.codigoMH?.substring(0, 4) || '0001';
     const puntoEmision = empresaConfig.codigoMH?.substring(4, 7) || '001';
     const numeroControl = this.buildControlNumber('CCF', codigoEstablecimiento, puntoEmision, numeroDocumento);
@@ -565,7 +565,7 @@ class DteBuilder {
     const codigoGeneracion = this.generateUUID();
     const tipoDteCodigo = '05';
     const fechaEmision = new Date();
-    
+
     const codigoEstablecimiento = empresaConfig.codigoMH?.substring(0, 4) || '0001';
     const puntoEmision = empresaConfig.codigoMH?.substring(4, 7) || '001';
     const numeroControl = this.buildControlNumber('NCR', codigoEstablecimiento, puntoEmision, numeroDocumento);
@@ -658,7 +658,7 @@ class DteBuilder {
     const codigoGeneracion = this.generateUUID();
     const tipoDteCodigo = '06';
     const fechaEmision = new Date();
-    
+
     const codigoEstablecimiento = empresaConfig.codigoMH?.substring(0, 4) || '0001';
     const puntoEmision = empresaConfig.codigoMH?.substring(4, 7) || '001';
     const numeroControl = this.buildControlNumber('NDB', codigoEstablecimiento, puntoEmision, numeroDocumento);
@@ -752,7 +752,7 @@ class DteBuilder {
     const codigoGeneracion = this.generateUUID();
     const tipoDteCodigo = '04';
     const fechaEmision = new Date();
-    
+
     const codigoEstablecimiento = empresaConfig.codigoMH?.substring(0, 4) || '0001';
     const puntoEmision = empresaConfig.codigoMH?.substring(4, 7) || '001';
     const numeroControl = this.buildControlNumber('REM', codigoEstablecimiento, puntoEmision, numeroDocumento);
@@ -838,7 +838,7 @@ class DteBuilder {
     const codigoGeneracion = this.generateUUID();
     const tipoDteCodigo = '14';
     const fechaEmision = new Date();
-    
+
     const codigoEstablecimiento = empresaConfig.codigoMH?.substring(0, 4) || '0001';
     const puntoEmision = empresaConfig.codigoMH?.substring(4, 7) || '001';
     const numeroControl = this.buildControlNumber('FSE', codigoEstablecimiento, puntoEmision, numeroDocumento);
@@ -935,7 +935,7 @@ class DteBuilder {
     const codigoGeneracion = this.generateUUID();
     const tipoDteCodigo = '11';
     const fechaEmision = new Date();
-    
+
     const codigoEstablecimiento = empresaConfig.codigoMH?.substring(0, 4) || '0001';
     const puntoEmision = empresaConfig.codigoMH?.substring(4, 7) || '001';
     const numeroControl = this.buildControlNumber('FEX', codigoEstablecimiento, puntoEmision, numeroDocumento);
@@ -972,13 +972,27 @@ class DteBuilder {
     emisor.codPuntoVentaMH = null;
     emisor.codPuntoVenta = puntoEmision || null;
     emisor.tipoItemExpor = 1; // Por defecto
-    emisor.recintoFiscal = null;
-    emisor.regimen = null;
+    emisor.recintoFiscal = data.recintoFiscal || null;
+    emisor.regimen = data.regimenAduanero || null;
+
+    // Construir otrosDocumentos para Transporte si existe modoTransporte
+    let otrosDocumentos = null;
+    if (data.modoTransporte) {
+      otrosDocumentos = [{
+        codDocAsociado: 4, // 4 = Transporte de Carga conforme al catálogo
+        descDocumento: 'TRANSPORTE DE CARGA',
+        detalleDocumento: 'TRANSPORTE INTERNACIONAL', // Detalle obligatorio 
+        modoTransp: parseInt(data.modoTransporte),
+        placaTrans: 'PENDIENTE', // Requerido por esquema, pendiente en UI
+        numConductor: 'PENDIENTE', // Requerido por esquema, pendiente en UI
+        nombreConductor: 'PENDIENTE' // Requerido por esquema, pendiente en UI
+      }];
+    }
 
     const dteJson = {
       identificacion: {
         ...this.buildIdentificacion('FEX', numeroControl, codigoGeneracion, fechaEmision, ambiente),
-        motivoContigencia: null // Nota: typo en el esquema original
+        motivoContigencia: null
       },
       emisor: emisor,
       receptor: {
@@ -994,7 +1008,7 @@ class DteBuilder {
         telefono: cliente.telefono || null,
         correo: cliente.correo || cliente.correoElectronico || null
       },
-      otrosDocumentos: null,
+      otrosDocumentos: otrosDocumentos,
       ventaTercero: null,
       cuerpoDocumento: cuerpoDocumento,
       resumen: {
@@ -1008,8 +1022,8 @@ class DteBuilder {
         totalLetras: null,
         condicionOperacion: 1,
         pagos: null,
-        codIncoterms: cliente.codIncoterms || null,
-        descIncoterms: cliente.descIncoterms || null,
+        codIncoterms: data.incoterms || null,
+        descIncoterms: data.incoterms ? 'INCOTERMS ' + data.incoterms : null,
         observaciones: null,
         flete: null,
         numPagoElectronico: null,
@@ -1042,7 +1056,7 @@ class DteBuilder {
     const codigoGeneracion = this.generateUUID();
     const tipoDteCodigo = '07';
     const fechaEmision = new Date();
-    
+
     const codigoEstablecimiento = empresaConfig.codigoMH?.substring(0, 4) || '0001';
     const puntoEmision = empresaConfig.codigoMH?.substring(4, 7) || '001';
     const numeroControl = this.buildControlNumber('CRT', codigoEstablecimiento, puntoEmision, numeroDocumento);
