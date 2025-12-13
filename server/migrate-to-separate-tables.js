@@ -129,6 +129,32 @@ async function createSeparateTables(client) {
 }
 
 /**
+ * Mapea códigos antiguos de tipo_dte a los nuevos según los esquemas JSON
+ * Convierte '02' (antiguo código de FAC) a '01' (nuevo código según fe-fc-v1.json)
+ */
+function mapTipoDteCodigo(tipoDteCodigo, tipoInterno) {
+  // Si el código es '02' y el tipo interno es 'FAC', convertir a '01'
+  if (tipoDteCodigo === '02' && tipoInterno === 'FAC') {
+    return '01';
+  }
+  // Si no hay código pero hay tipo interno, mapear según TIPO_DTE_MAP
+  if (!tipoDteCodigo && tipoInterno) {
+    const TIPO_DTE_MAP = {
+      'FAC': '01',
+      'CCF': '03',
+      'REM': '04',
+      'NCR': '05',
+      'NDB': '06',
+      'CRT': '07',
+      'FEX': '11',
+      'FSE': '14'
+    };
+    return TIPO_DTE_MAP[tipoInterno] || tipoDteCodigo;
+  }
+  return tipoDteCodigo;
+}
+
+/**
  * Migra los datos existentes de la tabla dtes a las nuevas tablas
  */
 async function migrateExistingData(client) {
@@ -184,6 +210,26 @@ async function migrateExistingData(client) {
         continue;
       }
 
+      // Mapear tipo_dte: convertir códigos antiguos a nuevos
+      let tipoDteCodigo = row.tipo_dte;
+      if (!tipoDteCodigo) {
+        // Si no hay tipo_dte, mapear desde tipo interno
+        const TIPO_DTE_MAP = {
+          'FAC': '01',
+          'CCF': '03',
+          'REM': '04',
+          'NCR': '05',
+          'NDB': '06',
+          'CRT': '07',
+          'FEX': '11',
+          'FSE': '14'
+        };
+        tipoDteCodigo = TIPO_DTE_MAP[tipo] || null;
+      } else {
+        // Si hay tipo_dte, verificar si necesita corrección (convertir '02' a '01' para FAC)
+        tipoDteCodigo = mapTipoDteCodigo(tipoDteCodigo, tipo);
+      }
+
       // Insertar en la tabla correspondiente
       await client.query(`
         INSERT INTO ${tablaDestino} (
@@ -194,7 +240,7 @@ async function migrateExistingData(client) {
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
       `, [
         row.control_number,
-        row.tipo_dte || row.tipo,
+        tipoDteCodigo,
         row.codigo_generacion,
         row.numero_control,
         row.numero_documento,
