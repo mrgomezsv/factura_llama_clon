@@ -22,18 +22,23 @@ class DteApiService {
      * Autenticación con MH para obtener token
      * @returns {Promise<string>} Token de acceso (Bearer)
      */
-    async login() {
+    async login(config = {}) {
         try {
             console.log('🔐 Iniciando autenticación con MH...');
 
-            if (!this.user || !this.pwd) {
+            // Prioridad: config > this.credenciales > variables de entorno
+            const user = config.user || this.user;
+            const pwd = config.pwd || this.pwd;
+            const nit = config.nit || this.nit || (user ? user.substr(0, 14) : null);
+
+            if (!user || !pwd) {
                 throw new Error('Credenciales MH no configuradas (MH_USER, MH_PWD)');
             }
 
             const data = querystring.stringify({
-                user: this.user,
-                pwd: this.pwd,
-                nit: this.nit || this.user.substr(0, 14) // Fallback si el user es el NIT
+                user: user,
+                pwd: pwd,
+                nit: nit
             });
 
             const response = await axios.post(
@@ -67,10 +72,10 @@ class DteApiService {
      * @param {Object} dteSignedJson - JSON del DTE ya firmado
      * @param {string} token - Token de autenticación (opcional, si no se pasa se intenta login)
      */
-    async enviarDte(dteSignedJson, token = null) {
+    async enviarDte(dteSignedJson, token = null, config = {}) {
         try {
             if (!token) {
-                token = await this.login();
+                token = await this.login(config);
             }
 
             // Estructura requerida por MH:
