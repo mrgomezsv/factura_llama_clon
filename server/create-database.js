@@ -527,7 +527,7 @@ async function createTables(client) {
 
   await client.query(schema);
   console.log('✅ Tablas creadas exitosamente');
-  
+
   // Migraciones: Agregar campos si no existen
   const migrations = [
     {
@@ -604,6 +604,42 @@ async function createTables(client) {
       table: 'dtes',
       column: 'pdf_url',
       type: 'TEXT'
+    },
+    // Nuevas columnas para Catálogos 023-029 (Factura de Exportación y otros)
+    {
+      table: 'documento_factura_exportacion',
+      column: 'incoterms', // CAT-024
+      type: 'TEXT'
+    },
+    {
+      table: 'documento_factura_exportacion',
+      column: 'modo_transporte', // CAT-023
+      type: 'TEXT'
+    },
+    {
+      table: 'documento_factura_exportacion',
+      column: 'recinto_fiscal', // CAT-025
+      type: 'TEXT'
+    },
+    {
+      table: 'documento_factura_exportacion',
+      column: 'regimen_aduanero', // CAT-026
+      type: 'TEXT'
+    },
+    {
+      table: 'clientes',
+      column: 'tipo_persona', // CAT-027
+      type: 'TEXT'
+    },
+    {
+      table: 'documento_factura',
+      column: 'tipo_servicio_medico', // CAT-028 (Si aplica)
+      type: 'TEXT'
+    },
+    {
+      table: 'sucursales',
+      column: 'ubicacion', // CAT-029 (Física/Virtual)
+      type: 'TEXT'
     }
   ];
 
@@ -629,7 +665,7 @@ async function createTables(client) {
       }
     }
   }
-  
+
   // Agregar índice único para codigo_generacion si no existe
   try {
     await client.query(`
@@ -638,7 +674,7 @@ async function createTables(client) {
   } catch (error) {
     // Ignorar si ya existe
   }
-  
+
   console.log('✅ Migraciones completadas');
 
   // Insertar datos iniciales necesarios
