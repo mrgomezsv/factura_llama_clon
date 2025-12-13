@@ -1,7 +1,7 @@
 const { Client } = require('pg');
 require('dotenv').config();
 
-const dbName = process.env.DB_NAME || 'factura_llama_clon_db';
+const dbName = process.env.DB_NAME || 'wavepos_dte_v2_db';
 
 /**
  * Script de migración para crear tablas separadas por tipo de documento

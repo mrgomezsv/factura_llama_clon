@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "factura-llama-clon": {
+    "wavepos-dte-v2": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -21,7 +21,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/factura-llama-clon",
+            "outputPath": "dist/wavepos-dte-v2",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
@@ -68,10 +68,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "factura-llama-clon:build:production"
+              "buildTarget": "wavepos-dte-v2:build:production"
             },
             "development": {
-              "buildTarget": "factura-llama-clon:build:development"
+              "buildTarget": "wavepos-dte-v2:build:development"
             }
           },
           "defaultConfiguration": "development"

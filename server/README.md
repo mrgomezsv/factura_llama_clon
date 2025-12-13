@@ -14,7 +14,7 @@ Este servidor backend proporciona una API REST para conectarse a PostgreSQL desd
 ```
 DB_HOST=localhost
 DB_PORT=5432
-DB_NAME=factura_llama_clon_db
+DB_NAME=wavepos_dte_v2_db
 DB_USER=mrgomez
 DB_PASSWORD=Karin2100
 PORT=3000

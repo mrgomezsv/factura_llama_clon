@@ -4,7 +4,7 @@ require('dotenv').config();
 const dbConfig = {
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 5432,
-    database: process.env.DB_NAME || 'factura_llama_clon_db',
+    database: process.env.DB_NAME || 'wavepos_dte_v2_db',
     user: process.env.DB_USER || 'mrgomez',
     password: process.env.DB_PASSWORD || 'Karin2100',
 };
