@@ -231,6 +231,7 @@ app.post('/api/dtes/generar', async (req, res) => {
       : 1;
 
     // Construir JSON del DTE (tipoDteCodigo ya fue calculado arriba)
+    const fechaEmision = new Date();
     const { dteJson, codigoGeneracion, numeroControl } = dteBuilder.buildDteJson({
       tipoDte,
       empresaConfig: {
@@ -320,41 +321,35 @@ app.post('/api/dtes/generar', async (req, res) => {
 
     const estadoFinal = mhResponse.success ? 'PROCESADO' : (mhResponse.estado || 'RECHAZADO');
 
-    const insertResult = await pool.query(
-      `INSERT INTO ${tableName} (
-          control_number, tipo_dte, codigo_generacion, numero_control, numero_documento,
-          receptor, total, ambiente, fecha_creacion, fecha_emision,
-          empresa_id, cliente_id, estado, dte_json, dte_firmado,
-          incoterms, modo_transporte, recinto_fiscal, regimen_aduanero,
-          sello_recibido, codigo_mensaje, descripcion_mensaje, observaciones
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
-        RETURNING id`,
-      [
-        numeroControl,
-        tipoDteCodigo,
-        codigoGeneracion,
-        numeroControl,
-        nextNumero,
-        cliente.nombre,
-        totales.totalPagar || totales.montoTotalOperacion || 0,
-        ambiente,
-        fechaEmision,
-        fechaEmision,
-        empresaId,
-        clienteId || null,
-        estadoFinal, // Usar estado real de MH
-        JSON.stringify(dteJson),
-        JSON.stringify(dteFirmado),
-        incoterms || null,
-        modoTransporte || null,
-        recintoFiscal || null,
-        regimenAduanero || null,
-        mhResponse.selloRecibido || null,
-        mhResponse.codigoMensaje || null,
-        mhResponse.descripcionMensaje || null,
-        JSON.stringify(mhResponse.observaciones || [])
-      ]
-    );
+    // Construir query de inserción dinámica según el tipo de DTE
+    const columns = [
+      'control_number', 'tipo_dte', 'codigo_generacion', 'numero_control', 'numero_documento',
+      'receptor', 'total', 'ambiente', 'fecha_creacion', 'fecha_emision',
+      'empresa_id', 'cliente_id', 'estado', 'dte_json', 'dte_firmado',
+      'sello_recibido', 'codigo_mensaje', 'descripcion_mensaje', 'observaciones'
+    ];
+
+    const values = [
+      numeroControl, tipoDteCodigo, codigoGeneracion, numeroControl, nextNumero,
+      cliente.nombre, totales.totalPagar || totales.montoTotalOperacion || 0, ambiente, fechaEmision, fechaEmision,
+      empresaId, clienteId || null, estadoFinal, JSON.stringify(dteJson), JSON.stringify(dteFirmado),
+      mhResponse.selloRecibido || null, mhResponse.codigoMensaje || null, mhResponse.descripcionMensaje || null, JSON.stringify(mhResponse.observaciones || [])
+    ];
+
+    // Agregar campos específicos para Exportación (FEX)
+    if (tipoDte === 'FEX') {
+      columns.push('incoterms', 'modo_transporte', 'recinto_fiscal', 'regimen_aduanero');
+      values.push(incoterms || null, modoTransporte || null, recintoFiscal || null, regimenAduanero || null);
+    }
+
+    const placeholders = values.map((_, i) => `$${i + 1}`).join(', ');
+    const insertQuery = `
+      INSERT INTO ${tableName} (${columns.join(', ')})
+      VALUES (${placeholders})
+      RETURNING id
+    `;
+
+    const insertResult = await pool.query(insertQuery, values);
 
     const dteId = insertResult.rows[0].id;
 
