@@ -77,8 +77,8 @@ async function runSimulation() {
         console.log('📦 Payload:', JSON.stringify(salePayload, null, 2));
 
         // 4. Llamar a la API
-        // Asumimos que el servidor corre en http://localhost:3001 (Instancia de prueba)
-        const apiUrl = 'http://localhost:3001/api/dtes/generar';
+        // Asumimos que el servidor corre en http://localhost:3000
+        const apiUrl = 'http://localhost:3000/api/dtes/generar';
 
         // Nota: axios lanza error en status != 2xx
         const start = Date.now();
