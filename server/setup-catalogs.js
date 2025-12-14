@@ -599,7 +599,7 @@ async function setupCatalogs() {
                     ['23940', 'Fabricación de cemento, cal y yeso'],
                     ['23950', 'Fabricación de artículos de hormigón, cemento y yeso'],
                     ['23960', 'Corte, tallado y acabado de la piedra'],
-                    ['23990', 'Fabricación de productos minerales no metálicos n.c.p.']
+                    ['23990', 'Fabricación de productos minerales no metálicos n.c.p.'],
 
                     // 24 - FABRICACIÓN DE METALES COMUNES
                     ['24100', 'Industrias básicas de hierro y acero'],
@@ -697,7 +697,7 @@ async function setupCatalogs() {
                     ['32904', 'Fabricación de artículos de uso personal y domésticos n.c.p.'],
                     ['32905', 'Fabricación de accesorios para las confecciones y la marroquinería n.c.p.'],
                     ['32908', 'Servicios de maquila n.c.p.'],
-                    ['32909', 'Fabricación de productos manufacturados n.c.p.']
+                    ['32909', 'Fabricación de productos manufacturados n.c.p.'],
 
                     // 33 - REPARACIÓN E INSTALACIÓN DE MAQUINARIA Y EQUIPO
                     ['33110', 'Reparación y mantenimiento de productos elaborados de metal'],
@@ -765,7 +765,7 @@ async function setupCatalogs() {
                     ['45302', 'Venta de partes, piezas y accesorios usados para vehículos automotores'],
                     ['45401', 'Venta de motocicletas'],
                     ['45402', 'Venta de repuestos, piezas y accesorios de motocicletas'],
-                    ['45403', 'Mantenimiento y reparación de motocicletas']
+                    ['45403', 'Mantenimiento y reparación de motocicletas'],
 
                     // 46 - COMERCIO AL POR MAYOR, EXCEPTO VEHÍCULOS AUTOMOTORES Y MOTOCICLETAS (Parte 1) ---
                     ['46100', 'Venta al por mayor a cambio de retribución o por contrata'],
@@ -854,7 +854,7 @@ async function setupCatalogs() {
                     ['46691', 'Venta al por mayor de sal industrial sin yodar'],
                     ['46692', 'Venta al por mayor de productos intermedios y desechos de origen textil'],
                     ['46693', 'Venta al por mayor de productos intermedios y desechos de origen metálico'],
-                    ['46694', 'Venta al por mayor de productos intermedios y desechos de papel y cartón']
+                    ['46694', 'Venta al por mayor de productos intermedios y desechos de papel y cartón'],
 
                     // COMERCIO AL POR MAYOR, EXCEPTO VEHÍCULOS AUTOMOTORES Y MOTOCICLETAS (Parte 2) ---
                     ['46695', 'Venta al por mayor fertilizantes, abonos, agroquímicos y productos similares'],
@@ -1032,7 +1032,7 @@ async function setupCatalogs() {
                     ['58120', 'Edición de directorios y listas de correos'],
                     ['58130', 'Edición de periódicos, revistas y otras publicaciones periódicas'],
                     ['58190', 'Otras actividades de edición'],
-                    ['58200', 'Edición de programas informáticos (software)']
+                    ['58200', 'Edición de programas informáticos (software)'],
 
                     // 59- PRODUCCIÓN AUDIOVISUAL, SONIDO Y MÚSICA
                     ['59110', 'Actividades de producción cinematográfica'],
