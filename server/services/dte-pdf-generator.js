@@ -10,147 +10,147 @@ const path = require('path');
 const fs = require('fs').promises;
 
 class DtePdfGenerator {
-  constructor() {
-    this.qrUrlTest = process.env.DTE_QR_URL_TEST || 'https://test7.mh.gob.sv/ssc/consulta/fe/';
-    this.qrUrlProd = process.env.DTE_QR_URL_PROD || 'https://portaldgii.mh.gob.sv/ssc/consulta/fe/';
-    this.dteEnvironment = process.env.DTE_ENVIRONMENT || 'TEST';
-  }
-
-  /**
-   * Generar código QR para el DTE
-   */
-  async generateQrCode(codigoGeneracion) {
-    try {
-      const qrUrl = this.dteEnvironment === 'PROD' ? this.qrUrlProd : this.qrUrlTest;
-      const qrData = `${qrUrl}${codigoGeneracion}`;
-      
-      // Generar QR como data URI
-      const qrDataUri = await qrcode.toDataURL(qrData, {
-        errorCorrectionLevel: 'L',
-        type: 'image/png',
-        width: 200
-      });
-      
-      return qrDataUri;
-    } catch (error) {
-      console.error('Error al generar QR:', error);
-      return null;
-    }
-  }
-
-  /**
-   * Obtener contenido del logo en base64 (similar a super_pos)
-   */
-  async getLogoContent(logoUrl) {
-    if (!logoUrl) {
-      return '';
+    constructor() {
+        this.qrUrlTest = process.env.DTE_QR_URL_TEST || 'https://test7.mh.gob.sv/ssc/consulta/fe/';
+        this.qrUrlProd = process.env.DTE_QR_URL_PROD || 'https://portaldgii.mh.gob.sv/ssc/consulta/fe/';
+        this.dteEnvironment = process.env.DTE_ENVIRONMENT || 'TEST';
     }
 
-    try {
-      // Si es una URL completa (http/https), usarla directamente
-      if (logoUrl.startsWith('http://') || logoUrl.startsWith('https://') || logoUrl.startsWith('data:')) {
-        return logoUrl;
-      }
+    /**
+     * Generar código QR para el DTE
+     */
+    async generateQrCode(codigoGeneracion) {
+        try {
+            const qrUrl = this.dteEnvironment === 'PROD' ? this.qrUrlProd : this.qrUrlTest;
+            const qrData = `${qrUrl}${codigoGeneracion}`;
 
-      // Si es un path local, convertir a base64
-      const cleanPath = logoUrl.replace(/^\//, ''); // Remover slash inicial
-      const logoPath = path.resolve(cleanPath);
+            // Generar QR como data URI
+            const qrDataUri = await qrcode.toDataURL(qrData, {
+                errorCorrectionLevel: 'L',
+                type: 'image/png',
+                width: 200
+            });
 
-      // Verificar si el archivo existe
-      try {
-        await fs.access(logoPath);
-      } catch {
-        console.warn(`Logo no encontrado en ruta: ${logoPath}`);
-        return '';
-      }
-
-      // Leer archivo y convertir a base64
-      const fileBuffer = await fs.readFile(logoPath);
-      const base64String = fileBuffer.toString('base64');
-
-      // Determinar mime type
-      let mimeType = 'image/png';
-      if (logoUrl.toLowerCase().endsWith('.jpg') || logoUrl.toLowerCase().endsWith('.jpeg')) {
-        mimeType = 'image/jpeg';
-      } else if (logoUrl.toLowerCase().endsWith('.gif')) {
-        mimeType = 'image/gif';
-      }
-
-      return `data:${mimeType};base64,${base64String}`;
-    } catch (error) {
-      console.error('Error al leer logo:', error);
-      return '';
+            return qrDataUri;
+        } catch (error) {
+            console.error('Error al generar QR:', error);
+            return null;
+        }
     }
-  }
 
-  /**
-   * Formatear moneda
-   */
-  formatCurrency(amount) {
-    return `$${parseFloat(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
-  }
+    /**
+     * Obtener contenido del logo en base64 (similar a super_pos)
+     */
+    async getLogoContent(logoUrl) {
+        if (!logoUrl) {
+            return '';
+        }
 
-  /**
-   * Formatear fecha
-   */
-  formatDate(date) {
-    const d = new Date(date);
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    const hours = String(d.getHours()).padStart(2, '0');
-    const minutes = String(d.getMinutes()).padStart(2, '0');
-    const seconds = String(d.getSeconds()).padStart(2, '0');
-    return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
-  }
+        try {
+            // Si es una URL completa (http/https), usarla directamente
+            if (logoUrl.startsWith('http://') || logoUrl.startsWith('https://') || logoUrl.startsWith('data:')) {
+                return logoUrl;
+            }
 
-  /**
-   * Mapear tipo de DTE a nombre
-   */
-  getTipoDteName(tipoDte) {
-    const tipoDteNames = {
-      '01': 'FACTURA CONSUMIDOR FINAL',  // Corregido según fe-fc-v1.json
-      '03': 'CRÉDITO FISCAL',
-      '04': 'NOTA DE REMISIÓN',
-      '05': 'NOTA DE CRÉDITO',
-      '06': 'NOTA DE DÉBITO',
-      '07': 'COMPROBANTE DE RETENCIÓN',
-      '08': 'COMPROBANTE DE LIQUIDACIÓN',
-      '11': 'FACTURA DE EXPORTACIÓN',
-      '14': 'FACTURA DE SUJETO EXCLUIDO',
-      '15': 'COMPROBANTE DE DONACIÓN',
-    };
-    return tipoDteNames[tipoDte] || 'DOCUMENTO TRIBUTARIO';
-  }
+            // Si es un path local, convertir a base64
+            const cleanPath = logoUrl.replace(/^\//, ''); // Remover slash inicial
+            const logoPath = path.resolve(cleanPath);
 
-  /**
-   * Construir HTML del PDF
-   */
-  async buildHtmlTemplate(dteData, dteJson) {
-    const { dte, empresaConfig } = dteData;
-    const identificacion = dteJson.identificacion || {};
-    const receptor = dteJson.receptor || {};
-    const cuerpoDocumento = dteJson.cuerpoDocumento || [];
-    const resumen = dteJson.resumen || {};
+            // Verificar si el archivo existe
+            try {
+                await fs.access(logoPath);
+            } catch {
+                console.warn(`Logo no encontrado en ruta: ${logoPath}`);
+                return '';
+            }
 
-    // Generar QR
-    const qrImage = dte.qrImage || '';
+            // Leer archivo y convertir a base64
+            const fileBuffer = await fs.readFile(logoPath);
+            const base64String = fileBuffer.toString('base64');
 
-    const tipoDteName = this.getTipoDteName(dte.tipoDte || identificacion.tipoDte);
+            // Determinar mime type
+            let mimeType = 'image/png';
+            if (logoUrl.toLowerCase().endsWith('.jpg') || logoUrl.toLowerCase().endsWith('.jpeg')) {
+                mimeType = 'image/jpeg';
+            } else if (logoUrl.toLowerCase().endsWith('.gif')) {
+                mimeType = 'image/gif';
+            }
 
-    // Construir dirección completa
-    const direccionCompleta = empresaConfig.direccion || '';
+            return `data:${mimeType};base64,${base64String}`;
+        } catch (error) {
+            console.error('Error al leer logo:', error);
+            return '';
+        }
+    }
 
-    // Obtener logo en base64 si es necesario
-    const logoContent = await this.getLogoContent(empresaConfig.logoUrl);
+    /**
+     * Formatear moneda
+     */
+    formatCurrency(amount) {
+        return `$${parseFloat(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+    }
 
-    // Construir tabla de items
-    const itemsTable = this.buildItemsTable(cuerpoDocumento, dte.tipoDte || identificacion.tipoDte, resumen);
+    /**
+     * Formatear fecha
+     */
+    formatDate(date) {
+        const d = new Date(date);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        const hours = String(d.getHours()).padStart(2, '0');
+        const minutes = String(d.getMinutes()).padStart(2, '0');
+        const seconds = String(d.getSeconds()).padStart(2, '0');
+        return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+    }
 
-    // Construir resumen financiero
-    const financialSummary = this.buildFinancialSummary(resumen);
+    /**
+     * Mapear tipo de DTE a nombre
+     */
+    getTipoDteName(tipoDte) {
+        const tipoDteNames = {
+            '01': 'FACTURA CONSUMIDOR FINAL',  // Corregido según fe-fc-v1.json
+            '03': 'CRÉDITO FISCAL',
+            '04': 'NOTA DE REMISIÓN',
+            '05': 'NOTA DE CRÉDITO',
+            '06': 'NOTA DE DÉBITO',
+            '07': 'COMPROBANTE DE RETENCIÓN',
+            '08': 'COMPROBANTE DE LIQUIDACIÓN',
+            '11': 'FACTURA DE EXPORTACIÓN',
+            '14': 'FACTURA DE SUJETO EXCLUIDO',
+            '15': 'COMPROBANTE DE DONACIÓN',
+        };
+        return tipoDteNames[tipoDte] || 'DOCUMENTO TRIBUTARIO';
+    }
 
-    const html = `
+    /**
+     * Construir HTML del PDF
+     */
+    async buildHtmlTemplate(dteData, dteJson) {
+        const { dte, empresaConfig } = dteData;
+        const identificacion = dteJson.identificacion || {};
+        const receptor = dteJson.receptor || {};
+        const cuerpoDocumento = dteJson.cuerpoDocumento || [];
+        const resumen = dteJson.resumen || {};
+
+        // Generar QR
+        const qrImage = dte.qrImage || '';
+
+        const tipoDteName = this.getTipoDteName(dte.tipoDte || identificacion.tipoDte);
+
+        // Construir dirección completa
+        const direccionCompleta = empresaConfig.direccion || '';
+
+        // Obtener logo en base64 si es necesario
+        const logoContent = await this.getLogoContent(empresaConfig.logoUrl);
+
+        // Construir tabla de items
+        const itemsTable = this.buildItemsTable(cuerpoDocumento, dte.tipoDte || identificacion.tipoDte, resumen);
+
+        // Construir resumen financiero
+        const financialSummary = this.buildFinancialSummary(resumen);
+
+        const html = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -284,21 +284,21 @@ class DtePdfGenerator {
         </div>
         
         <p id="emi_filler">
-            DTE generado por Factura Llama Clon - Sistema de Facturación Electrónica
+            DTE generado por WavePos DTE-v2 - Sistema de Facturación Electrónica
         </p>
     </div>
 </body>
 </html>
     `;
 
-    return html;
-  }
+        return html;
+    }
 
-  /**
-   * Construir tabla de items
-   */
-  buildItemsTable(cuerpoDocumento, tipoDte, resumen) {
-    let headers = `
+    /**
+     * Construir tabla de items
+     */
+    buildItemsTable(cuerpoDocumento, tipoDte, resumen) {
+        let headers = `
                     <tr>
                         <th>N°</th>
                         <th>Cant</th>
@@ -309,21 +309,21 @@ class DtePdfGenerator {
                         <th>Descuento por item</th>
     `;
 
-    if (!['11', '14'].includes(tipoDte)) {
-      headers += `
+        if (!['11', '14'].includes(tipoDte)) {
+            headers += `
                         <th>Ventas No Sujetas</th>
                         <th>Ventas Exentas</th>
       `;
-    }
+        }
 
-    headers += `
+        headers += `
                         <th>Ventas Gravadas</th>
                     </tr>
     `;
 
-    let rows = '';
-    cuerpoDocumento.forEach(item => {
-      rows += `
+        let rows = '';
+        cuerpoDocumento.forEach(item => {
+            rows += `
                     <tr class="line_tr">
                         <td>${item.numItem || item.numeroLinea || ''}</td>
                         <td>${parseFloat(item.cantidad || 0).toFixed(2)}</td>
@@ -336,23 +336,23 @@ class DtePdfGenerator {
                         <td class="line_montoDescu">${this.formatCurrency(item.montoDescu || 0)}</td>
       `;
 
-      if (!['11', '14'].includes(tipoDte)) {
-        rows += `
+            if (!['11', '14'].includes(tipoDte)) {
+                rows += `
                         <td class="line_ventaNoSuj">${this.formatCurrency(item.ventaNoSuj || 0)}</td>
                         <td class="line_ventaExenta">${this.formatCurrency(item.ventaExenta || 0)}</td>
         `;
-      }
+            }
 
-      rows += `
+            rows += `
                         <td class="line_taxed_field_selector">${this.formatCurrency(item.ventaGravada || 0)}</td>
                     </tr>
       `;
-    });
+        });
 
-    // Totales
-    const totals = this.buildTotalsFooter(resumen, tipoDte);
+        // Totales
+        const totals = this.buildTotalsFooter(resumen, tipoDte);
 
-    return `
+        return `
         <table class="lines_cont inv_format_tr">
             <thead class="head_tr">
                 ${headers}
@@ -365,23 +365,23 @@ class DtePdfGenerator {
             </tfoot>
         </table>
     `;
-  }
+    }
 
-  /**
-   * Construir footer con totales
-   */
-  buildTotalsFooter(resumen, tipoDte) {
-    // Calcular número de columnas según tipo de DTE
-    const numCols = ['11', '14'].includes(tipoDte) ? 8 : 10;
-    
-    let html = `
+    /**
+     * Construir footer con totales
+     */
+    buildTotalsFooter(resumen, tipoDte) {
+        // Calcular número de columnas según tipo de DTE
+        const numCols = ['11', '14'].includes(tipoDte) ? 8 : 10;
+
+        let html = `
                 <tr class="spacer-row">
                     <td colspan="${numCols}" style="border: none; padding: 0; height: 300px; background: transparent;"></td>
                 </tr>
     `;
 
-    if (resumen.totalNoSuj > 0 || resumen.totalExenta > 0 || resumen.totalGravada > 0) {
-      html += `
+        if (resumen.totalNoSuj > 0 || resumen.totalExenta > 0 || resumen.totalGravada > 0) {
+            html += `
                 <tr class="sum_tr sum_line">
                     <td class="non_border_cell"></td>
                     <td class="non_border_cell"></td>
@@ -389,56 +389,56 @@ class DtePdfGenerator {
                     <td class="non_border_cell"></td>
                     <td colspan="2" class="left_sum_line">SUMA DE VENTAS:</td>
       `;
-      
-      if (!['11', '14'].includes(tipoDte)) {
-        html += `
+
+            if (!['11', '14'].includes(tipoDte)) {
+                html += `
                     <td class="amt_sum_line">${this.formatCurrency(resumen.totalNoSuj || 0)}</td>
                     <td class="amt_sum_line">${this.formatCurrency(resumen.totalExenta || 0)}</td>
         `;
-      }
-      
-      html += `
+            }
+
+            html += `
                     <td class="amt_sum_line">${this.formatCurrency(resumen.totalGravada || 0)}</td>
                 </tr>
       `;
-    }
+        }
 
-    if (resumen.ivaRete1 > 0) {
-      const colspan = ['11', '14'].includes(tipoDte) ? 6 : 7;
-      html += `
+        if (resumen.ivaRete1 > 0) {
+            const colspan = ['11', '14'].includes(tipoDte) ? 6 : 7;
+            html += `
                 <tr class="total_tr">
                     <td colspan="${colspan}" class="left_sum_line">IVA Retenido:</td>
                     <td class="amt_sum_line">${this.formatCurrency(resumen.ivaRete1 || 0)}</td>
                 </tr>
       `;
-    }
+        }
 
-    if (resumen.reteRenta > 0) {
-      const colspan = ['11', '14'].includes(tipoDte) ? 6 : 7;
-      html += `
+        if (resumen.reteRenta > 0) {
+            const colspan = ['11', '14'].includes(tipoDte) ? 6 : 7;
+            html += `
                 <tr class="total_tr">
                     <td colspan="${colspan}" class="left_sum_line">Retención de Renta:</td>
                     <td class="amt_sum_line">${this.formatCurrency(resumen.reteRenta || 0)}</td>
                 </tr>
       `;
-    }
+        }
 
-    html += `
+        html += `
                 <tr class="total_tr">
                     <td colspan="${numCols}" style="border: none; padding: 2px; height: 5px;"></td>
                 </tr>
     `;
 
-    return html;
-  }
+        return html;
+    }
 
-  /**
-   * Construir resumen financiero
-   */
-  buildFinancialSummary(resumen) {
-    const totalVentas = (resumen.subTotalVentas || resumen.totalGravada + resumen.totalExenta + resumen.totalNoSuj || 0);
+    /**
+     * Construir resumen financiero
+     */
+    buildFinancialSummary(resumen) {
+        const totalVentas = (resumen.subTotalVentas || resumen.totalGravada + resumen.totalExenta + resumen.totalNoSuj || 0);
 
-    return `
+        return `
         <div class="financial-summary">
             <div class="summary-line">
                 <span class="summary-label">Sumatoria total de ventas:</span>
@@ -478,20 +478,20 @@ class DtePdfGenerator {
             </div>
         </div>
     `;
-  }
+    }
 
-  /**
-   * Convertir número a palabras (simplificado)
-   */
-  numberToWords(number) {
-    return `$${parseFloat(number).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
-  }
+    /**
+     * Convertir número a palabras (simplificado)
+     */
+    numberToWords(number) {
+        return `$${parseFloat(number).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+    }
 
-  /**
-   * Obtener estilos CSS - Exactamente iguales a super_pos
-   */
-  getCssStyles(tipoDte = '01') {
-    const cssBase = `
+    /**
+     * Obtener estilos CSS - Exactamente iguales a super_pos
+     */
+    getCssStyles(tipoDte = '01') {
+        const cssBase = `
         @page {
             size: A4;
             margin: 4mm;
@@ -1030,59 +1030,59 @@ class DtePdfGenerator {
             text-align: center;
         }
     `;
-    
-    return cssBase;
-  }
 
-  /**
-   * Generar PDF del DTE
-   */
-  async generatePdf(dteData, dteJson) {
-    try {
-      // Generar QR antes de construir el HTML
-      const qrImage = await this.generateQrCode(dteData.dte.codigoGeneracion);
-      
-      // Agregar QR al objeto dte para que esté disponible en el template
-      const dteDataWithQr = {
-        ...dteData,
-        dte: {
-          ...dteData.dte,
-          qrImage: qrImage
-        }
-      };
-
-      // Construir HTML (ahora es async)
-      const htmlContent = await this.buildHtmlTemplate(dteDataWithQr, dteJson);
-
-      // Generar PDF con Puppeteer
-      const browser = await puppeteer.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-      });
-
-      const page = await browser.newPage();
-      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-
-      const pdfBuffer = await page.pdf({
-        format: 'A4',
-        margin: {
-          top: '4mm',
-          right: '4mm',
-          bottom: '4mm',
-          left: '4mm'
-        },
-        printBackground: true
-      });
-
-      await browser.close();
-
-      console.log('✅ PDF generado exitosamente');
-      return pdfBuffer;
-    } catch (error) {
-      console.error('❌ Error al generar PDF:', error);
-      return null;
+        return cssBase;
     }
-  }
+
+    /**
+     * Generar PDF del DTE
+     */
+    async generatePdf(dteData, dteJson) {
+        try {
+            // Generar QR antes de construir el HTML
+            const qrImage = await this.generateQrCode(dteData.dte.codigoGeneracion);
+
+            // Agregar QR al objeto dte para que esté disponible en el template
+            const dteDataWithQr = {
+                ...dteData,
+                dte: {
+                    ...dteData.dte,
+                    qrImage: qrImage
+                }
+            };
+
+            // Construir HTML (ahora es async)
+            const htmlContent = await this.buildHtmlTemplate(dteDataWithQr, dteJson);
+
+            // Generar PDF con Puppeteer
+            const browser = await puppeteer.launch({
+                headless: true,
+                args: ['--no-sandbox', '--disable-setuid-sandbox']
+            });
+
+            const page = await browser.newPage();
+            await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+
+            const pdfBuffer = await page.pdf({
+                format: 'A4',
+                margin: {
+                    top: '4mm',
+                    right: '4mm',
+                    bottom: '4mm',
+                    left: '4mm'
+                },
+                printBackground: true
+            });
+
+            await browser.close();
+
+            console.log('✅ PDF generado exitosamente');
+            return pdfBuffer;
+        } catch (error) {
+            console.error('❌ Error al generar PDF:', error);
+            return null;
+        }
+    }
 }
 
 module.exports = new DtePdfGenerator();
