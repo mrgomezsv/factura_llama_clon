@@ -5,7 +5,12 @@ const dteBuilder = require('./services/dte-builder');
 const dteSigner = require('./services/dte-signer');
 const dtePdfGenerator = require('./services/dte-pdf-generator');
 const dteApiService = require('./services/dte-api.service');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const authMiddleware = require('./middleware/auth.middleware');
 require('dotenv').config();
+
+const JWT_SECRET = process.env.JWT_SECRET || 'secret_para_desarrollo_123';
 
 /**
  * Mapea el tipo de documento a su tabla correspondiente
@@ -73,7 +78,8 @@ app.get('/api/health', async (req, res) => {
 });
 
 // Endpoint para ejecutar queries
-app.post('/api/query', async (req, res) => {
+// Endpoint para ejecutar queries (Protegido)
+app.post('/api/query', authMiddleware, async (req, res) => {
   try {
     let { sql, params = [] } = req.body;
 
@@ -89,7 +95,8 @@ app.post('/api/query', async (req, res) => {
 });
 
 // Endpoint para ejecutar comandos (INSERT, UPDATE, DELETE)
-app.post('/api/execute', async (req, res) => {
+// Endpoint para ejecutar comandos (INSERT, UPDATE, DELETE) (Protegido)
+app.post('/api/execute', authMiddleware, async (req, res) => {
   try {
     let { sql, params = [] } = req.body;
 
@@ -148,15 +155,71 @@ function convertInsertOrIgnore(sql) {
   }
 
   return sql;
+  return sql;
 }
 
+// Endpoint de Login
+app.post('/api/auth/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    // 1. Buscar usuario
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'Credenciales inválidas' });
+    }
+
+    const user = result.rows[0];
+
+    // 2. Verificar contraseña (asumiendo que están hasheadas con bcrypt)
+    // Si en la base de datos hay contraseñas en texto plano (legacy), manejar esa excepción o migrar
+    const passwordMatch = await bcrypt.compare(password, user.password_hash);
+
+    if (!passwordMatch) {
+      return res.status(401).json({ error: 'Credenciales inválidas' });
+    }
+
+    // 3. Verificar que tenga una empresa asignada
+    if (!user.empresa_id) {
+      return res.status(403).json({ error: 'Usuario no tiene empresa asignada. Contacte soporte.' });
+    }
+
+    // 4. Generar Token
+    const token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        empresaId: user.empresa_id,
+        role: user.role || 'USER'
+      },
+      JWT_SECRET,
+      { expiresIn: '8h' }
+    );
+
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        displayName: user.display_name,
+        empresaId: user.empresa_id
+      }
+    });
+
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+});
+
 // Endpoint para generar DTE completo
-app.post('/api/dtes/generar', async (req, res) => {
+// Endpoint para generar DTE completo (Protegido y Seguro)
+app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
   try {
     console.log('📥 Recibida petición para generar DTE');
     const {
       tipoDte = 'FAC',
-      empresaId,
+      // empresaId, // NO LEER DEL BODY - INSEGURO
       clienteId,
       items,
       totales,
@@ -165,6 +228,9 @@ app.post('/api/dtes/generar', async (req, res) => {
       otrosMontosNoAfectos = 0,
       ambiente = 'PRUEBAS'
     } = req.body;
+
+    // USAR EL ID DE LA EMPRESA DEL TOKEN VALIDADO
+    const empresaId = req.user.empresaId;
 
     console.log('📋 Datos recibidos:', {
       tipoDte,
