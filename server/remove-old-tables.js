@@ -1,7 +1,7 @@
 const { Client } = require('pg');
 require('dotenv').config();
 
-const dbName = process.env.DB_NAME || 'wavepos_dte_v2_db';
+const dbName = process.env.DB_NAME || 'wavepos_dte_v2';
 
 /**
  * Script para eliminar las tablas antiguas sin el prefijo documento_

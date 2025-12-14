@@ -6,7 +6,7 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
-const dbName = process.env.DB_NAME || 'wavepos_dte_v2_db';
+const dbName = process.env.DB_NAME || 'wavepos_dte_v2';
 
 const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
@@ -36,7 +36,7 @@ const TABLAS_DOCUMENTOS = [
 
 async function corregirTipoDteEnTabla(tabla) {
   console.log(`\n📋 Corrigiendo códigos en tabla: ${tabla}`);
-  
+
   let totalCorregidos = 0;
   let totalJSONCorregidos = 0;
 
@@ -47,7 +47,7 @@ async function corregirTipoDteEnTabla(tabla) {
      WHERE table_name = $1 AND column_name IN ('tipo_dte', 'dte_json')`,
     [tabla]
   );
-  
+
   const columnas = columnsCheck.rows.map(row => row.column_name);
   const tieneTipoDte = columnas.includes('tipo_dte');
   const tieneDteJson = columnas.includes('dte_json');
@@ -61,7 +61,7 @@ async function corregirTipoDteEnTabla(tabla) {
          WHERE tipo_dte = $2`,
         [codigoNuevo, codigoAntiguo]
       );
-      
+
       if (resultColumna.rowCount > 0) {
         console.log(`  ✅ Corregidos ${resultColumna.rowCount} registros en columna tipo_dte: ${codigoAntiguo} -> ${codigoNuevo}`);
         totalCorregidos += resultColumna.rowCount;
@@ -75,7 +75,7 @@ async function corregirTipoDteEnTabla(tabla) {
       console.log(`  ℹ️  Tabla ${tabla} no tiene columna dte_json, omitiendo corrección de JSON`);
       continue;
     }
-    
+
     const documentosConJSON = await pool.query(
       `SELECT id, dte_json FROM ${tabla} 
        WHERE dte_json IS NOT NULL AND dte_json::text LIKE '%"tipoDte":"${codigoAntiguo}"%'`
@@ -83,20 +83,20 @@ async function corregirTipoDteEnTabla(tabla) {
 
     for (const row of documentosConJSON.rows) {
       try {
-        const dteJson = typeof row.dte_json === 'string' 
-          ? JSON.parse(row.dte_json) 
+        const dteJson = typeof row.dte_json === 'string'
+          ? JSON.parse(row.dte_json)
           : row.dte_json;
 
         if (dteJson.identificacion && dteJson.identificacion.tipoDte === codigoAntiguo) {
           dteJson.identificacion.tipoDte = codigoNuevo;
-          
+
           await pool.query(
             `UPDATE ${tabla} 
              SET dte_json = $1, updated_at = CURRENT_TIMESTAMP
              WHERE id = $2`,
             [JSON.stringify(dteJson), row.id]
           );
-          
+
           totalJSONCorregidos++;
         }
       } catch (error) {
@@ -118,7 +118,7 @@ async function main() {
   console.log('   - "02" (FAC antiguo) -> "01" (FAC según fe-fc-v1.json)\n');
 
   const client = await pool.connect();
-  
+
   try {
     let totalGeneralColumna = 0;
     let totalGeneralJSON = 0;

@@ -1,7 +1,7 @@
 const { Client } = require('pg');
 require('dotenv').config();
 
-const dbName = process.env.DB_NAME || 'wavepos_dte_v2_db';
+const dbName = process.env.DB_NAME || 'wavepos_dte_v2';
 
 /**
  * Script de migración para crear tablas separadas por tipo de documento
@@ -23,10 +23,10 @@ async function migrate() {
 
     // Crear las nuevas tablas
     await createSeparateTables(client);
-    
+
     // Migrar datos existentes
     await migrateExistingData(client);
-    
+
     console.log('✅ Migración completada exitosamente');
   } catch (error) {
     console.error('❌ Error en la migración:', error);
