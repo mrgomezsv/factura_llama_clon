@@ -48,7 +48,7 @@ app.use(express.json({ limit: '50mb' }));
 const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
   port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'wavepos_dte_v2_db',
+  database: process.env.DB_NAME || 'wavepos_dte_v2',
   user: process.env.DB_USER || 'mrgomez',
   password: process.env.DB_PASSWORD || 'Karin2100',
 });

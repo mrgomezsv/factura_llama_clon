@@ -9,7 +9,7 @@ const adminClient = new Client({
   password: process.env.DB_PASSWORD || 'Karin2100',
 });
 
-const dbName = process.env.DB_NAME || 'wavepos_dte_v2_db';
+const dbName = process.env.DB_NAME || 'wavepos_dte_v2';
 
 async function createDatabase() {
   try {
