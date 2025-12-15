@@ -11,8 +11,8 @@
       <!-- Mensaje de error general -->
       <div class="error-message" *ngIf="errorMessage">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-          <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+          <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
         </svg>
         <span>{{ errorMessage }}</span>
       </div>
@@ -22,18 +22,13 @@
       <div class="input-group" [class.error]="hasFieldError('email')">
         <span class="input-icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path d="M4 6h16v12H4z" stroke="currentColor" stroke-width="1.8"/>
-            <path d="M4 7l8 6 8-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M4 6h16v12H4z" stroke="currentColor" stroke-width="1.8" />
+            <path d="M4 7l8 6 8-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+              stroke-linejoin="round" />
           </svg>
         </span>
-        <input 
-          class="input" 
-          type="email" 
-          formControlName="email"
-          [class.error]="hasFieldError('email')"
-          placeholder="correo@ejemplo.com"
-          [disabled]="loading"
-        />
+        <input class="input" type="email" formControlName="email" [class.error]="hasFieldError('email')"
+          placeholder="correo@ejemplo.com" [disabled]="loading" />
       </div>
       <div class="field-error" *ngIf="hasFieldError('email')">
         {{ getFieldError('email') }}
@@ -44,26 +39,23 @@
       <div class="input-group" [class.error]="hasFieldError('password')">
         <span class="input-icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <rect x="6" y="10" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.8"/>
-            <path d="M9 10V7a3 3 0 016 0v3" stroke="currentColor" stroke-width="1.8"/>
+            <rect x="6" y="10" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.8" />
+            <path d="M9 10V7a3 3 0 016 0v3" stroke="currentColor" stroke-width="1.8" />
           </svg>
         </span>
-        <input 
-          class="input" 
-          [type]="mostrarPassword ? 'text' : 'password'" 
-          formControlName="password"
-          [class.error]="hasFieldError('password')"
-          placeholder="••••••••"
-          [disabled]="loading"
-        />
+        <input class="input" [type]="mostrarPassword ? 'text' : 'password'" formControlName="password"
+          [class.error]="hasFieldError('password')" placeholder="••••••••" [disabled]="loading" />
         <span class="input-trailing" (click)="toggleMostrarPassword()" style="cursor: pointer;">
           <svg *ngIf="!mostrarPassword" width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" stroke="currentColor" stroke-width="1.8"/>
-            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" stroke="currentColor" stroke-width="1.8" />
+            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8" />
           </svg>
           <svg *ngIf="mostrarPassword" width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-            <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path
+              d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+              stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+              stroke-linejoin="round" />
           </svg>
         </span>
       </div>
@@ -73,20 +65,16 @@
 
       <div class="links-col">
         <a href="#" class="link" (click)="$event.preventDefault(); irAForgetPassword()">¿Olvidaste tu contraseña?</a>
-        <div class="signup-row">¿No tienes una cuenta? <a href="#" class="link-strong" (click)="$event.preventDefault(); irASignUp()">Regístrate</a></div>
+        <div class="signup-row">¿No tienes una cuenta? <a href="#" class="link-strong"
+            (click)="$event.preventDefault(); irASignUp()">Regístrate</a></div>
       </div>
 
-      <button 
-        type="submit" 
-        class="btn btn-primary submit" 
-        [disabled]="loading || loginForm.invalid"
-        [class.loading]="loading"
-      >
-        <span *ngIf="!loading">Entrar</span>
+      <button type="submit" class="btn btn-primary submit" [disabled]="loading || loginForm.invalid"
+        [class.loading]="loading"> <span *ngIf="!loading">Ingresar</span>
         <span *ngIf="loading" class="loading-content">
           <svg class="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-opacity="0.25"/>
-            <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-opacity="0.25" />
+            <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
           </svg>
           Iniciando sesión...
         </span>
@@ -95,4 +83,7 @@
   </div>
 </div>
 
-
+@if (showErrorModal) {
+<app-notificacion-modal [tipo]="'error'" [titulo]="modalTitle" [mensaje]="modalMessage" (cerrar)="closeErrorModal()">
+</app-notificacion-modal>
+}

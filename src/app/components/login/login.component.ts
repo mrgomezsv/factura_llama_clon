@@ -4,11 +4,12 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { Subscription } from 'rxjs';
+import { NotificacionModalComponent } from '../notificacion-modal/notificacion-modal.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, NotificacionModalComponent],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
@@ -19,6 +20,11 @@ export class LoginComponent implements OnInit, OnDestroy {
   returnUrl: string = '/dtes';
   mostrarPassword = false;
   private subscriptions = new Subscription();
+
+  // Modal configuration
+  showErrorModal = false;
+  modalTitle = 'Credenciales Incorrectas';
+  modalMessage = '';
 
   constructor(
     private fb: FormBuilder,
@@ -95,10 +101,22 @@ export class LoginComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           this.loading = false;
-          this.errorMessage = error.message || 'Ocurrió un error al iniciar sesión';
+          const errorMsg = error.message || '';
+
+          if (errorMsg.includes('401') || errorMsg.includes('Unauthorized') || errorMsg.includes('Correo o contraseña incorrectos')) {
+            this.modalTitle = 'Credenciales Incorrectas';
+            this.modalMessage = 'Las credenciales del usuario no pertenecen a ningun registro dentro de la plataforma. Por favor revisa sus credenciales o comunícate con su administrador.';
+            this.showErrorModal = true;
+          } else {
+            this.errorMessage = errorMsg || 'Ocurrió un error al iniciar sesión';
+          }
         }
       })
     );
+  }
+
+  closeErrorModal(): void {
+    this.showErrorModal = false;
   }
 
   irAForgetPassword(): void {
@@ -125,7 +143,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   getFieldError(fieldName: string): string {
     const control = this.loginForm.get(fieldName);
     if (control?.hasError('required')) {
-      return fieldName === 'email' 
+      return fieldName === 'email'
         ? 'El correo electrónico es requerido'
         : 'La contraseña es requerida';
     }
