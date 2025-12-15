@@ -13,6 +13,7 @@
     "db:migrate": "node server/migrate-to-separate-tables.js",
     "db:remove-old": "node server/remove-old-tables.js --confirm",
     "db:fix-codes": "node server/fix-tipo-dte-codes.js",
+    "db:setup-catalogs": "node server/setup-catalogs.js",
     "start:all": "concurrently \"npm run server\" \"npm run start\""
   },
   "private": true,

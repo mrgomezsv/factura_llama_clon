@@ -9,6 +9,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const authMiddleware = require('./middleware/auth.middleware');
 require('dotenv').config();
+const { setupCatalogs } = require('./setup-catalogs');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_para_desarrollo_123';
 
@@ -697,6 +698,16 @@ app.get('/api/dtes/:id/pdf', async (req, res) => {
 });
 
 // Iniciar servidor
-app.listen(port, () => {
-  console.log(`🚀 Servidor backend corriendo en http://localhost:${port}`);
-});
+// Iniciar servidor y verificar catálogos
+(async () => {
+  try {
+    // Verificar/Cargar catálogos al inicio
+    await setupCatalogs();
+
+    app.listen(port, '0.0.0.0', () => {
+      console.log(`Servidor corriendo en http://localhost:${port}`);
+    });
+  } catch (error) {
+    console.error('Error al iniciar el servidor:', error);
+  }
+})();

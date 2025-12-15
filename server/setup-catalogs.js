@@ -14,6 +14,22 @@ async function setupCatalogs() {
 
     try {
         await client.connect();
+
+        // Verificar si ya existen datos (usando cat_001_ambiente como referencia)
+        const checkTableQuery = "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'cat_001_ambiente')";
+        const tableExists = await client.query(checkTableQuery);
+
+        if (tableExists.rows[0].exists) {
+            const countQuery = "SELECT COUNT(*) FROM cat_001_ambiente";
+            const countResult = await client.query(countQuery);
+
+            if (parseInt(countResult.rows[0].count) > 0) {
+                console.log('✅ Los catálogos ya están cargados en la base de datos. Omitiendo configuración.');
+                await client.end();
+                return;
+            }
+        }
+
         console.log('✅ Conectado a la base de datos para configurar catálogos.');
 
         // --- Definición de Catálogos ---
@@ -1856,4 +1872,9 @@ async function setupCatalogs() {
     }
 }
 
-setupCatalogs();
+// Ejecutar directamente si es el script principal
+if (require.main === module) {
+    setupCatalogs();
+}
+
+module.exports = { setupCatalogs };
