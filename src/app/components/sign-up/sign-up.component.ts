@@ -17,6 +17,7 @@ export class SignUpComponent implements OnInit, OnDestroy {
   loading = false;
   errorMessage: string | null = null;
   successMessage: string | null = null;
+  mostrarPassword = false;
   private subscriptions = new Subscription();
 
   constructor(
@@ -50,7 +51,7 @@ export class SignUpComponent implements OnInit, OnDestroy {
   crearCuenta(): void {
     if (this.signupForm.invalid) {
       this.markFormGroupTouched();
-      
+
       // Mensaje especial si no acepta términos
       if (this.signupForm.get('acceptTerms')?.invalid) {
         this.errorMessage = 'Debes aceptar los términos de servicio y política de privacidad';
@@ -69,7 +70,7 @@ export class SignUpComponent implements OnInit, OnDestroy {
         next: (user) => {
           this.loading = false;
           this.successMessage = '¡Cuenta creada exitosamente! Redirigiendo...';
-          
+
           // Redirigir después de un breve delay
           setTimeout(() => {
             this.router.navigate(['/dtes']);
@@ -106,7 +107,7 @@ export class SignUpComponent implements OnInit, OnDestroy {
    */
   getFieldError(fieldName: string): string {
     const control = this.signupForm.get(fieldName);
-    
+
     if (control?.hasError('required')) {
       if (fieldName === 'acceptTerms') {
         return 'Debes aceptar los términos y condiciones';
@@ -121,11 +122,11 @@ export class SignUpComponent implements OnInit, OnDestroy {
         return 'La contraseña es requerida';
       }
     }
-    
+
     if (control?.hasError('email')) {
       return 'Ingresa un correo electrónico válido';
     }
-    
+
     if (control?.hasError('minlength')) {
       if (fieldName === 'password') {
         return 'La contraseña debe tener al menos 6 caracteres';
@@ -134,7 +135,7 @@ export class SignUpComponent implements OnInit, OnDestroy {
         return 'El nombre debe tener al menos 2 caracteres';
       }
     }
-    
+
     if (control?.hasError('maxlength')) {
       if (fieldName === 'nombreNegocio') {
         return 'El nombre no puede exceder 100 caracteres';
@@ -144,7 +145,7 @@ export class SignUpComponent implements OnInit, OnDestroy {
     if (control?.hasError('requiredTrue')) {
       return 'Debes aceptar los términos y condiciones';
     }
-    
+
     return '';
   }
 
@@ -154,6 +155,10 @@ export class SignUpComponent implements OnInit, OnDestroy {
   hasFieldError(fieldName: string): boolean {
     const control = this.signupForm.get(fieldName);
     return !!(control && control.invalid && (control.dirty || control.touched));
+  }
+
+  toggleMostrarPassword(): void {
+    this.mostrarPassword = !this.mostrarPassword;
   }
 }
 
