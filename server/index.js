@@ -240,45 +240,51 @@ app.post('/api/auth/register', async (req, res) => {
     const userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     const empresaId = 'emp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     const configId = 'conf_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-
     // 3. Hashear contraseña
-    const passwordHash = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 4. Crear Empresa
-    // Usamos el displayName (nombre del negocio) como nombre comercial de la empresa
+    // 4. Insertar datos en DB
+    // a) Empresa (Usar displayName como nombre)
+    // NOTA: La tabla empresas usa 'nombre', NO 'nombre_comercial'
     await client.query(
-      `INSERT INTO empresas (id, nombre_comercial, razon_social, nit, nrc, telefono, direccion, municipio, departamento, codigo_actividad, categoria)
-       VALUES ($1, $2, $2, '0000-000000-000-0', '000000-0', '0000-0000', 'Dirección por defecto', 'San Salvador', 'San Salvador', '00000', 'Otro')`,
-      [empresaId, displayName || 'Mi Negocio']
+      'INSERT INTO empresas (id, nombre) VALUES ($1, $2)',
+      [empresaId, displayName || 'Mi Empresa']
     );
 
-    // 5. Crear Configuración por defecto para la empresa
+    // b) Configuración de empresa
     await client.query(
-      `INSERT INTO empresa_configs (id, empresa_id, ambiente, tipo_modelo, version_json, firma_electronica_password, mh_api_user, mh_api_password)
-       VALUES ($1, $2, '00', '1', '1', 'password', 'api_user', 'api_password')`,
-      [configId, empresaId]
+      'INSERT INTO empresa_config (id, empresa_id, nombre_comercial) VALUES ($1, $2, $3)',
+      [configId, empresaId, displayName || 'Mi Empresa']
     );
 
-    // 6. Insertar usuario vinculado a la empresa
+    // c) Usuario
     await client.query(
-      'INSERT INTO users (id, email, password_hash, display_name, active, empresa_id) VALUES ($1, $2, $3, $4, 1, $5)',
-      [userId, email.toLowerCase().trim(), passwordHash, displayName || null, empresaId]
+      'INSERT INTO users (id, email, password_hash, display_name, empresa_id) VALUES ($1, $2, $3, $4, $5)',
+      [userId, email.toLowerCase().trim(), hashedPassword, displayName, empresaId]
+    );
+
+    // d) Configuración de usuario
+    await client.query(
+      'INSERT INTO user_config (id, user_id, rol) VALUES ($1, $2, $3)',
+      ['uc_' + Date.now(), userId, 'PROPIETARIO']
     );
 
     await client.query('COMMIT');
 
-    // 7. Generar Token JWT para auto-login
+    // 5. Generar Token
     const token = jwt.sign(
       {
         id: userId,
         email: email.toLowerCase().trim(),
-        empresaId: empresaId
+        empresaId: empresaId,
+        role: 'PROPIETARIO'
       },
       JWT_SECRET,
       { expiresIn: '8h' }
     );
 
     // 8. Retornar éxito con token y usuario
+
     res.status(201).json({
       message: 'Cuenta creada exitosamente',
       token,

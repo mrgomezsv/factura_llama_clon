@@ -63,9 +63,11 @@ async function createTables(client) {
       email TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
       display_name TEXT,
+      empresa_id TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      active INTEGER DEFAULT 1
+      active INTEGER DEFAULT 1,
+      FOREIGN KEY (empresa_id) REFERENCES empresas(id)
     );
 
     -- Tabla de empresas
@@ -450,6 +452,8 @@ async function createTables(client) {
       password_api_prueba TEXT,
       certificado_produccion TEXT,
       password_api_produccion TEXT,
+      ambiente_pruebas_activo INTEGER DEFAULT 1,
+      ambiente_produccion_activo INTEGER DEFAULT 0,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (empresa_id) REFERENCES empresas(id)
@@ -534,6 +538,21 @@ async function createTables(client) {
       table: 'empresa_config',
       column: 'logo_url',
       type: 'TEXT'
+    },
+    {
+      table: 'users',
+      column: 'empresa_id',
+      type: 'TEXT'
+    },
+    {
+      table: 'empresa_config',
+      column: 'ambiente_pruebas_activo',
+      type: 'INTEGER'
+    },
+    {
+      table: 'empresa_config',
+      column: 'ambiente_produccion_activo',
+      type: 'INTEGER'
     },
     {
       table: 'dtes',
