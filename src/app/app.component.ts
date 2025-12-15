@@ -6,6 +6,7 @@ import { HeaderComponent } from './components/header/header.component';
 import { DteTabsComponent, TipoTab } from './components/dte-tabs/dte-tabs.component';
 import { DteTableComponent } from './components/dte-table/dte-table.component';
 import { DteService } from './services/dte.service';
+import { AuthService } from './services/auth.service';
 import { DTE } from './models/dte.model';
 import { PeriodoTributario } from './models/periodo-tributario.model';
 import { UpgradeModalComponent } from './components/upgrade-modal/upgrade-modal.component';
@@ -40,7 +41,8 @@ export class AppComponent implements OnInit {
   tiposDTE: TipoDTE[] = [];
 
   constructor(
-    private dteService: DteService, 
+    private dteService: DteService,
+    private authService: AuthService,
     private router: Router,
     private http: HttpClient
   ) {
@@ -80,17 +82,41 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.cargarDTEs();
-    this.cargarTiposDTE();
+    // Suscribirse al estado de autenticación para cargar datos solo cuando el usuario esté logueado
+    this.authService.isAuthenticated().subscribe(isAuth => {
+      if (isAuth) {
+        this.cargarDTEs();
+        this.cargarTiposDTE();
+      }
+    });
+
+    // Escuchar cambios de ruta para actualizar UI (isLoginRoute, layout, etc)
+    this.router.events.subscribe(evt => {
+      if (evt instanceof NavigationEnd) {
+        this.isLoginRoute = this.isAuthRoute(evt.urlAfterRedirects);
+        // Nota: La carga de datos ya se maneja con la suscripción a isAuthenticated()
+        // o si es necesario recargar al cambiar de ruta mientras se está logueado:
+        if (!this.isLoginRoute) {
+          // Opcional: Podríamos recargar aquí si fuera necesario actualizar vistas
+        }
+      }
+    });
   }
 
   cargarTiposDTE(): void {
+    // Evitar cargar si estamos en login
+    if (this.isLoginRoute) return;
+
     this.dteService.getTiposDTE().subscribe(tipos => {
+      this.dtes = []; // Limpiar si es necesario, aunque mejor no
       this.tiposDTE = tipos;
     });
   }
 
   cargarDTEs(): void {
+    // Evitar cargar si estamos en login
+    if (this.isLoginRoute) return;
+
     this.dteService.getDTEs({
       tipoTab: this.tabActiva,
       periodo: this.periodoSeleccionado

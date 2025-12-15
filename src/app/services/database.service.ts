@@ -18,6 +18,14 @@ export class DatabaseService {
     this.initializeDatabase();
   }
 
+  private getHeaders(): { [header: string]: string } {
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      return { 'Authorization': `Bearer ${token}` };
+    }
+    return {};
+  }
+
   /**
    * Inicializa la conexión con la base de datos
    */
@@ -61,7 +69,7 @@ export class DatabaseService {
         return this.http.post<T[]>(`${this.API_URL}/query`, {
           sql: pgSql,
           params: pgParams
-        });
+        }, { headers: this.getHeaders() });
       }),
       catchError(error => {
         console.error('Error en query:', error);
@@ -82,7 +90,7 @@ export class DatabaseService {
         return this.http.post<{ rowCount: number }>(`${this.API_URL}/execute`, {
           sql: pgSql,
           params: pgParams
-        });
+        }, { headers: this.getHeaders() });
       }),
       map(result => result.rowCount || 0),
       catchError(error => {
@@ -110,13 +118,13 @@ export class DatabaseService {
     pgSql = pgSql.replace(/strftime\("%d",\s*([^)]+)\)/gi, (match, col) => {
       return `EXTRACT(DAY FROM ${col.trim()})`;
     });
-    
+
     // Reemplazar DATETIME por TIMESTAMP
     pgSql = pgSql.replace(/DATETIME/gi, 'TIMESTAMP');
-    
+
     // Reemplazar INTEGER PRIMARY KEY AUTOINCREMENT por SERIAL PRIMARY KEY
     pgSql = pgSql.replace(/INTEGER PRIMARY KEY AUTOINCREMENT/gi, 'SERIAL PRIMARY KEY');
-    
+
     // Reemplazar INSERT OR IGNORE (se manejará en el backend)
     pgSql = pgSql.replace(/INSERT OR IGNORE/gi, 'INSERT');
 
