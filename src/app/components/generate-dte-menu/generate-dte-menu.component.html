@@ -1,36 +1,31 @@
 <div class="generate-menu-container">
-  <button 
-    class="btn btn-primary btn-icon"
-    (click)="toggleMenu()"
-    type="button"
-    aria-label="Generar DTE"
-  >
+  <button class="btn btn-primary btn-icon" (click)="toggleMenu()" type="button" aria-label="Generar DTE">
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <path d="M10 4V16M4 10H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M10 4V16M4 10H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
     </svg>
   </button>
 
   @if (mostrarMenu) {
-    <div class="dropdown-menu">
-      <div class="dropdown-header">Generar DTE</div>
-      @for (tipo of tiposDTE; track tipo.codigo) {
-        <button
-          class="dropdown-item"
-          [class.disabled]="!tipo.habilitado"
-          (click)="seleccionarTipo(tipo)"
-          type="button"
-        >
-          <svg class="icon-document" width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M6 2H14L16 4V18C16 18.5523 15.5523 19 15 19H5C4.44772 19 4 18.5523 4 18V3C4 2.44772 4.44772 2 5 2H6Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
-            <path d="M6 2V6H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span>{{ tipo.nombre }}</span>
-          @if (!tipo.habilitado) {
-            <span class="badge badge-warning">PRONTO</span>
-          }
-        </button>
+  <div class="dropdown-menu">
+    <div class="dropdown-header">Generar DTE</div>
+    @for (tipo of tiposDTE; track tipo.codigo) {
+    <button class="dropdown-item" [class.disabled]="!tipo.habilitado" (click)="seleccionarTipo(tipo)" type="button">
+      <svg class="icon-document" width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M6 2H14L16 4V18C16 18.5523 15.5523 19 15 19H5C4.44772 19 4 18.5523 4 18V3C4 2.44772 4.44772 2 5 2H6Z"
+          stroke="currentColor" stroke-width="1.5" fill="none" />
+        <path d="M6 2V6H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      <span>{{ tipo.nombre }}</span>
+      @if (!tipo.habilitado) {
+      <span class="badge badge-warning">PRONTO</span>
       }
-    </div>
+    </button>
+    }
+  </div>
   }
 </div>
 
+@if (mostrarNotificacion) {
+<app-notificacion-modal [tipo]="tipoNotificacion" [titulo]="tituloNotificacion" [mensaje]="mensajeNotificacion"
+  (cerrar)="cerrarNotificacion()"></app-notificacion-modal>
+}
