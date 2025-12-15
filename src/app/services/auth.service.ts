@@ -12,6 +12,7 @@ export interface User {
   id: string;
   email: string;
   displayName?: string;
+  empresaId?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -85,43 +86,38 @@ export class AuthService {
   /**
    * Inicia sesión con email y contraseña
    */
+  /**
+   * Inicia sesión con email y contraseña, usando el endpoint seguro
+   */
   login(email: string, password: string): Observable<User> {
-    return this.database.isReady$.pipe(
-      first(ready => ready),
-      switchMap(() => from(this.hashPassword(password))),
-      switchMap(() => {
-        return this.database.query<{ id: string; email: string; password_hash: string; display_name: string | null }>(
-          'SELECT id, email, password_hash, display_name FROM users WHERE email = ? AND active = 1',
-          [email.toLowerCase().trim()]
-        );
-      }),
-      switchMap(users => {
-        if (users.length === 0) {
-          return throwError(() => new Error('Correo o contraseña incorrectos'));
-        }
+    return this.http.post<{ token: string, user: { id: string, email: string, displayName: string, empresaId: string } }>(
+      'http://localhost:3000/api/auth/login',
+      { email, password }
+    ).pipe(
+      map(response => {
+        const user: User = {
+          id: response.user.id,
+          email: response.user.email,
+          displayName: response.user.displayName,
+          empresaId: response.user.empresaId
+        };
 
-        const user = users[0];
-        return from(this.hashPassword(password)).pipe(
-          switchMap(hash => {
-            if (user.password_hash !== hash) {
-              return throwError(() => new Error('Correo o contraseña incorrectos'));
-            }
+        // Guardar sesión y token (idealmente el token debería guardarse en un servicio o interceptor, 
+        // pero por simplicidad actualizamos el localStorage con el usuario y manejamos el token globalmente si se necesita)
+        // NOTA: Para que las peticiones subsiguientes funcionen, necesitamos que el token se envíe en los headers.
+        // Asumiendo que DatabaseService o un Interceptor manejará esto si guardamos el token.
+        // Por ahora guardamos el usuario. Si el backend requiere token, necesitamos un mecanismo para guardarlo.
+        localStorage.setItem(this.SESSION_KEY, JSON.stringify(user));
 
-            const authenticatedUser: User = {
-              id: user.id,
-              email: user.email,
-              displayName: user.display_name || undefined
-            };
+        // También guardamos el token bajo la clave que espera el interceptor (si existe) o DatabaseService
+        localStorage.setItem('auth_token', response.token);
 
-            // Guardar sesión
-            localStorage.setItem(this.SESSION_KEY, JSON.stringify(authenticatedUser));
-            this.userSubject.next(authenticatedUser);
-            return of(authenticatedUser);
-          })
-        );
+        this.userSubject.next(user);
+        return user;
       }),
       catchError((error) => {
-        return throwError(() => this.handleAuthError(error));
+        console.error('Login error:', error);
+        return throwError(() => this.handleAuthError(error.error?.error || 'Error de conexión o credenciales inválidas'));
       })
     );
   }
@@ -145,7 +141,7 @@ export class AuthService {
     }
 
     // Usar el nuevo endpoint específico de registro que no requiere token
-    return this.http.post<{ message: string, user: { id: string, email: string, displayName: string } }>(
+    return this.http.post<{ message: string, token: string, user: { id: string, email: string, displayName: string, empresaId: string } }>(
       'http://localhost:3000/api/auth/register', // URL hardcoded por ahora, idealmente usar environment o base URL config
       { email, password, displayName }
     ).pipe(
@@ -153,18 +149,17 @@ export class AuthService {
         const newUser: User = {
           id: response.user.id,
           email: response.user.email,
-          displayName: response.user.displayName
+          displayName: response.user.displayName,
+          empresaId: response.user.empresaId
         };
 
-        // Nota: El endpoint de registro por ahora no devuelve token, 
-        // así que el usuario tendrá que hacer login después o el backend debería devolver token.
-        // Si backend devuelve token, guardarlo aquí.
-        // Por consistencia con la implementación anterior, guardamos al usuario en sesión local
-        // aunque realmente necesitará hacer login para obtener el token JWT real.
+        // Guardar sesión y token automáticamente
+        localStorage.setItem(this.SESSION_KEY, JSON.stringify(newUser));
+        if (response.token) {
+          localStorage.setItem('auth_token', response.token);
+        }
 
-        // localStorage.setItem(this.SESSION_KEY, JSON.stringify(newUser));
-        // this.userSubject.next(newUser);
-
+        this.userSubject.next(newUser);
         return newUser;
       }),
       catchError((error) => {

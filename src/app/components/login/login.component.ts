@@ -54,28 +54,6 @@ export class LoginComponent implements OnInit, OnDestroy {
         }
       })
     );
-
-    // Para debugging: consultar usuarios registrados
-    this.consultarUsuariosRegistrados();
-  }
-
-  /**
-   * Consulta usuarios registrados en la base de datos (solo para debugging)
-   */
-  private consultarUsuariosRegistrados(): void {
-    this.subscriptions.add(
-      this.authService.getAllUsers().subscribe(users => {
-        if (users.length > 0) {
-          console.log('=== USUARIOS REGISTRADOS EN LA BASE DE DATOS ===');
-          users.forEach(user => {
-            console.log(`- Email: ${user.email}, ID: ${user.id}, Nombre: ${user.display_name || 'Sin nombre'}, Creado: ${user.created_at}`);
-          });
-          console.log('===============================================');
-        } else {
-          console.warn('⚠️ No hay usuarios registrados en la base de datos. Usa el usuario por defecto: admin@test.com / admin123');
-        }
-      })
-    );
   }
 
   ngOnDestroy(): void {

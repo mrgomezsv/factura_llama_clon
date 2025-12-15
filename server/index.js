@@ -224,37 +224,78 @@ app.post('/api/auth/register', async (req, res) => {
     return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
   }
 
+  const client = await pool.connect();
+
   try {
+    await client.query('BEGIN');
+
     // 1. Verificar si el usuario ya existe
-    const existingUser = await pool.query('SELECT id FROM users WHERE email = $1', [email.toLowerCase().trim()]);
+    const existingUser = await client.query('SELECT id FROM users WHERE email = $1', [email.toLowerCase().trim()]);
     if (existingUser.rows.length > 0) {
+      await client.query('ROLLBACK');
       return res.status(400).json({ error: 'Este correo electrónico ya está registrado' });
     }
 
-    // 2. Hashear contraseña
-    // Nota: Usamos bcrypt.hash (async)
-    const passwordHash = await bcrypt.hash(password, 10);
+    // 2. Generar IDs únicos
     const userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    const empresaId = 'emp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    const configId = 'conf_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 
-    // 3. Insertar usuario
-    await pool.query(
-      'INSERT INTO users (id, email, password_hash, display_name, active) VALUES ($1, $2, $3, $4, 1)',
-      [userId, email.toLowerCase().trim(), passwordHash, displayName || null]
+    // 3. Hashear contraseña
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    // 4. Crear Empresa
+    // Usamos el displayName (nombre del negocio) como nombre comercial de la empresa
+    await client.query(
+      `INSERT INTO empresas (id, nombre_comercial, razon_social, nit, nrc, telefono, direccion, municipio, departamento, codigo_actividad, categoria)
+       VALUES ($1, $2, $2, '0000-000000-000-0', '000000-0', '0000-0000', 'Dirección por defecto', 'San Salvador', 'San Salvador', '00000', 'Otro')`,
+      [empresaId, displayName || 'Mi Negocio']
     );
 
-    // 4. Retornar éxito (y opcionalmente token, pero por ahora solo confirmación)
+    // 5. Crear Configuración por defecto para la empresa
+    await client.query(
+      `INSERT INTO empresa_configs (id, empresa_id, ambiente, tipo_modelo, version_json, firma_electronica_password, mh_api_user, mh_api_password)
+       VALUES ($1, $2, '00', '1', '1', 'password', 'api_user', 'api_password')`,
+      [configId, empresaId]
+    );
+
+    // 6. Insertar usuario vinculado a la empresa
+    await client.query(
+      'INSERT INTO users (id, email, password_hash, display_name, active, empresa_id) VALUES ($1, $2, $3, $4, 1, $5)',
+      [userId, email.toLowerCase().trim(), passwordHash, displayName || null, empresaId]
+    );
+
+    await client.query('COMMIT');
+
+    // 7. Generar Token JWT para auto-login
+    const token = jwt.sign(
+      {
+        id: userId,
+        email: email.toLowerCase().trim(),
+        empresaId: empresaId
+      },
+      JWT_SECRET,
+      { expiresIn: '8h' }
+    );
+
+    // 8. Retornar éxito con token y usuario
     res.status(201).json({
-      message: 'Usuario registrado exitosamente',
+      message: 'Cuenta creada exitosamente',
+      token,
       user: {
         id: userId,
         email: email.toLowerCase().trim(),
-        displayName: displayName
+        displayName: displayName,
+        empresaId: empresaId
       }
     });
 
   } catch (error) {
+    await client.query('ROLLBACK');
     console.error('Register error:', error);
     res.status(500).json({ error: 'Error al registrar usuario: ' + error.message });
+  } finally {
+    client.release();
   }
 });
 
