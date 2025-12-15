@@ -18,17 +18,17 @@ export class ConfiguracionModalComponent implements OnInit {
   @Output() cerrar = new EventEmitter<void>();
 
   seccionActiva: 'perfil' | 'empresa' | 'suscripcion' = 'perfil';
-  
+
   // Formularios
   perfilForm: FormGroup;
   empresaForm: FormGroup;
-  
+
   // Estados de secciones colapsables
   miCuentaExpandida = true;
   infoPersonalExpandida = false;
   infoProfesionalExpandida = false;
   preferenciasExpandida = false;
-  
+
   identidadLegalExpandida = true;
   casaMatrizExpandida = false;
   infoGeneralExpandida = false;
@@ -37,13 +37,13 @@ export class ConfiguracionModalComponent implements OnInit {
   usuarioActual: any = null;
   loading = false;
   loadingRecuperacion = false;
-  
+
   // Estado del modal de notificación
   mostrarNotificacion = false;
   tipoNotificacion: 'exito' | 'error' = 'exito';
   tituloNotificacion = '';
   mensajeNotificacion = '';
-  
+
   // Estado de imagen de empresa
   empresaImagenPreview: string | null = null;
   empresaImagenArchivo: File | null = null;
@@ -78,7 +78,7 @@ export class ConfiguracionModalComponent implements OnInit {
       nombre: ['', Validators.required],
       correo: ['', [Validators.required, Validators.email]],
       telefono: [''],
-      rol: ['PROPIETARIO'],
+      rol: ['PROPIETARIO', Validators.required],
       zonaHoraria: ['El Salvador (GMT-6)']
     });
 
@@ -87,21 +87,23 @@ export class ConfiguracionModalComponent implements OnInit {
       nombreLegal: ['', Validators.required],
       nombreComercial: [''],
       nit: ['', Validators.required],
-      nrc: [''],
+      nrc: ['', Validators.required],
       dui: [''],
-      actividadEconomicaPrimaria: [''],
+      actividadEconomicaPrimaria: ['', Validators.required],
       actividadEconomicaSecundaria: [''],
       actividadEconomicaTerciaria: [''],
-      direccion: [''],
-      codigoMH: [''],
+      direccion: ['', Validators.required],
+      codigoMH: ['', Validators.required],
       puntosVenta: [1, [Validators.required, Validators.min(1)]],
       sitioWeb: [''],
-      telefono: [''],
-      correo: ['', Validators.email],
+      telefono: ['', Validators.required],
+      correo: ['', [Validators.required, Validators.email]],
       certificadoPrueba: [''],
       passwordAPIPrueba: [''],
       certificadoProduccion: [''],
-      passwordAPIProduccion: ['']
+      passwordAPIProduccion: [''],
+      ambientePruebasActivo: [true],
+      ambienteProduccionActivo: [false]
     });
   }
 
@@ -131,7 +133,11 @@ export class ConfiguracionModalComponent implements OnInit {
       // Cargar datos desde la base de datos
       this.dteService.getEmpresaConfig(this.empresaSeleccionada.id).subscribe(config => {
         if (config) {
-          this.empresaForm.patchValue(config);
+          this.empresaForm.patchValue({
+            ...config,
+            ambientePruebasActivo: config.ambientePruebasActivo === 1,
+            ambienteProduccionActivo: config.ambienteProduccionActivo === 1
+          });
           // Cargar imagen desde la base de datos
           if (config.logoUrl) {
             this.empresaImagenPreview = config.logoUrl;
@@ -166,21 +172,21 @@ export class ConfiguracionModalComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const file = input.files[0];
-      
+
       // Validar tipo de archivo
       if (!file.type.startsWith('image/')) {
         this.mostrarNotificacionError('Error', 'Por favor, selecciona un archivo de imagen válido.');
         return;
       }
-      
+
       // Validar tamaño (máximo 5MB)
       if (file.size > 5 * 1024 * 1024) {
         this.mostrarNotificacionError('Error', 'La imagen no debe superar los 5MB.');
         return;
       }
-      
+
       this.empresaImagenArchivo = file;
-      
+
       // Crear preview
       const reader = new FileReader();
       reader.onload = (e: any) => {
@@ -223,7 +229,7 @@ export class ConfiguracionModalComponent implements OnInit {
   }
 
   toggleSeccion(seccion: string): void {
-    switch(seccion) {
+    switch (seccion) {
       case 'miCuenta':
         this.miCuentaExpandida = !this.miCuentaExpandida;
         break;
@@ -259,7 +265,7 @@ export class ConfiguracionModalComponent implements OnInit {
 
     this.loading = true;
     const user = this.authService.getCurrentUser();
-    
+
     if (user) {
       // Actualizar nombre en perfil de usuario
       this.authService.updateProfile(user.id, {
@@ -296,8 +302,13 @@ export class ConfiguracionModalComponent implements OnInit {
       return;
     }
 
+    if (!this.empresaImagenPreview) {
+      this.mostrarNotificacionError('Error', 'El logo de la empresa es obligatorio.');
+      return;
+    }
+
     this.loading = true;
-    
+
     // Si no hay empresa seleccionada, crear una nueva
     if (!this.empresaSeleccionada || !this.empresaSeleccionada.id) {
       // Crear empresa primero
@@ -327,7 +338,9 @@ export class ConfiguracionModalComponent implements OnInit {
             certificadoPrueba: this.empresaForm.value.certificadoPrueba,
             passwordAPIPrueba: this.empresaForm.value.passwordAPIPrueba,
             certificadoProduccion: this.empresaForm.value.certificadoProduccion,
-            passwordAPIProduccion: this.empresaForm.value.passwordAPIProduccion
+            passwordAPIProduccion: this.empresaForm.value.passwordAPIProduccion,
+            ambientePruebasActivo: this.empresaForm.value.ambientePruebasActivo ? 1 : 0,
+            ambienteProduccionActivo: this.empresaForm.value.ambienteProduccionActivo ? 1 : 0
           }).subscribe({
             next: () => {
               this.loading = false;
@@ -346,7 +359,7 @@ export class ConfiguracionModalComponent implements OnInit {
       });
       return;
     }
-    
+
     // Si hay empresa seleccionada, guardar configuración (incluyendo logo)
     this.dteService.saveEmpresaConfig(this.empresaSeleccionada.id, {
       nombreLegal: this.empresaForm.value.nombreLegal,
@@ -367,7 +380,9 @@ export class ConfiguracionModalComponent implements OnInit {
       certificadoPrueba: this.empresaForm.value.certificadoPrueba,
       passwordAPIPrueba: this.empresaForm.value.passwordAPIPrueba,
       certificadoProduccion: this.empresaForm.value.certificadoProduccion,
-      passwordAPIProduccion: this.empresaForm.value.passwordAPIProduccion
+      passwordAPIProduccion: this.empresaForm.value.passwordAPIProduccion,
+      ambientePruebasActivo: this.empresaForm.value.ambientePruebasActivo ? 1 : 0,
+      ambienteProduccionActivo: this.empresaForm.value.ambienteProduccionActivo ? 1 : 0
     }).subscribe({
       next: () => {
         // Actualizar logo en objeto empresa local
@@ -405,9 +420,9 @@ export class ConfiguracionModalComponent implements OnInit {
   cerrarNotificacion(): void {
     this.mostrarNotificacion = false;
     // Si es una notificación de éxito sobre empresa creada, cerrar también el modal de configuración
-    if (this.tipoNotificacion === 'exito' && 
-        (this.mensajeNotificacion.includes('Empresa creada') || 
-         this.mensajeNotificacion.includes('guardada correctamente'))) {
+    if (this.tipoNotificacion === 'exito' &&
+      (this.mensajeNotificacion.includes('Empresa creada') ||
+        this.mensajeNotificacion.includes('guardada correctamente'))) {
       this.cerrarModal();
     }
   }
