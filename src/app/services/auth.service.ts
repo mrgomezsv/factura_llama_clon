@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, of, throwError, from } from 'rxjs';
 import { map, catchError, switchMap, first } from 'rxjs/operators';
 import { DatabaseService } from './database.service';
@@ -28,7 +29,8 @@ export class AuthService {
 
   constructor(
     private database: DatabaseService,
-    private router: Router
+    private router: Router,
+    private http: HttpClient
   ) {
     // Restaurar sesión desde localStorage si existe
     this.restoreSession();
@@ -128,8 +130,8 @@ export class AuthService {
    * Registra un nuevo usuario con email y contraseña
    */
   register(
-    email: string, 
-    password: string, 
+    email: string,
+    password: string,
     displayName?: string
   ): Observable<User> {
     // Validar email
@@ -142,46 +144,32 @@ export class AuthService {
       return throwError(() => new Error('La contraseña debe tener al menos 6 caracteres'));
     }
 
-    return this.database.isReady$.pipe(
-      first(ready => ready),
-      switchMap(() => {
-        // Verificar si el email ya existe
-        return this.database.query<{ id: string }>(
-          'SELECT id FROM users WHERE email = ?',
-          [email.toLowerCase().trim()]
-        );
-      }),
-      switchMap(existingUsers => {
-        if (existingUsers.length > 0) {
-          return throwError(() => new Error('Este correo electrónico ya está registrado'));
-        }
+    // Usar el nuevo endpoint específico de registro que no requiere token
+    return this.http.post<{ message: string, user: { id: string, email: string, displayName: string } }>(
+      'http://localhost:3000/api/auth/register', // URL hardcoded por ahora, idealmente usar environment o base URL config
+      { email, password, displayName }
+    ).pipe(
+      map(response => {
+        const newUser: User = {
+          id: response.user.id,
+          email: response.user.email,
+          displayName: response.user.displayName
+        };
 
-        // Crear nuevo usuario
-        const userId = this.generateUserId();
-        return from(this.hashPassword(password)).pipe(
-          switchMap(hash => {
-            return this.database.execute(
-              'INSERT INTO users (id, email, password_hash, display_name) VALUES (?, ?, ?, ?)',
-              [userId, email.toLowerCase().trim(), hash, displayName || null]
-            ).pipe(
-              map(() => {
-                const newUser: User = {
-                  id: userId,
-                  email: email.toLowerCase().trim(),
-                  displayName: displayName
-                };
+        // Nota: El endpoint de registro por ahora no devuelve token, 
+        // así que el usuario tendrá que hacer login después o el backend debería devolver token.
+        // Si backend devuelve token, guardarlo aquí.
+        // Por consistencia con la implementación anterior, guardamos al usuario en sesión local
+        // aunque realmente necesitará hacer login para obtener el token JWT real.
 
-                // Guardar sesión
-                localStorage.setItem(this.SESSION_KEY, JSON.stringify(newUser));
-                this.userSubject.next(newUser);
-                return newUser;
-              })
-            );
-          })
-        );
+        // localStorage.setItem(this.SESSION_KEY, JSON.stringify(newUser));
+        // this.userSubject.next(newUser);
+
+        return newUser;
       }),
       catchError((error) => {
-        return throwError(() => this.handleAuthError(error));
+        console.error('Error en registro:', error);
+        return throwError(() => this.handleAuthError(error.error?.error || error.message));
       })
     );
   }
@@ -272,7 +260,7 @@ export class AuthService {
         // En desarrollo, solo logueamos. En producción, enviarías un email real
         console.log(`[DEV] Email de recuperación enviado a: ${email}`);
         // Aquí podrías implementar un sistema de tokens de recuperación
-        
+
         return of(undefined);
       }),
       catchError((error) => {

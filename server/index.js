@@ -212,6 +212,52 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
+// Endpoint de Registro
+app.post('/api/auth/register', async (req, res) => {
+  const { email, password, displayName } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email y contraseña son requeridos' });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
+  }
+
+  try {
+    // 1. Verificar si el usuario ya existe
+    const existingUser = await pool.query('SELECT id FROM users WHERE email = $1', [email.toLowerCase().trim()]);
+    if (existingUser.rows.length > 0) {
+      return res.status(400).json({ error: 'Este correo electrónico ya está registrado' });
+    }
+
+    // 2. Hashear contraseña
+    // Nota: Usamos bcrypt.hash (async)
+    const passwordHash = await bcrypt.hash(password, 10);
+    const userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+    // 3. Insertar usuario
+    await pool.query(
+      'INSERT INTO users (id, email, password_hash, display_name, active) VALUES ($1, $2, $3, $4, 1)',
+      [userId, email.toLowerCase().trim(), passwordHash, displayName || null]
+    );
+
+    // 4. Retornar éxito (y opcionalmente token, pero por ahora solo confirmación)
+    res.status(201).json({
+      message: 'Usuario registrado exitosamente',
+      user: {
+        id: userId,
+        email: email.toLowerCase().trim(),
+        displayName: displayName
+      }
+    });
+
+  } catch (error) {
+    console.error('Register error:', error);
+    res.status(500).json({ error: 'Error al registrar usuario: ' + error.message });
+  }
+});
+
 // Endpoint para generar DTE completo
 // Endpoint para generar DTE completo (Protegido y Seguro)
 app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
