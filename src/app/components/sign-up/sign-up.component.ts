@@ -59,6 +59,7 @@ export class SignUpComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.signupForm.disable();
     this.loading = true;
     this.errorMessage = null;
     this.successMessage = null;
@@ -69,6 +70,7 @@ export class SignUpComponent implements OnInit, OnDestroy {
       this.authService.register(email, password, nombreNegocio).subscribe({
         next: (user) => {
           this.loading = false;
+          this.signupForm.enable();
           this.successMessage = '¡Cuenta creada exitosamente! Redirigiendo...';
 
           // Redirigir después de un breve delay
@@ -78,6 +80,7 @@ export class SignUpComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           this.loading = false;
+          this.signupForm.enable();
           this.errorMessage = error.message || 'Ocurrió un error al crear la cuenta';
         }
       })

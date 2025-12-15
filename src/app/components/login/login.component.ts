@@ -68,6 +68,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     this.loading = true;
     this.errorMessage = null;
+    this.loginForm.disable(); // Deshabilitar formulario
 
     const { email, password } = this.loginForm.value;
 
@@ -79,6 +80,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           this.loading = false;
+          this.loginForm.enable(); // Habilitar formulario
           const errorMsg = error.message || '';
 
           if (errorMsg.includes('401') || errorMsg.includes('Unauthorized') || errorMsg.includes('Correo o contraseña incorrectos')) {
