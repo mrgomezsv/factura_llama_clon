@@ -602,11 +602,13 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
         correo: cliente.correo,
         numeroDocumento: cliente.nit,
         departamento: null,
-        municipio: null
+        municipio: null,
+        actividadEconomica: cliente.actividad_economica
       },
       items,
       totales,
       retenciones,
+      ambiente: ambiente, // Pasar ambiente para identificacion
       descuentoGlobal,
       ambiente,
       items,
@@ -654,7 +656,8 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
         const mhConfig = {
           user: empresaConfig.nit, // El usuario suele ser el NIT
           pwd: ambiente === 'PRODUCCIÓN' ? empresaConfig.password_api_produccion : empresaConfig.password_api_prueba,
-          nit: empresaConfig.nit
+          nit: empresaConfig.nit,
+          ambiente: ambiente // 'PRUEBAS' o 'PRODUCCIÓN'
         };
 
         // Enviar a MH usando las credenciales de la empresa

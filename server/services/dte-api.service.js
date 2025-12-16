@@ -9,14 +9,30 @@ require('dotenv').config();
 
 class DteApiService {
     constructor() {
-        // URLs oficiales ambiente de PRUEBAS (API V3)
-        this.mhAuthUrl = process.env.MH_AUTH_URL || 'https://apitest.dtes.mh.gob.sv/seguridad/auth';
-        this.mhApiUrl = process.env.MH_API_URL || 'https://apitest.dtes.mh.gob.sv/dte/recepcion';
+        // URLs Ambiente PRUEBAS (API V3)
+        this.testAuthUrl = process.env.MH_AUTH_URL || 'https://apitest.dtes.mh.gob.sv/seguridad/auth';
+        this.testApiUrl = process.env.MH_API_URL || 'https://apitest.dtes.mh.gob.sv/dte/recepcion';
 
-        // Credenciales (Deberían estar en .env)
+        // URLs Ambiente PRODUCCIÓN
+        this.prodAuthUrl = process.env.MH_AUTH_URL_PROD || 'https://api.dtes.mh.gob.sv/seguridad/auth';
+        this.prodApiUrl = process.env.MH_API_URL_PROD || 'https://api.dtes.mh.gob.sv/fesv/recepciondte';
+
+        // Credenciales por defecto (Deberían venir en config)
         this.user = process.env.MH_USER;
         this.pwd = process.env.MH_PWD;
         this.nit = process.env.MH_NIT;
+    }
+
+    /**
+     * Helper para obtener URL basada en ambiente
+     * @param {string} ambiente 'PRUEBAS', 'PRODUCCIÓN', '00' (Test), '01' (Prod)
+     * @param {string} type 'AUTH' | 'API'
+     */
+    getUrl(ambiente, type) {
+        const isProd = ambiente === 'PRODUCCIÓN' || ambiente === '01';
+        if (type === 'AUTH') return isProd ? this.prodAuthUrl : this.testAuthUrl;
+        if (type === 'API') return isProd ? this.prodApiUrl : this.testApiUrl;
+        return this.testApiUrl;
     }
 
     /**
@@ -25,7 +41,9 @@ class DteApiService {
      */
     async login(config = {}) {
         try {
-            console.log('🔐 Iniciando autenticación con MH...');
+            const ambiente = config.ambiente || 'PRUEBAS';
+            const authUrl = this.getUrl(ambiente, 'AUTH');
+            console.log(`🔐 Iniciando autenticación con MH (${ambiente})... URL: ${authUrl}`);
 
             // Prioridad: config > this.credenciales > variables de entorno
             const user = config.user || this.user;
@@ -44,7 +62,7 @@ class DteApiService {
 
             // NOTA: El endpoint oficial es /seguridad/auth
             const response = await axios.post(
-                this.mhAuthUrl,
+                authUrl,
                 data,
                 {
                     headers: {
@@ -94,10 +112,12 @@ class DteApiService {
             // SEGÚN MANUAL: Se envía el JSON firmado dentro de la propiedad "documento".
 
             const identificacion = dteSignedJson.identificacion;
-            const ambiente = identificacion.ambiente;
+            const ambiente = identificacion.ambiente; // "00" o "01"
             const tipoDte = identificacion.tipoDte;
             const numeroControl = identificacion.numeroControl;
             const codigoGeneracion = identificacion.codigoGeneracion;
+
+            const apiUrl = this.getUrl(ambiente, 'API');
 
             const payload = {
                 ambiente: ambiente, // "00" Pruebas, "01" Producción
@@ -107,10 +127,10 @@ class DteApiService {
                 documento: dteSignedJson // El JSON firmado completo
             };
 
-            console.log(`📤 Enviando DTE ${numeroControl} a MH (Ambiente: ${ambiente})...`);
+            console.log(`📤 Enviando DTE ${numeroControl} a MH (Ambiente: ${ambiente})... URL: ${apiUrl}`);
 
             const response = await axios.post(
-                this.mhApiUrl,
+                apiUrl,
                 payload,
                 {
                     headers: {
