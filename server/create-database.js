@@ -459,6 +459,21 @@ async function createTables(client) {
       FOREIGN KEY (empresa_id) REFERENCES empresas(id)
     );
 
+    -- Tabla de certificados de empresa (Nueva estructura separada)
+    CREATE TABLE IF NOT EXISTS empresa_certificados (
+      id SERIAL PRIMARY KEY,
+      empresa_id TEXT UNIQUE NOT NULL, -- Una entrada por empresa
+      password_pri_prueba TEXT,
+      password_pub_prueba TEXT,
+      password_pri_produccion TEXT,
+      password_pub_produccion TEXT,
+      cert_path_prueba TEXT,    -- Para futuras referencias si guardamos el path
+      cert_path_produccion TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (empresa_id) REFERENCES empresas(id)
+    );
+
     -- Índices para mejorar rendimiento
     -- Índices para tablas de documentos
     CREATE INDEX IF NOT EXISTS idx_documento_factura_fecha ON documento_factura(fecha_creacion);
@@ -528,6 +543,7 @@ async function createTables(client) {
     CREATE INDEX IF NOT EXISTS idx_user_config_user_id ON user_config(user_id);
     CREATE INDEX IF NOT EXISTS idx_empresa_config_empresa_id ON empresa_config(empresa_id);
   `;
+
 
   await client.query(schema);
   console.log('✅ Tablas creadas exitosamente');
