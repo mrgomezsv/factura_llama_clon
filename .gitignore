@@ -71,3 +71,9 @@ test-results/
 # Documentación
 /md/
 /Doc_Actualizados_Implementacion_DTE/
+
+# Certificados
+server/certs/
+
+# Salida de pruebas
+tests/output/
