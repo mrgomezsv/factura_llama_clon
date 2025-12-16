@@ -773,6 +773,9 @@ export class DteService {
   /**
    * Guarda o actualiza la configuración de empresa
    */
+  /**
+   * Guarda o actualiza la configuración de empresa
+   */
   saveEmpresaConfig(empresaId: string, config: {
     nombreLegal?: string;
     nombreComercial?: string;
@@ -793,6 +796,8 @@ export class DteService {
     passwordAPIPrueba?: string;
     certificadoProduccion?: string;
     passwordAPIProduccion?: string;
+    ambientePruebasActivo?: number;
+    ambienteProduccionActivo?: number;
   }): Observable<void> {
     return this.database.isReady$.pipe(
       first(ready => ready),
@@ -812,6 +817,7 @@ export class DteService {
                  actividad_economica_primaria = ?, actividad_economica_secundaria = ?, actividad_economica_terciaria = ?,
                  direccion = ?, codigo_mh = ?, puntos_venta = ?, sitio_web = ?, telefono = ?, correo = ?, logo_url = ?,
                  certificado_prueba = ?, password_api_prueba = ?, certificado_produccion = ?, password_api_produccion = ?,
+                 ambiente_pruebas_activo = ?, ambiente_produccion_activo = ?,
                  updated_at = CURRENT_TIMESTAMP 
              WHERE empresa_id = ?`,
             [
@@ -834,6 +840,8 @@ export class DteService {
               config.passwordAPIPrueba || null,
               config.certificadoProduccion || null,
               config.passwordAPIProduccion || null,
+              config.ambientePruebasActivo !== undefined ? config.ambientePruebasActivo : 1,
+              config.ambienteProduccionActivo !== undefined ? config.ambienteProduccionActivo : 0,
               empresaId
             ]
           );
@@ -845,8 +853,9 @@ export class DteService {
              (id, empresa_id, nombre_legal, nombre_comercial, nit, nrc, dui,
               actividad_economica_primaria, actividad_economica_secundaria, actividad_economica_terciaria,
               direccion, codigo_mh, puntos_venta, sitio_web, telefono, correo, logo_url,
-              certificado_prueba, password_api_prueba, certificado_produccion, password_api_produccion) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              certificado_prueba, password_api_prueba, certificado_produccion, password_api_produccion,
+              ambiente_pruebas_activo, ambiente_produccion_activo)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               id,
               empresaId,
@@ -868,7 +877,9 @@ export class DteService {
               config.certificadoPrueba || null,
               config.passwordAPIPrueba || null,
               config.certificadoProduccion || null,
-              config.passwordAPIProduccion || null
+              config.passwordAPIProduccion || null,
+              config.ambientePruebasActivo !== undefined ? config.ambientePruebasActivo : 1,
+              config.ambienteProduccionActivo !== undefined ? config.ambienteProduccionActivo : 0
             ]
           );
         }
@@ -940,7 +951,9 @@ export class DteService {
             certificadoPrueba: row.certificado_prueba || '',
             passwordAPIPrueba: row.password_api_prueba || '',
             certificadoProduccion: row.certificado_produccion || '',
-            passwordAPIProduccion: row.password_api_produccion || ''
+            passwordAPIProduccion: row.password_api_produccion || '',
+            ambientePruebasActivo: row.ambiente_pruebas_activo,
+            ambienteProduccionActivo: row.ambiente_produccion_activo
           };
         }
         return null;
@@ -960,12 +973,12 @@ export class DteService {
           FROM dtes 
           WHERE id = ?
         `;
-        
+
         return this.database.query(sql, [dteId]).pipe(
           map((rows: any[]) => {
             if (rows.length > 0 && rows[0].dte_json) {
-              return typeof rows[0].dte_json === 'string' 
-                ? JSON.parse(rows[0].dte_json) 
+              return typeof rows[0].dte_json === 'string'
+                ? JSON.parse(rows[0].dte_json)
                 : rows[0].dte_json;
             }
             return null;
