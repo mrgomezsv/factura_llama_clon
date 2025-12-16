@@ -15,62 +15,75 @@ class DteSignerService {
   /**
    * Firmar un DTE usando el servicio de firma
    * @param {Object} dteJson - DTE en formato JSON
+   * @param {Object} empresaConfig - Configuración de la empresa (incluye passwords)
    * @returns {Promise<string|null>} DTE firmado como string JSON, o null si hay error
    */
-  async signDte(dteJson) {
+  async signDte(dteJson, empresaConfig) {
     try {
+      // Determinar ambiente para elegir password
+      const ambiente = dteJson.identificacion && dteJson.identificacion.ambiente === '00' ? 'PRUEBAS' : 'PRODUCCION';
+
+      const pwdPri = ambiente === 'PRUEBAS'
+        ? empresaConfig.cert_password_pri_prueba
+        : empresaConfig.cert_password_pri_produccion;
+
+      const pwdPub = ambiente === 'PRUEBAS'
+        ? empresaConfig.cert_password_pub_prueba
+        : empresaConfig.cert_password_pub_produccion;
+
+      const nit = empresaConfig.nit;
+
+      if (!pwdPri || !nit) {
+        console.error('❌ Faltan credenciales de firma (NIT o Password Privado)');
+        return null;
+      }
+
+      // Payload esperado por FirmarDocumentoFilter.java del firmador
+      const payload = {
+        passwordPri: pwdPri,
+        passwordPub: pwdPub || 'P4ssw0rd', // Enviar valor dummy si no se define, aunque el firmador prioriza passwordPri
+        nit: nit,
+        dteJson: dteJson,
+        activo: true
+        // compactSerialization: no usamos esto para firmar nuevo
+      };
+
       // Intentar diferentes endpoints según la API del firmador
+      // Según análisis: FirmarDocumentoController está en /firmardocumento/
       const endpoints = [
-        '/firmar',
-        '/sign',
-        '/api/firmar',
-        '/api/sign',
-        '/'
+        '/firmardocumento/',
+        '/api/firmardocumento/'
       ];
 
       for (const endpoint of endpoints) {
         try {
           const response = await axios.post(
             `${this.signerUrl}${endpoint}`,
-            dteJson,
+            payload,
             {
               headers: { 'Content-Type': 'application/json' },
               timeout: this.timeout
             }
           );
 
-          if (response.status === 200) {
+          if (response.status === 200 && response.data && response.data.body) {
+            // El firmador responde con estructura { status, body: "JWS..." }
             console.log(`✅ DTE firmado exitosamente usando endpoint: ${endpoint}`);
-            return typeof response.data === 'string' ? response.data : JSON.stringify(response.data);
+            return response.data.body;
+          } else if (response.status === 200 && typeof response.data === 'string') {
+            // Caso raw string
+            return response.data;
           }
+
         } catch (error) {
-          if (error.response && error.response.status === 200) {
-            // Algunos endpoints pueden retornar 200 con error en el body
-            continue;
+          if (error.response) {
+            console.error(`Error endpoint ${endpoint}:`, error.response.data);
+          } else {
+            console.error(`Error conexión endpoint ${endpoint}:`, error.message);
           }
           // Continuar con el siguiente endpoint
           continue;
         }
-      }
-
-      // Si ningún endpoint funcionó, intentar con el JSON como string
-      try {
-        const response = await axios.post(
-          `${this.signerUrl}/firmar`,
-          JSON.stringify(dteJson),
-          {
-            headers: { 'Content-Type': 'application/json' },
-            timeout: this.timeout
-          }
-        );
-
-        if (response.status === 200) {
-          console.log('✅ DTE firmado exitosamente');
-          return typeof response.data === 'string' ? response.data : JSON.stringify(response.data);
-        }
-      } catch (error) {
-        console.error('❌ Error al firmar DTE:', error.message);
-        return null;
       }
 
       console.error('❌ No se pudo firmar el DTE en ningún endpoint');

@@ -305,7 +305,139 @@ app.post('/api/auth/register', async (req, res) => {
     client.release();
   }
 });
+// Endpoint para subir certificado
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
 
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const certDir = path.join(__dirname, 'certs');
+    if (!fs.existsSync(certDir)) {
+      fs.mkdirSync(certDir, { recursive: true });
+    }
+    cb(null, certDir)
+  },
+  filename: function (req, file, cb) {
+    // El nombre se asignará en el controlador basado en el NIT de la empresa
+    // Por ahora usamos un temporal que luego renombraremos
+    cb(null, 'temp-' + Date.now() + '-' + file.originalname)
+  }
+});
+
+const upload = multer({ storage: storage });
+
+app.post('/api/empresas/:id/certificado', authMiddleware, upload.single('certificado'), async (req, res) => {
+  const client = await pool.connect();
+  const uploadedFile = req.file;
+
+  try {
+    const empresaId = req.params.id;
+    const {
+      passwordPriPrueba,
+      passwordPubPrueba,
+      passwordPriProduccion,
+      passwordPubProduccion,
+      ambiente
+    } = req.body;
+
+    console.log(`🔐 Configurando certificado para empresa ${empresaId}, Ambiente: ${ambiente}`);
+
+    await client.query('BEGIN');
+
+    // 1. Obtener NIT de la empresa para nombrar el archivo
+    const empresaRes = await client.query('SELECT nit FROM empresa_config WHERE empresa_id = $1', [empresaId]);
+
+    if (empresaRes.rows.length === 0) {
+      if (uploadedFile) fs.unlinkSync(uploadedFile.path); // Limpiar temp
+      throw new Error('Empresa no encontrada');
+    }
+
+    const nit = empresaRes.rows[0].nit;
+    if (!nit) {
+      if (uploadedFile) fs.unlinkSync(uploadedFile.path); // Limpiar temp
+      throw new Error('La empresa no tiene NIT configurado. Configure el NIT primero.');
+    }
+
+    // 2. Procesar archivo si se subió uno
+    let certPath = null;
+    if (uploadedFile) {
+      const finalPath = path.join(__dirname, 'certs', `${nit}.crt`);
+      fs.renameSync(uploadedFile.path, finalPath);
+      fs.chmodSync(finalPath, 0o644);
+      certPath = `${nit}.crt`; // Guardamos solo el nombre relativo
+      console.log(`✅ Certificado guardado en: ${finalPath}`);
+    }
+
+    // 3. Actualizar contraseñas en tabla 'empresa_certificados'
+    // Usamos UPSERT (Insert or Update)
+
+    // Primero verificar si existe registro
+    const certRow = await client.query('SELECT id FROM empresa_certificados WHERE empresa_id = $1', [empresaId]);
+
+    if (certRow.rows.length === 0) {
+      // Insertar
+      await client.query(`
+            INSERT INTO empresa_certificados 
+            (empresa_id, password_pri_prueba, password_pub_prueba, password_pri_produccion, password_pub_produccion, cert_path_prueba, cert_path_produccion)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `, [
+        empresaId,
+        passwordPriPrueba || null,
+        passwordPubPrueba || null,
+        passwordPriProduccion || null,
+        passwordPubProduccion || null,
+        ambiente === 'PRUEBAS' && certPath ? certPath : null,
+        ambiente === 'PRODUCCION' && certPath ? certPath : null
+      ]);
+    } else {
+      // Actualizar dinámicamente
+      let updateFields = [];
+      let values = [];
+      let paramCount = 1;
+
+      if (passwordPriPrueba) { updateFields.push(`password_pri_prueba = $${paramCount++}`); values.push(passwordPriPrueba); }
+      if (passwordPubPrueba) { updateFields.push(`password_pub_prueba = $${paramCount++}`); values.push(passwordPubPrueba); }
+      if (passwordPriProduccion) { updateFields.push(`password_pri_produccion = $${paramCount++}`); values.push(passwordPriProduccion); }
+      if (passwordPubProduccion) { updateFields.push(`password_pub_produccion = $${paramCount++}`); values.push(passwordPubProduccion); }
+
+      if (certPath) {
+        if (ambiente === 'PRUEBAS') {
+          updateFields.push(`cert_path_prueba = $${paramCount++}`); values.push(certPath);
+        } else {
+          updateFields.push(`cert_path_produccion = $${paramCount++}`); values.push(certPath);
+        }
+      }
+
+      updateFields.push(`updated_at = NOW()`);
+
+      if (updateFields.length > 0) {
+        values.push(empresaId);
+        const query = `UPDATE empresa_certificados SET ${updateFields.join(', ')} WHERE empresa_id = $${paramCount}`;
+        await client.query(query, values);
+      }
+    }
+
+    await client.query('COMMIT');
+
+    res.json({
+      success: true,
+      message: 'Configuración de certificado actualizada exitosamente en tabla dedicada',
+      certUploaded: !!uploadedFile,
+      nit: nit
+    });
+
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('❌ Error guardando certificado:', error);
+    if (uploadedFile && fs.existsSync(uploadedFile.path)) {
+      try { fs.unlinkSync(uploadedFile.path); } catch (e) { }
+    }
+    res.status(500).json({ error: error.message });
+  } finally {
+    client.release();
+  }
+});
 // Endpoint para generar DTE completo
 // Endpoint para generar DTE completo (Protegido y Seguro)
 app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
@@ -345,8 +477,18 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
 
     // Obtener configuración de empresa
     console.log('🏢 Obteniendo configuración de empresa:', empresaId);
-    const empresaResult = await pool.query(
-      'SELECT * FROM empresa_config WHERE empresa_id = $1',
+
+    // Unir con tabla de certificados
+    const empresaResult = await pool.query(`
+      SELECT ec.*, 
+             crt.password_pri_prueba as cert_password_pri_prueba,
+             crt.password_pub_prueba as cert_password_pub_prueba,
+             crt.password_pri_produccion as cert_password_pri_produccion,
+             crt.password_pub_produccion as cert_password_pub_produccion
+      FROM empresa_config ec
+      LEFT JOIN empresa_certificados crt ON ec.empresa_id = crt.empresa_id
+      WHERE ec.empresa_id = $1
+      `,
       [empresaId]
     );
 
@@ -439,7 +581,8 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
     console.log('📝 Firmando DTE...');
     let dteFirmadoStr;
     try {
-      dteFirmadoStr = await dteSigner.signDte(dteJson);
+      // Pasamos empresaConfig que ahora incluye las contraseñas cargadas desde la DB
+      dteFirmadoStr = await dteSigner.signDte(dteJson, empresaConfig);
       if (!dteFirmadoStr) {
         console.warn('⚠️  No se pudo firmar el DTE, continuando sin firma para pruebas');
         // Para desarrollo, continuar sin firma
