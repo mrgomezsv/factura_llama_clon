@@ -55,31 +55,34 @@ sequenceDiagram
 
 Este diagrama muestra cómo está construido el código actual. El flujo es **idéntico al estándar**, lo que garantiza el cumplimiento.
 
-```mermaid
 sequenceDiagram
     participant App as Backend WavePos
+    participant DB as PostgreSQL
     participant Builder as DteBuilder (Servicio)
     participant Signer as Docker Firmador (Local)
     participant API as DteApiService
     participant MH as API Hacienda (Tenet/Prod)
 
-    Note over App, MH: Implementación WavePos DTE-v2
+    Note over App, MH: Implementación WavePos DTE-v2 (Multi-Empresa)
 
-    App->>Builder: buildFactura/CreditoFiscal(datos)
+    App->>DB: Consultar Config Empresa (Credenciales MH, Certificado)
+    DB-->>App: Retorna Configuración
+
+    App->>Builder: buildFactura/CreditoFiscal(datos, config)
     Builder->>App: Retorna Objeto DTE Estándar
 
-    App->>Signer: POST /firmar (JSON)
+    App->>Signer: POST /firmar (JSON + Certificado)
     Signer-->>App: Retorna JSON Firmado (String)
 
-    App->>API: enviarDte(JSON Firmado)
-    API->>MH: POST /oauth2/token (Login con Credenciales .env)
+    App->>API: enviarDte(JSON Firmado, Credenciales Empresa)
+    API->>MH: POST /oauth2/token (Login con Credenciales de DB)
     MH-->>API: Token Acceso (Bearer)
     
     API->>MH: POST /recepcion (Payload con JSON Firmado)
     MH-->>API: Respuesta { estado: "PROCESADO", selloRecibido: "..." }
     
+    API->>DB: INSERT INTO documento_*(estado, sello...)
     API-->>App: Resultado { success: true, estado: ... }
-```
 
 ---
 
