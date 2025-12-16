@@ -426,6 +426,30 @@
                 <p class="form-hint">Datos clave para la conexión con el Ministerio de Hacienda. Solo administradores
                   pueden editar estos campos.</p>
                 <div class="form-group">
+                  <label class="form-label">Ambiente Activo de Transmisión <span
+                      class="required-asterisk">*</span></label>
+                  <div class="environment-toggle-container">
+                    <label class="radio-label">
+                      <input type="radio" formControlName="ambientePruebasActivo" [value]="true">
+                      <span class="radio-text">Ambiente de PRUEBAS</span>
+                    </label>
+                    <label class="radio-label">
+                      <input type="radio" formControlName="ambientePruebasActivo" [value]="false">
+                      <span class="radio-text">Ambiente de PRODUCCIÓN</span>
+                    </label>
+                  </div>
+                  <p class="form-hint" style="margin-top: 5px; color: #d63384;"
+                    *ngIf="empresaForm.get('ambientePruebasActivo')?.value === false">
+                    ⚠️ ¡Atención! Está configurando el sistema para emitir documentos reales. Asegúrese de tener los
+                    certificados de producción cargados.
+                  </p>
+                  <p class="form-hint" style="margin-top: 5px; color: #0d6efd;"
+                    *ngIf="empresaForm.get('ambientePruebasActivo')?.value === true">
+                    ℹ️ El sistema está en modo pruebas. Los documentos no tendrán validez fiscal.
+                  </p>
+                </div>
+
+                <div class="form-group">
                   <label class="form-label">Certificado (Ambiente de Prueba) <span
                       class="required-asterisk">*</span></label>
                   <input type="text" class="form-input"
