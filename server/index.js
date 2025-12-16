@@ -285,7 +285,6 @@ app.post('/api/auth/register', async (req, res) => {
     );
 
     // 8. Retornar éxito con token y usuario
-
     res.status(201).json({
       message: 'Cuenta creada exitosamente',
       token,
@@ -299,10 +298,51 @@ app.post('/api/auth/register', async (req, res) => {
 
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('Register error:', error);
-    res.status(500).json({ error: 'Error al registrar usuario: ' + error.message });
+    console.error('Registration error:', error);
+    res.status(500).json({ error: error.message || 'Error al registrar usuario' });
   } finally {
     client.release();
+  }
+});
+
+// Endpoint para refrescar token (actualizar claims como empresaId)
+app.post('/api/auth/refresh-token', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    // Buscar información actualizada del usuario
+    const result = await pool.query('SELECT * FROM users WHERE id = $1', [userId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    const user = result.rows[0];
+
+    // Generar Nuevo Token con claims actualizados
+    const token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        empresaId: user.empresa_id,
+        role: user.role || 'USER'
+      },
+      JWT_SECRET,
+      { expiresIn: '8h' }
+    );
+
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        displayName: user.display_name,
+        empresaId: user.empresa_id
+      }
+    });
+
+  } catch (error) {
+    console.error('Refresh token error:', error);
+    res.status(500).json({ error: 'Error al refrescar token' });
   }
 });
 // Endpoint para subir certificado
@@ -498,6 +538,7 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
     }
 
     const empresaConfig = empresaResult.rows[0];
+    console.log('👀 DEBUG RAW DB ROW:', empresaConfig);
     console.log('✅ Configuración de empresa obtenida');
 
     // Obtener datos del cliente
@@ -534,20 +575,24 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
 
     // Construir JSON del DTE (tipoDteCodigo ya fue calculado arriba)
     const fechaEmision = new Date();
+
+    const empresaConfigBuilder = {
+      nombreLegal: empresaConfig.nombre_legal,
+      nombreComercial: empresaConfig.nombre_comercial,
+      nit: empresaConfig.nit,
+      nrc: empresaConfig.nrc,
+      direccion: empresaConfig.direccion,
+      telefono: empresaConfig.telefono,
+      correo: empresaConfig.correo,
+      actividadEconomicaPrimaria: empresaConfig.actividad_economica_primaria,
+      codigoMH: empresaConfig.codigo_mh,
+      logoUrl: empresaConfig.logo_url
+    };
+    console.log('👀 DEBUG empresaConfigBuilder:', empresaConfigBuilder);
+
     const { dteJson, codigoGeneracion, numeroControl } = dteBuilder.buildDteJson({
       tipoDte,
-      empresaConfig: {
-        nombreLegal: empresaConfig.nombre_legal,
-        nombreComercial: empresaConfig.nombre_comercial,
-        nit: empresaConfig.nit,
-        nrc: empresaConfig.nrc,
-        direccion: empresaConfig.direccion,
-        telefono: empresaConfig.telefono,
-        correo: empresaConfig.correo,
-        actividadEconomicaPrimaria: empresaConfig.actividad_economica_primaria,
-        codigoMH: empresaConfig.codigo_mh,
-        logoUrl: empresaConfig.logo_url
-      },
+      empresaConfig: empresaConfigBuilder,
       cliente: {
         nombre: cliente.nombre,
         nit: cliente.nit,
