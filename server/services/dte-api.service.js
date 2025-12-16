@@ -9,8 +9,9 @@ require('dotenv').config();
 
 class DteApiService {
     constructor() {
-        this.mhAuthUrl = process.env.MH_AUTH_URL || 'https://test.identidad.hacienda.gob.sv/Dte/oauth2';
-        this.mhApiUrl = process.env.MH_API_URL || 'https://tenet.hacienda.gob.sv/esing/dte';
+        // URLs oficiales ambiente de PRUEBAS (API V3)
+        this.mhAuthUrl = process.env.MH_AUTH_URL || 'https://apitest.dtes.mh.gob.sv/seguridad/auth';
+        this.mhApiUrl = process.env.MH_API_URL || 'https://apitest.dtes.mh.gob.sv/dte/recepcion';
 
         // Credenciales (Deberían estar en .env)
         this.user = process.env.MH_USER;
@@ -41,8 +42,9 @@ class DteApiService {
                 nit: nit
             });
 
+            // NOTA: El endpoint oficial es /seguridad/auth
             const response = await axios.post(
-                `${this.mhAuthUrl}/token`,
+                this.mhAuthUrl,
                 data,
                 {
                     headers: {
@@ -51,9 +53,17 @@ class DteApiService {
                 }
             );
 
+
+
+            console.log('🔍 DEBUG Auth Response Body:', JSON.stringify(response.data, null, 2));
+
             if (response.data && response.data.body && response.data.body.token) {
                 console.log('✅ Autenticación MH exitosa');
                 return response.data.body.token;
+            } else if (response.data && response.data.token) {
+                // Estructura alternativa posible
+                console.log('✅ Autenticación MH exitosa (Estructura simple)');
+                return response.data.token;
             } else {
                 throw new Error('Respuesta de MH no contenía token');
             }
@@ -100,7 +110,7 @@ class DteApiService {
             console.log(`📤 Enviando DTE ${numeroControl} a MH (Ambiente: ${ambiente})...`);
 
             const response = await axios.post(
-                `${this.mhApiUrl}/recepcion`,
+                this.mhApiUrl,
                 payload,
                 {
                     headers: {
