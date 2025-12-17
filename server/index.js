@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
@@ -8,8 +9,9 @@ const dteApiService = require('./services/dte-api.service');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const authMiddleware = require('./middleware/auth.middleware');
-require('dotenv').config();
+// require('dotenv').config(); // Moved to top
 const { setupCatalogs } = require('./setup-catalogs');
+const { initializeDatabase } = require('./verify-db');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_para_desarrollo_123';
 
@@ -890,15 +892,19 @@ app.get('/api/dtes/:id/pdf', async (req, res) => {
 
 // Iniciar servidor
 // Iniciar servidor y verificar catálogos
-(async () => {
+// Iniciar servidor
+const startServer = async () => {
   try {
-    // Verificar/Cargar catálogos al inicio
-    await setupCatalogs();
+    // initializeDatabase ya se encarga de crear la BD, tablas y catálogos si faltan
+    await initializeDatabase();
 
-    app.listen(port, '0.0.0.0', () => {
-      console.log(`Servidor corriendo en http://localhost:${port}`);
+    app.listen(port, () => {
+      console.log(`🚀 Servidor corriendo en http://localhost:${port}`);
     });
   } catch (error) {
-    console.error('Error al iniciar el servidor:', error);
+    console.error('❌ Error fatal iniciando el servidor:', error);
+    process.exit(1);
   }
-})();
+};
+
+startServer();

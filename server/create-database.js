@@ -57,20 +57,7 @@ async function createDatabase() {
 
 async function createTables(client) {
   const schema = `
-    -- Tabla de usuarios
-    CREATE TABLE IF NOT EXISTS users (
-      id TEXT PRIMARY KEY,
-      email TEXT UNIQUE NOT NULL,
-      password_hash TEXT NOT NULL,
-      display_name TEXT,
-      empresa_id TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      active INTEGER DEFAULT 1,
-      FOREIGN KEY (empresa_id) REFERENCES empresas(id)
-    );
-
-    -- Tabla de empresas
+    -- Tabla de empresas (Dependencia base)
     CREATE TABLE IF NOT EXISTS empresas (
       id TEXT PRIMARY KEY,
       nombre TEXT NOT NULL,
@@ -94,32 +81,6 @@ async function createTables(client) {
       active INTEGER DEFAULT 1
     );
 
-    -- Tabla de productos
-    CREATE TABLE IF NOT EXISTS productos (
-      id TEXT PRIMARY KEY,
-      nombre TEXT NOT NULL,
-      codigo TEXT,
-      descripcion TEXT,
-      precio_unitario REAL DEFAULT 0,
-      unidad_medida TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      active INTEGER DEFAULT 1
-    );
-
-    -- Tabla de sucursales
-    CREATE TABLE IF NOT EXISTS sucursales (
-      id TEXT PRIMARY KEY,
-      nombre TEXT NOT NULL,
-      direccion TEXT,
-      telefono TEXT,
-      empresa_id TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      active INTEGER DEFAULT 1,
-      FOREIGN KEY (empresa_id) REFERENCES empresas(id)
-    );
-
     -- Tabla de formas de pago
     CREATE TABLE IF NOT EXISTS formas_pago (
       id TEXT PRIMARY KEY,
@@ -134,6 +95,45 @@ async function createTables(client) {
       nombre TEXT NOT NULL,
       habilitado INTEGER DEFAULT 1,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Tabla de usuarios (Depende de empresas)
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      display_name TEXT,
+      empresa_id TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      active INTEGER DEFAULT 1,
+      FOREIGN KEY (empresa_id) REFERENCES empresas(id)
+    );
+
+    -- Tabla de sucursales (Depende de empresas)
+    CREATE TABLE IF NOT EXISTS sucursales (
+      id TEXT PRIMARY KEY,
+      nombre TEXT NOT NULL,
+      direccion TEXT,
+      telefono TEXT,
+      empresa_id TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      active INTEGER DEFAULT 1,
+      FOREIGN KEY (empresa_id) REFERENCES empresas(id)
+    );
+
+    -- Tabla de productos
+    CREATE TABLE IF NOT EXISTS productos (
+      id TEXT PRIMARY KEY,
+      nombre TEXT NOT NULL,
+      codigo TEXT,
+      descripcion TEXT,
+      precio_unitario REAL DEFAULT 0,
+      unidad_medida TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      active INTEGER DEFAULT 1
     );
 
     -- Estructura base común para todas las tablas de documentos
@@ -692,7 +692,7 @@ async function createTables(client) {
         await client.query(alterQuery);
         console.log(`✅ Campo ${migration.column} agregado a ${migration.table}`);
       } else {
-        console.log(`ℹ️  Campo ${migration.column} ya existe en ${migration.table}`);
+        // console.log(`ℹ️  Campo ${migration.column} ya existe en ${migration.table}`);
       }
     } catch (error) {
       if (!error.message.includes('already exists') && !error.message.includes('duplicate') && !error.message.includes('column') && !error.message.includes('already')) {
@@ -755,4 +755,10 @@ async function seedInitialData(client) {
   console.log('✅ Datos iniciales insertados');
 }
 
-createDatabase();
+
+if (require.main === module) {
+  createDatabase();
+}
+
+module.exports = { createDatabase, createTables };
+
