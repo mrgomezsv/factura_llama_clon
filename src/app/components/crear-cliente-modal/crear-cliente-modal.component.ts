@@ -93,7 +93,7 @@ export class CrearClienteModalComponent implements OnInit, OnChanges {
       // Mapear campos de la base de datos a campos del formulario
       const tipoDocumento = this.clienteParaEditar.nit ? 'NIT' : '';
       const numeroDocumento = this.clienteParaEditar.nit || '';
-      
+
       this.form.patchValue({
         nombre: this.clienteParaEditar.nombre || '',
         alias: this.clienteParaEditar.alias || '',
@@ -112,10 +112,10 @@ export class CrearClienteModalComponent implements OnInit, OnChanges {
         municipio: this.clienteParaEditar.municipio || '',
         direccion: this.clienteParaEditar.direccion || ''
       });
-      
+
       this.paisSeleccionado = this.clienteParaEditar.pais || 'El Salvador';
       this.departamentoSeleccionado = this.clienteParaEditar.departamento || '';
-      
+
       if (this.paisSeleccionado) {
         this.cargarDepartamentos(this.paisSeleccionado);
       }
@@ -186,6 +186,11 @@ export class CrearClienteModalComponent implements OnInit, OnChanges {
     this.mostrarActividadesDropdown = false;
   }
 
+  borrarActividadEconomica(): void {
+    this.form.get('actividadEconomica')?.setValue('');
+    this.mostrarActividadesDropdown = false;
+  }
+
   cerrarModal(): void {
     this.cerrar.emit();
   }
@@ -196,7 +201,7 @@ export class CrearClienteModalComponent implements OnInit, OnChanges {
         ...this.form.value,
         fechaCreacion: new Date().toLocaleString('es-SV')
       };
-      
+
       if (this.esModoEdicion && this.clienteParaEditar) {
         cliente.id = this.clienteParaEditar.id;
         this.clienteActualizado.emit(cliente);

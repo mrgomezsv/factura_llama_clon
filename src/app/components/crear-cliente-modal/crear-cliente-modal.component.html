@@ -4,7 +4,7 @@
       <h2>{{ esModoEdicion ? 'Editar Cliente' : 'Crear Cliente' }}</h2>
       <button class="btn-cerrar" (click)="cerrarModal()" type="button">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
         </svg>
       </button>
     </div>
@@ -13,78 +13,58 @@
       <!-- Datos Generales -->
       <div class="form-section">
         <h3 class="section-title">Datos Generales</h3>
-        
+
         <div class="form-group">
-          <label class="form-label">Nombre</label>
-          <input 
-            type="text" 
-            class="form-input"
-            formControlName="nombre"
-            placeholder="Nombre"
-          />
+          <label class="form-label">Nombre <span class="required-asterisk">*</span></label>
+          <input type="text" class="form-input" formControlName="nombre" placeholder="Nombre" />
         </div>
 
         <div class="form-group">
           <label class="form-label">Alias</label>
-          <input 
-            type="text" 
-            class="form-input"
-            formControlName="alias"
-            placeholder="Alias"
-          />
+          <input type="text" class="form-input" formControlName="alias" placeholder="Alias" />
         </div>
 
         <div class="form-group">
           <label class="form-label">Nombre Comercial</label>
-          <input 
-            type="text" 
-            class="form-input"
-            formControlName="nombreComercial"
-            placeholder="Nombre Comercial"
-          />
+          <input type="text" class="form-input" formControlName="nombreComercial" placeholder="Nombre Comercial" />
         </div>
 
         <div class="form-group">
-          <label class="form-label">Correo Electrónico</label>
+          <label class="form-label">Correo Electrónico <span class="required-asterisk">*</span></label>
           <div class="input-with-icon">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M3 7H17L15 15H5L3 7Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M3 7H17L15 15H5L3 7Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                stroke-linejoin="round" />
             </svg>
-            <input 
-              type="email" 
-              class="form-input"
-              formControlName="correoElectronico"
-              placeholder="correo"
-            />
+            <input type="email" class="form-input" formControlName="correoElectronico" placeholder="correo" />
           </div>
-          <span class="form-hint">Usa de 1 a 40 caracteres. Puedes usar a-z, 0-9, . (punto), - (guion) y _ (guion bajo).</span>
+          <span class="form-hint">Usa de 1 a 40 caracteres. Puedes usar a-z, 0-9, . (punto), - (guion) y _ (guion
+            bajo).</span>
         </div>
 
         <div class="form-group">
           <label class="form-label">Teléfono</label>
           <div class="input-with-icon">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M3.33333 2.66667C2.59695 2.66667 2 3.26362 2 4V12C2 12.7364 2.59695 13.3333 3.33333 13.3333H12.6667C13.403 13.3333 14 12.7364 14 12V4C14 3.26362 13.403 2.66667 12.6667 2.66667H3.33333Z" stroke="currentColor" stroke-width="1.5"/>
-              <path d="M2 5.33333L8 9.33333L14 5.33333" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path
+                d="M3.33333 2.66667C2.59695 2.66667 2 3.26362 2 4V12C2 12.7364 2.59695 13.3333 3.33333 13.3333H12.6667C13.403 13.3333 14 12.7364 14 12V4C14 3.26362 13.403 2.66667 12.6667 2.66667H3.33333Z"
+                stroke="currentColor" stroke-width="1.5" />
+              <path d="M2 5.33333L8 9.33333L14 5.33333" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                stroke-linejoin="round" />
             </svg>
-            <input 
-              type="tel" 
-              class="form-input"
-              formControlName="telefono"
-              placeholder="Teléfono"
-            />
+            <input type="tel" class="form-input" formControlName="telefono" placeholder="Teléfono" />
           </div>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Tipo de Persona</label>
+          <label class="form-label">Tipo de Persona <span class="required-asterisk">*</span></label>
           <select class="form-select" formControlName="tipoPersona">
             <option *ngFor="let tipo of tiposPersona" [value]="tipo">{{ tipo }}</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Clasificación Tributaria</label>
+          <label class="form-label">Clasificación Tributaria <span class="required-asterisk">*</span></label>
           <select class="form-select" formControlName="clasificacionTributaria">
             <option *ngFor="let clasif of clasificacionesTributarias" [value]="clasif">{{ clasif }}</option>
           </select>
@@ -103,7 +83,7 @@
         <h3 class="section-title">Datos Fiscales</h3>
 
         <div class="form-group">
-          <label class="form-label">Tipo de Documento</label>
+          <label class="form-label">Tipo de Documento <span class="required-asterisk">*</span></label>
           <select class="form-select" formControlName="tipoDocumento">
             <option value="">Selecciona el Tipo de Documento</option>
             <option *ngFor="let tipo of tiposDocumento" [value]="tipo">{{ tipo }}</option>
@@ -111,52 +91,44 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">Número de Documento</label>
-          <input 
-            type="text" 
-            class="form-input"
-            formControlName="numeroDocumento"
-            placeholder="Número de Documento"
-          />
+          <label class="form-label">Número de Documento <span class="required-asterisk">*</span></label>
+          <input type="text" class="form-input" formControlName="numeroDocumento" placeholder="Número de Documento" />
         </div>
 
         <div class="form-group">
           <label class="form-label">NRC</label>
-          <input 
-            type="text" 
-            class="form-input"
-            formControlName="nrc"
-            placeholder="NRC"
-          />
+          <input type="text" class="form-input" formControlName="nrc" placeholder="NRC" />
         </div>
 
         <div class="form-group">
           <label class="form-label">Actividad Económica</label>
           <div class="dropdown-actividad-container">
-            <input 
-              type="text" 
-              class="form-input"
-              formControlName="actividadEconomica"
-              placeholder="Selecciona una actividad económica"
-              (focus)="mostrarActividadesDropdown = true"
+            <input type="text" class="form-input" formControlName="actividadEconomica"
+              placeholder="Selecciona una actividad económica (Opcional)" (focus)="mostrarActividadesDropdown = true"
               (input)="filtrarActividadesEconomicas($any($event.target).value)"
-              [value]="form.get('actividadEconomica')?.value"
-            />
+              [value]="form.get('actividadEconomica')?.value" />
+
+            @if (form.get('actividadEconomica')?.value) {
+            <button type="button" class="btn-clear-activity"
+              (click)="borrarActividadEconomica(); $event.stopPropagation()" title="Limpiar actividad">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M4 12L12 4M4 4L12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+            </button>
+            } @else {
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" class="dropdown-arrow">
-              <path d="M4 6L10 12L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M4 6L10 12L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
             </svg>
+            }
             @if (mostrarActividadesDropdown) {
-              <div class="dropdown-actividades">
-                @for (actividad of actividadesEconomicasFiltradas; track actividad) {
-                  <button 
-                    type="button"
-                    class="dropdown-actividad-item"
-                    (click)="seleccionarActividadEconomica(actividad)"
-                  >
-                    {{ actividad }}
-                  </button>
-                }
-              </div>
+            <div class="dropdown-actividades">
+              @for (actividad of actividadesEconomicasFiltradas; track actividad) {
+              <button type="button" class="dropdown-actividad-item" (click)="seleccionarActividadEconomica(actividad)">
+                {{ actividad }}
+              </button>
+              }
+            </div>
             }
           </div>
         </div>
@@ -167,14 +139,14 @@
         <h3 class="section-title">Dirección</h3>
 
         <div class="form-group">
-          <label class="form-label">País</label>
+          <label class="form-label">País <span class="required-asterisk">*</span></label>
           <select class="form-select" formControlName="pais">
             <option *ngFor="let pais of paises" [value]="pais">{{ pais }}</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Departamento</label>
+          <label class="form-label">Departamento <span class="required-asterisk">*</span></label>
           <select class="form-select" formControlName="departamento">
             <option value="">Selecciona un departamento</option>
             <option *ngFor="let depto of departamentos" [value]="depto">{{ depto }}</option>
@@ -182,7 +154,7 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">Municipio</label>
+          <label class="form-label">Municipio <span class="required-asterisk">*</span></label>
           <select class="form-select" formControlName="municipio">
             <option value="">Selecciona un municipio</option>
             <option *ngFor="let muni of municipios" [value]="muni">{{ muni }}</option>
@@ -193,14 +165,10 @@
           <label class="form-label">Dirección</label>
           <div class="input-with-icon">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M3 7H17L15 15H5L3 7Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M3 7H17L15 15H5L3 7Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                stroke-linejoin="round" />
             </svg>
-            <input 
-              type="text" 
-              class="form-input"
-              formControlName="direccion"
-              placeholder="Dirección"
-            />
+            <input type="text" class="form-input" formControlName="direccion" placeholder="Dirección" />
           </div>
         </div>
       </div>
@@ -208,8 +176,8 @@
 
     <div class="modal-footer">
       <button class="btn-cancelar" (click)="cerrarModal()" type="button">Cancelar</button>
-      <button class="btn-crear" (click)="crearCliente()" type="button" [disabled]="!form.valid">{{ esModoEdicion ? 'Guardar' : 'Crear' }}</button>
+      <button class="btn-crear" (click)="crearCliente()" type="button" [disabled]="!form.valid">{{ esModoEdicion ?
+        'Guardar' : 'Crear' }}</button>
     </div>
   </div>
 </div>
-
