@@ -15,11 +15,14 @@ async function setupCatalogs() {
     try {
         await client.connect();
 
-        // Verificar si ya existen datos (usando cat_001_ambiente como referencia)
+        // Verificar si ya existen datos (usando cat_001_ambiente y cat_019_actividad_economica como referencia)
         const checkTableQuery = "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'cat_001_ambiente')";
         const tableExists = await client.query(checkTableQuery);
 
-        if (tableExists.rows[0].exists) {
+        const checkCat019Query = "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'cat_019_actividad_economica')";
+        const cat019Exists = await client.query(checkCat019Query);
+
+        if (tableExists.rows[0].exists && cat019Exists.rows[0].exists) {
             const countQuery = "SELECT COUNT(*) FROM cat_001_ambiente";
             const countResult = await client.query(countQuery);
 
