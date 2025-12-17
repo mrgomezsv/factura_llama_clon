@@ -1096,7 +1096,7 @@ export class DteService {
       formData.append(key, passwords[key]);
     });
 
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('auth_token');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
     return this.http.post(`${this.API_URL}/empresas/${empresaId}/certificado`, formData, { headers });
