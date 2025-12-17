@@ -115,6 +115,45 @@
             }
           </div>
 
+
+          <div class="info-row">
+            <span class="info-label">Primaria *:</span>
+            @if (modoEdicionEmpresa) {
+            <select formControlName="actividadEconomicaPrimaria" class="form-input-edit"
+              (change)="onActividadPrimariaChange($event)">
+              <option value="">Seleccione una actividad</option>
+              <option *ngFor="let actividad of actividadesEconomicas" [value]="actividad.descripcion">{{
+                actividad.descripcion }}</option>
+            </select>
+            } @else {
+            <span class="info-value">{{ empresaSeleccionada.actividadEconomicaPrimaria || 'N/A' }}</span>
+            }
+          </div>
+          <div class="info-row">
+            <span class="info-label">Secundaria:</span>
+            @if (modoEdicionEmpresa) {
+            <select formControlName="actividadEconomicaSecundaria" class="form-input-edit">
+              <option value="">Seleccione una actividad</option>
+              <option *ngFor="let actividad of actividadesEconomicas" [value]="actividad.descripcion">{{
+                actividad.descripcion }}</option>
+            </select>
+            } @else {
+            <span class="info-value">{{ empresaSeleccionada.actividadEconomicaSecundaria || 'N/A' }}</span>
+            }
+          </div>
+          <div class="info-row">
+            <span class="info-label">Terciaria:</span>
+            @if (modoEdicionEmpresa) {
+            <select formControlName="actividadEconomicaTerciaria" class="form-input-edit">
+              <option value="">Seleccione una actividad</option>
+              <option *ngFor="let actividad of actividadesEconomicas" [value]="actividad.descripcion">{{
+                actividad.descripcion }}</option>
+            </select>
+            } @else {
+            <span class="info-value">{{ empresaSeleccionada.actividadEconomicaTerciaria || 'N/A' }}</span>
+            }
+          </div>
+
           <div class="section-header">Casa Matriz</div>
           <div class="info-row">
             <span class="info-label">Dirección:</span>
@@ -151,7 +190,7 @@
           <div class="info-row">
             <span class="info-label">Código del Ministerio de Hacienda:</span>
             @if (modoEdicionEmpresa) {
-            <input type="text" formControlName="codigoMH" class="form-input-edit" />
+            <input type="text" formControlName="codigoMH" class="form-input-edit" readonly />
             } @else {
             <span class="info-value">{{ empresaSeleccionada.codigoMH || 'N/A' }}</span>
             }

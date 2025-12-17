@@ -59,6 +59,9 @@ export class ClientesPageComponent implements OnInit {
   empresaInfoDropdownAbierto = false;
   filtrosDropdownAbierto = false;
 
+  // Catálogos
+  actividadesEconomicas: any[] = [];
+
   // Estado de edición de empresa
   modoEdicionEmpresa = false;
   empresaForm: FormGroup;
@@ -119,6 +122,9 @@ export class ClientesPageComponent implements OnInit {
       this.cargarClientes();
       this.cargarSucursales();
       this.cargarProductos();
+      this.cargarSucursales();
+      this.cargarProductos();
+      this.cargarActividadesEconomicas();
       this.datosCargados = true;
     }
 
@@ -226,6 +232,26 @@ export class ClientesPageComponent implements OnInit {
       }));
       this.filtrarProductos();
     });
+  }
+
+  cargarActividadesEconomicas(): void {
+    this.dteService.getActividadesEconomicas().subscribe(actividades => {
+      this.actividadesEconomicas = actividades;
+    });
+  }
+
+  onActividadPrimariaChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const value = select.value; // Esto será la descripción según el requerimiento
+
+    // Buscar actividad correspondiente
+    const actividad = this.actividadesEconomicas.find(a => a.descripcion === value);
+
+    if (actividad) {
+      this.empresaForm.patchValue({
+        codigoMH: actividad.codigo
+      });
+    }
   }
 
 
