@@ -755,7 +755,6 @@ async function seedInitialData(client) {
   console.log('✅ Datos iniciales insertados');
 }
 
-
 if (require.main === module) {
   createDatabase();
 }
