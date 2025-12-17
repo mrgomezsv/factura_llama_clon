@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostListener, Output } from '@angular/core';
+import { Component, EventEmitter, HostListener, Output, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -20,6 +20,7 @@ import { CommonModule } from '@angular/common';
 
       @if (mostrarDropdown) {
         <div class="dropdown-menu">
+          @if (tabActiva === 'clientes' || !tabActiva) {
           <button 
             class="dropdown-item"
             (click)="seleccionarOpcion('nuevo-cliente')"
@@ -31,6 +32,9 @@ import { CommonModule } from '@angular/common';
             </svg>
             <span>Nuevo Cliente</span>
           </button>
+          }
+          
+          @if (tabActiva === 'sucursales' || !tabActiva) {
           <button 
             class="dropdown-item"
             (click)="seleccionarOpcion('nueva-sucursal')"
@@ -41,6 +45,9 @@ import { CommonModule } from '@angular/common';
             </svg>
             <span>Nueva Sucursal</span>
           </button>
+          }
+
+          @if (tabActiva === 'productos' || !tabActiva) {
           <button 
             class="dropdown-item"
             (click)="seleccionarOpcion('nuevo-producto')"
@@ -52,6 +59,7 @@ import { CommonModule } from '@angular/common';
             </svg>
             <span>Nuevo Producto</span>
           </button>
+          }
         </div>
       }
     </div>
@@ -126,6 +134,7 @@ import { CommonModule } from '@angular/common';
   `]
 })
 export class AddButtonDropdownComponent {
+  @Input() tabActiva: 'clientes' | 'sucursales' | 'productos' | null = null;
   @Output() opcionSeleccionada = new EventEmitter<string>();
   mostrarDropdown = false;
 

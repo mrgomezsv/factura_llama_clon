@@ -215,11 +215,7 @@
                   stroke-width="1.5" />
               </svg>
             </span>
-            @if (modoEdicionEmpresa) {
-            <input type="text" formControlName="website" class="form-input-edit" placeholder="https://..." />
-            } @else {
-            <span class="info-value">{{ empresaSeleccionada.website || '-' }}</span>
-            }
+            <span class="info-value">{{ usuarioActual?.displayName || '-' }}</span>
           </div>
           <div class="info-row">
             <span class="info-label">
@@ -360,7 +356,8 @@
         </div>
 
         <!-- Botón + con Dropdown -->
-        <app-add-button-dropdown (opcionSeleccionada)="manejarOpcionSeleccionada($event)"></app-add-button-dropdown>
+        <app-add-button-dropdown [tabActiva]="tabActiva"
+          (opcionSeleccionada)="manejarOpcionSeleccionada($event)"></app-add-button-dropdown>
       </div>
 
       <!-- Contenido de Tab Clientes -->
@@ -433,10 +430,17 @@
         </table>
 
         <!-- Paginación -->
-        @if (clientesFiltrados.length > 10) {
-        <app-paginacion [paginaActual]="paginaActualClientes" [totalPaginas]="totalPaginasClientes"
-          [totalItems]="clientesFiltrados.length" (cambiarPagina)="cambiarPaginaClientes($event)"></app-paginacion>
-        }
+        <!-- Paginación -->
+        <div class="pagination" *ngIf="clientesFiltrados.length > 0">
+          <button class="page-btn" type="button" [disabled]="paginaActualClientes === 1"
+            (click)="cambiarPaginaClientes(paginaActualClientes - 1)">&lt;</button>
+
+          <!-- Lógica simplificada de paginación para coincidir con el estilo visual -->
+          <button class="page-btn active" type="button">{{ paginaActualClientes }}</button>
+
+          <button class="page-btn" type="button" [disabled]="paginaActualClientes === totalPaginasClientes"
+            (click)="cambiarPaginaClientes(paginaActualClientes + 1)">&gt;</button>
+        </div>
         }
       </div>
 
@@ -595,10 +599,16 @@
         </table>
 
         <!-- Paginación -->
-        @if (productosFiltrados.length > 10) {
-        <app-paginacion [paginaActual]="paginaActualProductos" [totalPaginas]="totalPaginasProductos"
-          [totalItems]="productosFiltrados.length" (cambiarPagina)="cambiarPaginaProductos($event)"></app-paginacion>
-        }
+        <!-- Paginación -->
+        <div class="pagination" *ngIf="productosFiltrados.length > 0">
+          <button class="page-btn" type="button" [disabled]="paginaActualProductos === 1"
+            (click)="cambiarPaginaProductos(paginaActualProductos - 1)">&lt;</button>
+
+          <button class="page-btn active" type="button">{{ paginaActualProductos }}</button>
+
+          <button class="page-btn" type="button" [disabled]="paginaActualProductos === totalPaginasProductos"
+            (click)="cambiarPaginaProductos(paginaActualProductos + 1)">&gt;</button>
+        </div>
         }
       </div>
     </main>

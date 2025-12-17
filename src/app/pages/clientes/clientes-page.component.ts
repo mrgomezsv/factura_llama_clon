@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { DteService } from '../../services/dte.service';
+import { AuthService } from '../../services/auth.service';
 import { AddButtonDropdownComponent } from '../../components/add-button-dropdown/add-button-dropdown.component';
 import { CrearClienteModalComponent } from '../../components/crear-cliente-modal/crear-cliente-modal.component';
 import { CrearSucursalModalComponent } from '../../components/crear-sucursal-modal/crear-sucursal-modal.component';
@@ -28,6 +29,8 @@ import { PaginacionComponent } from '../../components/paginacion/paginacion.comp
   styleUrl: './clientes-page.component.scss'
 })
 export class ClientesPageComponent implements OnInit {
+  usuarioActual: any = null;
+
   tabActiva: 'clientes' | 'sucursales' | 'productos' = 'clientes';
   clientes: any[] = [];
   sucursales: any[] = [];
@@ -73,6 +76,7 @@ export class ClientesPageComponent implements OnInit {
 
   constructor(
     private dteService: DteService,
+    private authService: AuthService,
     private router: Router,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
@@ -116,12 +120,16 @@ export class ClientesPageComponent implements OnInit {
     this.sucursalesFiltradas = [];
     this.productosFiltrados = [];
 
-    // Cargar datos solo si no se han cargado antes
+    // Suscribirse a cambios del usuario
+    this.authService.user$.subscribe(user => {
+      this.usuarioActual = user;
+    });
+
+    // Cargar datos (si no estan cargados) - el usuario se carga via subscripcion, pero cargamos el perfil completo por si acaso
     if (!this.datosCargados) {
+      this.cargarUsuario(); // Refresca desde DB
       this.cargarEmpresa();
       this.cargarClientes();
-      this.cargarSucursales();
-      this.cargarProductos();
       this.cargarSucursales();
       this.cargarProductos();
       this.cargarActividadesEconomicas();
@@ -160,6 +168,23 @@ export class ClientesPageComponent implements OnInit {
     }
   }
 
+  cargarUsuario(): void {
+    const user = this.authService.getCurrentUser();
+    if (user) {
+      this.authService.getUserProfile(user.id).subscribe(profile => {
+        if (profile) {
+          this.usuarioActual = {
+            ...user,
+            ...profile,
+            displayName: profile.displayName // Asegurar displayName
+          };
+        } else {
+          this.usuarioActual = user;
+        }
+      });
+    }
+  }
+
   cargarEmpresa(): void {
     this.dteService.getEmpresas().subscribe(empresas => {
       if (empresas.length > 0) {
@@ -176,6 +201,9 @@ export class ClientesPageComponent implements OnInit {
                 nrc: config.nrc,
                 nit: config.nit,
                 dui: config.dui,
+                actividadEconomicaPrimaria: config.actividadEconomicaPrimaria,
+                actividadEconomicaSecundaria: config.actividadEconomicaSecundaria,
+                actividadEconomicaTerciaria: config.actividadEconomicaTerciaria,
                 direccion: config.direccion,
                 complemento: config.direccion, // A veces se usa como complemento
                 departamento: config.departamento, // Asumir que existe en config o agregar mapping
@@ -581,6 +609,8 @@ export class ClientesPageComponent implements OnInit {
       actividadEconomicaSecundaria: formValue.actividadEconomicaSecundaria,
       actividadEconomicaTerciaria: formValue.actividadEconomicaTerciaria,
       direccion: formValue.direccion,
+      departamento: formValue.departamento,
+      municipio: formValue.municipio,
       codigoMH: formValue.codigoMH,
       puntosVenta: formValue.puntosVenta,
       sitioWeb: formValue.website,
