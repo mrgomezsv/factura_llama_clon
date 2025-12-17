@@ -26,11 +26,9 @@ async function initializeDatabase() {
 
         // Verificar integridad de tablas (por si acaso se creó la DB pero falló la creación de tablas)
         try {
-            const res = await client.query("SELECT to_regclass('public.empresas') as exists");
-            if (!res.rows[0].exists) {
-                console.log('⚠️  Base de datos existe pero faltan tablas. Ejecutando creación de tablas...');
-                await createTables(client);
-            }
+            // Siempre ejecutar createTables para asegurar que las migraciones corran (es idempotente)
+            console.log('🔄 Verificando esquema de base de datos y migraciones...');
+            await createTables(client);
         } catch (tableErr) {
             console.error('⚠️  Error verificando tablas, intentando recrear estructura:', tableErr.message);
             // Si falla la verificación, intentamos correr createTables por si acaso

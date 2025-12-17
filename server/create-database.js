@@ -442,6 +442,8 @@ async function createTables(client) {
       actividad_economica_secundaria TEXT,
       actividad_economica_terciaria TEXT,
       direccion TEXT,
+      departamento TEXT,
+      municipio TEXT,
       codigo_mh TEXT,
       puntos_venta INTEGER DEFAULT 1,
       sitio_web TEXT,
@@ -571,6 +573,16 @@ async function createTables(client) {
       type: 'INTEGER'
     },
     {
+      table: 'empresa_config',
+      column: 'departamento',
+      type: 'TEXT'
+    },
+    {
+      table: 'empresa_config',
+      column: 'municipio',
+      type: 'TEXT'
+    },
+    {
       table: 'dtes',
       column: 'tipo_dte',
       type: 'TEXT'
@@ -667,6 +679,57 @@ async function createTables(client) {
       type: 'TEXT'
     },
     {
+      table: 'clientes',
+      column: 'actividad_economica',
+      type: 'TEXT'
+    },
+    {
+      table: 'clientes',
+      column: 'numero_documento', // Para Pasaporte/Carnet
+      type: 'TEXT'
+    },
+    {
+      table: 'clientes',
+      column: 'tipo_documento', // NIT, DUI, Pasaporte
+      type: 'TEXT'
+    },
+    {
+      table: 'clientes',
+      column: 'alias',
+      type: 'TEXT'
+    },
+    {
+      table: 'clientes',
+      column: 'nombre_comercial',
+      type: 'TEXT'
+    },
+    {
+      table: 'clientes',
+      column: 'clasificacion_tributaria',
+      type: 'TEXT'
+    },
+    {
+      table: 'clientes',
+      column: 'es_sujeto_excluido',
+      type: 'INTEGER DEFAULT 0'
+    },
+    {
+      table: 'clientes',
+      column: 'pais',
+      type: 'TEXT'
+    },
+    {
+      table: 'clientes',
+      column: 'departamento',
+      type: 'TEXT'
+    },
+    {
+      table: 'clientes',
+      column: 'municipio',
+      type: 'TEXT'
+    },
+    // Productos: Agregar campos faltantes si es necesario
+    {
       table: 'documento_factura',
       column: 'tipo_servicio_medico', // CAT-028 (Si aplica)
       type: 'TEXT'
@@ -675,6 +738,41 @@ async function createTables(client) {
       table: 'sucursales',
       column: 'ubicacion', // CAT-029 (Física/Virtual)
       type: 'TEXT'
+    },
+    {
+      table: 'sucursales',
+      column: 'tipo_sucursal',
+      type: 'TEXT'
+    },
+    {
+      table: 'sucursales',
+      column: 'complemento',
+      type: 'TEXT'
+    },
+    {
+      table: 'sucursales',
+      column: 'correo_electronico',
+      type: 'TEXT'
+    },
+    {
+      table: 'sucursales',
+      column: 'departamento',
+      type: 'TEXT'
+    },
+    {
+      table: 'sucursales',
+      column: 'municipio',
+      type: 'TEXT'
+    },
+    {
+      table: 'sucursales',
+      column: 'codigo_mh',
+      type: 'TEXT'
+    },
+    {
+      table: 'sucursales',
+      column: 'puntos_venta',
+      type: 'INTEGER'
     }
   ];
 
