@@ -98,7 +98,7 @@ export class ConfiguracionModalComponent implements OnInit {
       actividadEconomicaSecundaria: [''],
       actividadEconomicaTerciaria: [''],
       direccion: ['', Validators.required],
-      codigoMH: ['', Validators.required],
+      codigoMH: [''],
       puntosVenta: [1, [Validators.required, Validators.min(1)]],
       sitioWeb: [''],
       telefono: ['', Validators.required],
@@ -114,9 +114,33 @@ export class ConfiguracionModalComponent implements OnInit {
     });
   }
 
+  // Catálogos
+  actividadesEconomicas: any[] = [];
+
   ngOnInit(): void {
     this.cargarDatosEmpresa();
     this.cargarDatosUsuario();
+    this.cargarActividadesEconomicas();
+  }
+
+  cargarActividadesEconomicas(): void {
+    this.dteService.getActividadesEconomicas().subscribe(actividades => {
+      this.actividadesEconomicas = actividades;
+    });
+  }
+
+  onActividadPrimariaChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const value = select.value; // Esto será la descripción
+
+    // Buscar actividad correspondiente
+    const actividad = this.actividadesEconomicas.find(a => a.descripcion === value);
+
+    if (actividad) {
+      this.empresaForm.patchValue({
+        codigoMH: actividad.codigo
+      });
+    }
   }
 
   cargarUsuarioActual(): void {

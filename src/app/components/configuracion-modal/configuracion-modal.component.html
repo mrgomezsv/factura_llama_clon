@@ -291,9 +291,14 @@
                   <p class="form-hint">Representa el giro comercial del emisor registrado en el sistema.</p>
                   <div class="form-group">
                     <label class="form-label-small">Primaria <span class="required-asterisk">*</span></label>
-                    <input type="text" class="form-input"
+                    <select class="form-input"
                       [class.error]="empresaForm.get('actividadEconomicaPrimaria')?.invalid && empresaForm.get('actividadEconomicaPrimaria')?.touched"
-                      formControlName="actividadEconomicaPrimaria" placeholder="Actividad económica primaria" />
+                      formControlName="actividadEconomicaPrimaria" (change)="onActividadPrimariaChange($event)">
+                      <option value="">Selecciona una actividad</option>
+                      <option *ngFor="let actividad of actividadesEconomicas" [value]="actividad.descripcion">
+                        {{ actividad.codigo }} - {{ actividad.descripcion }}
+                      </option>
+                    </select>
                     @if (empresaForm.get('actividadEconomicaPrimaria')?.invalid &&
                     empresaForm.get('actividadEconomicaPrimaria')?.touched) {
                     <span class="error-message">Este campo es requerido</span>
@@ -301,13 +306,21 @@
                   </div>
                   <div class="form-group">
                     <label class="form-label-small">Secundaria</label>
-                    <input type="text" class="form-input" formControlName="actividadEconomicaSecundaria"
-                      placeholder="Actividad económica secundaria" />
+                    <select class="form-input" formControlName="actividadEconomicaSecundaria">
+                      <option value="">Selecciona una actividad</option>
+                      <option *ngFor="let actividad of actividadesEconomicas" [value]="actividad.descripcion">
+                        {{ actividad.codigo }} - {{ actividad.descripcion }}
+                      </option>
+                    </select>
                   </div>
                   <div class="form-group">
                     <label class="form-label-small">Terciaria</label>
-                    <input type="text" class="form-input" formControlName="actividadEconomicaTerciaria"
-                      placeholder="Actividad económica terciaria" />
+                    <select class="form-input" formControlName="actividadEconomicaTerciaria">
+                      <option value="">Selecciona una actividad</option>
+                      <option *ngFor="let actividad of actividadesEconomicas" [value]="actividad.descripcion">
+                        {{ actividad.codigo }} - {{ actividad.descripcion }}
+                      </option>
+                    </select>
                   </div>
                 </div>
               </div>
@@ -336,14 +349,8 @@
                   }
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Código del Ministerio de Hacienda <span
-                      class="required-asterisk">*</span></label>
-                  <input type="text" class="form-input"
-                    [class.error]="empresaForm.get('codigoMH')?.invalid && empresaForm.get('codigoMH')?.touched"
-                    formControlName="codigoMH" placeholder="M001" />
-                  @if (empresaForm.get('codigoMH')?.invalid && empresaForm.get('codigoMH')?.touched) {
-                  <span class="error-message">Este campo es requerido</span>
-                  }
+                  <label class="form-label">Código del Ministerio de Hacienda</label>
+                  <input type="text" class="form-input" formControlName="codigoMH" placeholder="M001" readonly />
                 </div>
                 <div class="form-group">
                   <label class="form-label">
