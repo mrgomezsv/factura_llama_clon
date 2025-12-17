@@ -995,6 +995,14 @@ export class DteService {
     );
   }
 
+
+  /**
+    * Obtiene actividades económicas del catálogo
+    */
+  getActividadesEconomicas(): Observable<any[]> {
+    return this.database.query<any>('SELECT * FROM cat_019_actividad_economica ORDER BY descripcion ASC');
+  }
+
   /**
    * Obtiene la configuración de empresa
    */
