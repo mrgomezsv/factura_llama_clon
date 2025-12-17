@@ -222,8 +222,19 @@ export class DteService {
           direccion: string | null;
           telefono: string | null;
           created_at: string;
+          actividad_economica: string | null;
+          tipo_persona: string | null;
+          numero_documento: string | null;
+          tipo_documento: string | null;
+          alias: string | null;
+          nombre_comercial: string | null;
+          clasificacion_tributaria: string | null;
+          es_sujeto_excluido: number;
+          pais: string | null;
+          departamento: string | null;
+          municipio: string | null;
         }>(
-          'SELECT id, nombre, correo, nit, nrc, direccion, telefono, created_at FROM clientes WHERE active = 1 ORDER BY created_at DESC'
+          'SELECT * FROM clientes WHERE active = 1 ORDER BY created_at DESC'
         );
       }),
       map(rows => {
@@ -235,7 +246,19 @@ export class DteService {
           nrc: row.nrc || undefined,
           direccion: row.direccion || undefined,
           telefono: row.telefono || undefined,
-          fechaCreacion: row.created_at ? new Date(row.created_at).toLocaleString('es-SV') : undefined
+          fechaCreacion: row.created_at ? new Date(row.created_at).toLocaleString('es-SV') : undefined,
+          // Nuevos campos
+          actividadEconomica: row.actividad_economica || undefined,
+          tipoPersona: row.tipo_persona || undefined,
+          numeroDocumento: row.numero_documento || undefined,
+          tipoDocumento: row.tipo_documento || undefined,
+          alias: row.alias || undefined,
+          nombreComercial: row.nombre_comercial || undefined,
+          clasificacionTributaria: row.clasificacion_tributaria || undefined,
+          esSujetoExcluido: row.es_sujeto_excluido === 1,
+          pais: row.pais || undefined,
+          departamento: row.departamento || undefined,
+          municipio: row.municipio || undefined
         }));
       })
     );
@@ -275,8 +298,27 @@ export class DteService {
           ? cliente.numeroDocumento
           : (cliente.nit || null);
         return this.database.execute(
-          'INSERT INTO clientes (id, nombre, correo, nit, nrc, direccion, telefono) VALUES (?, ?, ?, ?, ?, ?, ?)',
-          [id, cliente.nombre, correo, nit, cliente.nrc || null, cliente.direccion || null, cliente.telefono || null]
+          'INSERT INTO clientes (id, nombre, correo, nit, nrc, direccion, telefono, actividad_economica, tipo_persona, numero_documento, tipo_documento, alias, nombre_comercial, clasificacion_tributaria, es_sujeto_excluido, pais, departamento, municipio) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [
+            id,
+            cliente.nombre,
+            correo,
+            nit,
+            cliente.nrc || null,
+            cliente.direccion || null,
+            cliente.telefono || null,
+            cliente.actividadEconomica || null,
+            cliente.tipoPersona || null,
+            cliente.numeroDocumento || null,
+            cliente.tipoDocumento || null,
+            cliente.alias || null,
+            cliente.nombreComercial || null,
+            cliente.clasificacionTributaria || null,
+            cliente.esSujetoExcluido ? 1 : 0,
+            cliente.pais || null,
+            cliente.departamento || null,
+            cliente.municipio || null
+          ]
         ).pipe(
           map(() => id)
         );
@@ -293,6 +335,13 @@ export class DteService {
     direccion?: string;
     telefono?: string;
     fechaCreacion?: string;
+    tipoSucursal?: string;
+    complemento?: string;
+    correoElectronico?: string;
+    departamento?: string;
+    municipio?: string;
+    codigoMH?: string;
+    puntosVenta?: number;
   }[]> {
     return this.database.isReady$.pipe(
       first(ready => ready),
@@ -303,8 +352,15 @@ export class DteService {
           direccion: string | null;
           telefono: string | null;
           created_at: string;
+          tipo_sucursal: string | null;
+          complemento: string | null;
+          correo_electronico: string | null;
+          departamento: string | null;
+          municipio: string | null;
+          codigo_mh: string | null;
+          puntos_venta: number | null;
         }>(
-          'SELECT id, nombre, direccion, telefono, created_at FROM sucursales WHERE active = 1 ORDER BY created_at DESC'
+          'SELECT id, nombre, direccion, telefono, created_at, tipo_sucursal, complemento, correo_electronico, departamento, municipio, codigo_mh, puntos_venta FROM sucursales WHERE active = 1 ORDER BY created_at DESC'
         );
       }),
       map(rows => {
@@ -313,7 +369,14 @@ export class DteService {
           nombre: row.nombre,
           direccion: row.direccion || undefined,
           telefono: row.telefono || undefined,
-          fechaCreacion: row.created_at ? new Date(row.created_at).toLocaleString('es-SV') : undefined
+          fechaCreacion: row.created_at ? new Date(row.created_at).toLocaleString('es-SV') : undefined,
+          tipoSucursal: row.tipo_sucursal || undefined,
+          complemento: row.complemento || undefined,
+          correoElectronico: row.correo_electronico || undefined,
+          departamento: row.departamento || undefined,
+          municipio: row.municipio || undefined,
+          codigoMH: row.codigo_mh || undefined,
+          puntosVenta: row.puntos_venta || undefined
         }));
       })
     );
@@ -342,8 +405,21 @@ export class DteService {
         // Por ahora solo guardamos los campos que están en la tabla de la base de datos
         // Los demás campos (tipoSucursal, complemento, etc.) se pueden agregar después si se extiende la tabla
         return this.database.execute(
-          'INSERT INTO sucursales (id, nombre, direccion, telefono, empresa_id) VALUES (?, ?, ?, ?, ?)',
-          [id, sucursal.nombre, sucursal.direccion || null, sucursal.telefono || null, sucursal.empresaId || null]
+          'INSERT INTO sucursales (id, nombre, direccion, telefono, empresa_id, tipo_sucursal, complemento, correo_electronico, departamento, municipio, codigo_mh, puntos_venta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [
+            id,
+            sucursal.nombre,
+            sucursal.direccion || null,
+            sucursal.telefono || null,
+            sucursal.empresaId || null,
+            sucursal.tipoSucursal || null,
+            sucursal.complemento || null,
+            sucursal.correoElectronico || null,
+            sucursal.departamento || null,
+            sucursal.municipio || null,
+            sucursal.codigoMH || null,
+            sucursal.puntosVenta || 1
+          ]
         ).pipe(
           map(() => id)
         );
@@ -571,6 +647,30 @@ export class DteService {
           updates.push('telefono = ?');
           params.push(cliente.telefono);
         }
+        if (cliente.actividadEconomica !== undefined) {
+          updates.push('actividad_economica = ?');
+          params.push(cliente.actividadEconomica);
+        }
+        if (cliente.tipoPersona !== undefined) {
+          updates.push('tipo_persona = ?');
+          params.push(cliente.tipoPersona);
+        }
+        if (cliente.numeroDocumento !== undefined) {
+          updates.push('numero_documento = ?');
+          params.push(cliente.numeroDocumento);
+        }
+        if (cliente.tipoDocumento !== undefined) {
+          updates.push('tipo_documento = ?');
+          params.push(cliente.tipoDocumento);
+        }
+        if (cliente.departamento !== undefined) {
+          updates.push('departamento = ?');
+          params.push(cliente.departamento);
+        }
+        if (cliente.municipio !== undefined) {
+          updates.push('municipio = ?');
+          params.push(cliente.municipio);
+        }
 
         if (updates.length === 0) {
           return of(0);
@@ -631,6 +731,8 @@ export class DteService {
           updates.push('descripcion = ?');
           params.push(producto.descripcion);
         }
+
+        // Priorizar precioConIva si existe, sino usar precioUnitario
         if (producto.precioConIva !== undefined) {
           updates.push('precio_unitario = ?');
           params.push(producto.precioConIva);
@@ -638,6 +740,7 @@ export class DteService {
           updates.push('precio_unitario = ?');
           params.push(producto.precioUnitario);
         }
+
         if (producto.unidadMedida !== undefined) {
           updates.push('unidad_medida = ?');
           params.push(producto.unidadMedida);
@@ -710,6 +813,34 @@ export class DteService {
         if (sucursal.empresaId !== undefined) {
           updates.push('empresa_id = ?');
           params.push(sucursal.empresaId);
+        }
+        if (sucursal.tipoSucursal !== undefined) {
+          updates.push('tipo_sucursal = ?');
+          params.push(sucursal.tipoSucursal);
+        }
+        if (sucursal.complemento !== undefined) {
+          updates.push('complemento = ?');
+          params.push(sucursal.complemento);
+        }
+        if (sucursal.correoElectronico !== undefined) {
+          updates.push('correo_electronico = ?');
+          params.push(sucursal.correoElectronico);
+        }
+        if (sucursal.departamento !== undefined) {
+          updates.push('departamento = ?');
+          params.push(sucursal.departamento);
+        }
+        if (sucursal.municipio !== undefined) {
+          updates.push('municipio = ?');
+          params.push(sucursal.municipio);
+        }
+        if (sucursal.codigoMH !== undefined) {
+          updates.push('codigo_mh = ?');
+          params.push(sucursal.codigoMH);
+        }
+        if (sucursal.puntosVenta !== undefined) {
+          updates.push('puntos_venta = ?');
+          params.push(sucursal.puntosVenta);
         }
 
         if (updates.length === 0) {
@@ -801,6 +932,8 @@ export class DteService {
     puntosVenta?: number;
     sitioWeb?: string;
     telefono?: string;
+    departamento?: string;
+    municipio?: string;
     correo?: string;
     logoUrl?: string;
     certificadoPrueba?: string;
@@ -832,7 +965,7 @@ export class DteService {
             `UPDATE empresa_config 
              SET nombre_legal = ?, nombre_comercial = ?, nit = ?, nrc = ?, dui = ?,
                  actividad_economica_primaria = ?, actividad_economica_secundaria = ?, actividad_economica_terciaria = ?,
-                 direccion = ?, codigo_mh = ?, puntos_venta = ?, sitio_web = ?, telefono = ?, correo = ?, logo_url = ?,
+                 direccion = ?, departamento = ?, municipio = ?, codigo_mh = ?, puntos_venta = ?, sitio_web = ?, telefono = ?, correo = ?, logo_url = ?,
                  certificado_prueba = ?, password_api_prueba = ?, certificado_produccion = ?, password_api_produccion = ?,
                  ambiente_pruebas_activo = ?, ambiente_produccion_activo = ?,
                  updated_at = CURRENT_TIMESTAMP 
@@ -847,6 +980,8 @@ export class DteService {
               config.actividadEconomicaSecundaria || null,
               config.actividadEconomicaTerciaria || null,
               config.direccion || null,
+              config.departamento || null,
+              config.municipio || null,
               config.codigoMH || null,
               config.puntosVenta || 1,
               config.sitioWeb || null,
@@ -869,10 +1004,10 @@ export class DteService {
             `INSERT INTO empresa_config 
              (id, empresa_id, nombre_legal, nombre_comercial, nit, nrc, dui,
               actividad_economica_primaria, actividad_economica_secundaria, actividad_economica_terciaria,
-              direccion, codigo_mh, puntos_venta, sitio_web, telefono, correo, logo_url,
+              direccion, departamento, municipio, codigo_mh, puntos_venta, sitio_web, telefono, correo, logo_url,
               certificado_prueba, password_api_prueba, certificado_produccion, password_api_produccion,
               ambiente_pruebas_activo, ambiente_produccion_activo)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               id,
               empresaId,
@@ -885,6 +1020,8 @@ export class DteService {
               config.actividadEconomicaSecundaria || null,
               config.actividadEconomicaTerciaria || null,
               config.direccion || null,
+              config.departamento || null,
+              config.municipio || null,
               config.codigoMH || null,
               config.puntosVenta || 1,
               config.sitioWeb || null,
@@ -1033,6 +1170,8 @@ export class DteService {
             actividadEconomicaSecundaria: row.actividad_economica_secundaria || '',
             actividadEconomicaTerciaria: row.actividad_economica_terciaria || '',
             direccion: row.direccion || '',
+            departamento: row.departamento || '',
+            municipio: row.municipio || '',
             codigoMH: row.codigo_mh || '',
             puntosVenta: row.puntos_venta || 1,
             sitioWeb: row.sitio_web || '',
