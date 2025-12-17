@@ -224,8 +224,8 @@
             <div class="empresa-info">
               <div class="empresa-name">{{ empresaSeleccionada?.nombre || 'Mi Empresa' }}</div>
               <div class="facturallama-id">
-                FacturaLlama ID: {{ empresaSeleccionada?.id || '6f75b035-498f-4a39-b051-74ffe08487d1' }}
-                <button type="button" class="btn-copy">
+                <!-- FacturaLlama ID: {{ empresaSeleccionada?.id || '6f75b035-498f-4a39-b051-74ffe08487d1' }} -->
+                <!-- <button type="button" class="btn-copy">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <path d="M6 2H12C13.1046 2 14 2.89543 14 4V10C14 11.1046 13.1046 12 12 12H10" stroke="currentColor"
                       stroke-width="1.5" />
@@ -233,7 +233,7 @@
                       d="M10 4H4C2.89543 4 2 4.89543 2 6V12C2 13.1046 2.89543 14 4 14H10C11.1046 14 12 13.1046 12 12V6C12 4.89543 11.1046 4 10 4Z"
                       stroke="currentColor" stroke-width="1.5" />
                   </svg>
-                </button>
+                </button> -->
               </div>
             </div>
           </div>
@@ -452,44 +452,75 @@
                 <div class="form-group">
                   <label class="form-label">Certificado (Ambiente de Prueba) <span
                       class="required-asterisk">*</span></label>
-                  <input type="text" class="form-input"
-                    [class.error]="empresaForm.get('certificadoPrueba')?.invalid && empresaForm.get('certificadoPrueba')?.touched"
-                    formControlName="certificadoPrueba" placeholder="Ingresa el certificado" />
-                  @if (empresaForm.get('certificadoPrueba')?.invalid && empresaForm.get('certificadoPrueba')?.touched) {
+                  <div class="file-upload-container">
+                    <button type="button" class="btn-upload" (click)="fileInputPruebas.click()">
+                      <span *ngIf="!certPruebasFile">Seleccionar Archivo .crt</span>
+                      <span *ngIf="certPruebasFile">{{ certPruebasFile.name }}</span>
+                    </button>
+                    <input #fileInputPruebas type="file" style="display: none" accept=".crt,.json,.txt"
+                      (change)="onCertificadoPruebasSelected($event)">
+                    <p class="form-hint" *ngIf="!certPruebasFile && empresaForm.get('certificadoPrueba')?.value">
+                      Archivo actual: {{ empresaForm.get('certificadoPrueba')?.value }}
+                    </p>
+                  </div>
+                  @if (empresaForm.get('certificadoPrueba')?.invalid && empresaForm.get('certificadoPrueba')?.touched &&
+                  !certPruebasFile) {
                   <span class="error-message">Este campo es requerido</span>
                   }
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Contraseña API (Ambiente de Prueba) <span
+                  <label class="form-label">Contraseña Llave Privada (Ambiente de Prueba) <span
                       class="required-asterisk">*</span></label>
                   <input type="password" class="form-input"
-                    [class.error]="empresaForm.get('passwordAPIPrueba')?.invalid && empresaForm.get('passwordAPIPrueba')?.touched"
-                    formControlName="passwordAPIPrueba" placeholder="Ingresa la contraseña" />
-                  @if (empresaForm.get('passwordAPIPrueba')?.invalid && empresaForm.get('passwordAPIPrueba')?.touched) {
+                    [class.error]="empresaForm.get('passwordPriPrueba')?.invalid && empresaForm.get('passwordPriPrueba')?.touched"
+                    formControlName="passwordPriPrueba" placeholder="Contraseña de la llave privada" />
+                  @if (empresaForm.get('passwordPriPrueba')?.invalid && empresaForm.get('passwordPriPrueba')?.touched) {
                   <span class="error-message">Este campo es requerido</span>
                   }
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Contraseña Llave Pública (Ambiente de Prueba) <span
+                      class="required-asterisk">*</span></label>
+                  <input type="password" class="form-input"
+                    [class.error]="empresaForm.get('passwordPubPrueba')?.invalid && empresaForm.get('passwordPubPrueba')?.touched"
+                    formControlName="passwordPubPrueba" placeholder="Contraseña de la llave pública" />
                 </div>
                 <div class="form-group">
                   <label class="form-label">Certificado (Ambiente de Producción) <span
                       class="required-asterisk">*</span></label>
-                  <input type="text" class="form-input"
-                    [class.error]="empresaForm.get('certificadoProduccion')?.invalid && empresaForm.get('certificadoProduccion')?.touched"
-                    formControlName="certificadoProduccion" placeholder="Ingresa el certificado" />
+                  <div class="file-upload-container">
+                    <button type="button" class="btn-upload" (click)="fileInputProduccion.click()">
+                      <span *ngIf="!certProduccionFile">Seleccionar Archivo .crt</span>
+                      <span *ngIf="certProduccionFile">{{ certProduccionFile.name }}</span>
+                    </button>
+                    <input #fileInputProduccion type="file" style="display: none" accept=".crt,.json,.txt"
+                      (change)="onCertificadoProduccionSelected($event)">
+                    <p class="form-hint" *ngIf="!certProduccionFile && empresaForm.get('certificadoProduccion')?.value">
+                      Archivo actual: {{ empresaForm.get('certificadoProduccion')?.value }}
+                    </p>
+                  </div>
                   @if (empresaForm.get('certificadoProduccion')?.invalid &&
-                  empresaForm.get('certificadoProduccion')?.touched) {
+                  empresaForm.get('certificadoProduccion')?.touched && !certProduccionFile) {
                   <span class="error-message">Este campo es requerido</span>
                   }
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Contraseña API (Ambiente de Producción) <span
+                  <label class="form-label">Contraseña Llave Privada (Ambiente de Producción) <span
                       class="required-asterisk">*</span></label>
                   <input type="password" class="form-input"
-                    [class.error]="empresaForm.get('passwordAPIProduccion')?.invalid && empresaForm.get('passwordAPIProduccion')?.touched"
-                    formControlName="passwordAPIProduccion" placeholder="Ingresa la contraseña" />
-                  @if (empresaForm.get('passwordAPIProduccion')?.invalid &&
-                  empresaForm.get('passwordAPIProduccion')?.touched) {
+                    [class.error]="empresaForm.get('passwordPriProduccion')?.invalid && empresaForm.get('passwordPriProduccion')?.touched"
+                    formControlName="passwordPriProduccion" placeholder="Contraseña de la llave privada" />
+                  @if (empresaForm.get('passwordPriProduccion')?.invalid &&
+                  empresaForm.get('passwordPriProduccion')?.touched) {
                   <span class="error-message">Este campo es requerido</span>
                   }
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Contraseña Llave Pública (Ambiente de Producción) <span
+                      class="required-asterisk">*</span></label>
+                  <input type="password" class="form-input"
+                    [class.error]="empresaForm.get('passwordPubProduccion')?.invalid && empresaForm.get('passwordPubProduccion')?.touched"
+                    formControlName="passwordPubProduccion" placeholder="Contraseña de la llave pública" />
                 </div>
               </div>
               }
@@ -520,6 +551,7 @@
     </div>
   </div>
 </div>
+
 
 @if (mostrarNotificacion) {
 <app-notificacion-modal [tipo]="tipoNotificacion" [titulo]="tituloNotificacion" [mensaje]="mensajeNotificacion"

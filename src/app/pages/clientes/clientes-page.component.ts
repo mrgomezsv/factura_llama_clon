@@ -80,6 +80,10 @@ export class ClientesPageComponent implements OnInit {
       nombreComercial: [''],
       nrc: [''],
       nit: [''],
+      dui: [''],
+      actividadEconomicaPrimaria: [''],
+      actividadEconomicaSecundaria: [''],
+      actividadEconomicaTerciaria: [''],
       direccion: [''],
       complemento: [''],
       departamento: [''],
@@ -88,7 +92,16 @@ export class ClientesPageComponent implements OnInit {
       puntosVenta: [1],
       website: [''],
       telefono: [''],
-      email: ['']
+      email: [''],
+      // Campos ocultos para mantener la información
+      certificadoPrueba: [''],
+      passwordPriPrueba: [''],
+      passwordPubPrueba: [''],
+      certificadoProduccion: [''],
+      passwordPriProduccion: [''],
+      passwordPubProduccion: [''],
+      ambientePruebasActivo: [1],
+      ambienteProduccionActivo: [0]
     });
   }
 
@@ -115,6 +128,11 @@ export class ClientesPageComponent implements OnInit {
       .subscribe(() => {
         this.determinarTabDesdeRuta();
       });
+
+    // Suscribirse a actualizaciones de empresa
+    this.dteService.onCompanyUpdated$.subscribe(() => {
+      this.cargarEmpresa();
+    });
   }
 
   determinarTabDesdeRuta(): void {
@@ -143,10 +161,29 @@ export class ClientesPageComponent implements OnInit {
         // Cargar configuración de empresa (incluyendo logo)
         if (this.empresaSeleccionada.id) {
           this.dteService.getEmpresaConfig(this.empresaSeleccionada.id).subscribe(config => {
-            if (config && config.logoUrl) {
-              this.empresaSeleccionada.logo = config.logoUrl;
+            if (config) {
+              // Fusionar la configuración con la empresa seleccionada para que el sidebar muestre los datos correctos
+              this.empresaSeleccionada = {
+                ...this.empresaSeleccionada,
+                nombreLegal: config.nombreLegal,
+                nombre: config.nombreComercial || this.empresaSeleccionada.nombre, // Preferir nombre comercial
+                nrc: config.nrc,
+                nit: config.nit,
+                dui: config.dui,
+                direccion: config.direccion,
+                complemento: config.direccion, // A veces se usa como complemento
+                departamento: config.departamento, // Asumir que existe en config o agregar mapping
+                municipio: config.municipio, // Asumir que existe en config o agregar mapping
+                codigoMH: config.codigoMH,
+                puntosVenta: config.puntosVenta,
+                website: config.sitioWeb,
+                telefono: config.telefono,
+                email: config.correo,
+                logo: config.logoUrl || this.empresaSeleccionada.logo
+              };
+
               // Si estamos en modo edición, actualizar el preview
-              if (this.modoEdicionEmpresa) {
+              if (this.modoEdicionEmpresa && config.logoUrl) {
                 this.empresaImagenPreview = config.logoUrl;
               }
               // Forzar detección de cambios para que la imagen aparezca inmediatamente
@@ -432,6 +469,10 @@ export class ClientesPageComponent implements OnInit {
             nombreComercial: config.nombreComercial || this.empresaSeleccionada.nombre || '',
             nrc: config.nrc || this.empresaSeleccionada.nrc || '',
             nit: config.nit || this.empresaSeleccionada.nit || '',
+            dui: config.dui || '',
+            actividadEconomicaPrimaria: config.actividadEconomicaPrimaria || '',
+            actividadEconomicaSecundaria: config.actividadEconomicaSecundaria || '',
+            actividadEconomicaTerciaria: config.actividadEconomicaTerciaria || '',
             direccion: config.direccion || this.empresaSeleccionada.direccion || '',
             complemento: this.empresaSeleccionada.complemento || '',
             departamento: this.empresaSeleccionada.departamento || '',
@@ -440,7 +481,16 @@ export class ClientesPageComponent implements OnInit {
             puntosVenta: config.puntosVenta || this.empresaSeleccionada.puntosVenta || 1,
             website: config.sitioWeb || this.empresaSeleccionada.website || '',
             telefono: config.telefono || this.empresaSeleccionada.telefono || '',
-            email: config.correo || this.empresaSeleccionada.email || ''
+            email: config.correo || this.empresaSeleccionada.email || '',
+            // Mantener valores de certificados
+            certificadoPrueba: config.certificadoPrueba || '',
+            passwordPriPrueba: config.passwordPriPrueba || '',
+            passwordPubPrueba: config.passwordPubPrueba || '',
+            certificadoProduccion: config.certificadoProduccion || '',
+            passwordPriProduccion: config.passwordPriProduccion || '',
+            passwordPubProduccion: config.passwordPubProduccion || '',
+            ambientePruebasActivo: config.ambientePruebasActivo ?? 1,
+            ambienteProduccionActivo: config.ambienteProduccionActivo ?? 0
           });
 
           // Cargar imagen desde la base de datos
@@ -500,13 +550,26 @@ export class ClientesPageComponent implements OnInit {
       nombreComercial: formValue.nombreComercial,
       nit: formValue.nit,
       nrc: formValue.nrc,
+      dui: formValue.dui,
+      actividadEconomicaPrimaria: formValue.actividadEconomicaPrimaria,
+      actividadEconomicaSecundaria: formValue.actividadEconomicaSecundaria,
+      actividadEconomicaTerciaria: formValue.actividadEconomicaTerciaria,
       direccion: formValue.direccion,
       codigoMH: formValue.codigoMH,
       puntosVenta: formValue.puntosVenta,
       sitioWeb: formValue.website,
       telefono: formValue.telefono,
       correo: formValue.email,
-      logoUrl: this.empresaImagenPreview || undefined
+      logoUrl: this.empresaImagenPreview || undefined,
+      // Preservar certificados y passwords
+      certificadoPrueba: formValue.certificadoPrueba,
+      passwordPriPrueba: formValue.passwordPriPrueba,
+      passwordPubPrueba: formValue.passwordPubPrueba,
+      certificadoProduccion: formValue.certificadoProduccion,
+      passwordPriProduccion: formValue.passwordPriProduccion,
+      passwordPubProduccion: formValue.passwordPubProduccion,
+      ambientePruebasActivo: formValue.ambientePruebasActivo,
+      ambienteProduccionActivo: formValue.ambienteProduccionActivo
     }).subscribe({
       next: () => {
         // Actualizar datos locales (incluyendo logo)

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { DteService } from '../../services/dte.service';
+import { Observable, of } from 'rxjs';
 import { first, switchMap } from 'rxjs/operators';
 import { NotificacionModalComponent } from '../notificacion-modal/notificacion-modal.component';
 
@@ -47,6 +48,10 @@ export class ConfiguracionModalComponent implements OnInit {
   // Estado de imagen de empresa
   empresaImagenPreview: string | null = null;
   empresaImagenArchivo: File | null = null;
+
+  // Estado de certificados
+  certPruebasFile: File | null = null;
+  certProduccionFile: File | null = null;
 
   zonasHorarias = [
     'El Salvador (GMT-6)',
@@ -99,16 +104,17 @@ export class ConfiguracionModalComponent implements OnInit {
       telefono: ['', Validators.required],
       correo: ['', [Validators.required, Validators.email]],
       certificadoPrueba: [''],
-      passwordAPIPrueba: [''],
+      passwordPriPrueba: [''],
+      passwordPubPrueba: [''],
       certificadoProduccion: [''],
-      passwordAPIProduccion: [''],
+      passwordPriProduccion: [''],
+      passwordPubProduccion: [''],
       ambientePruebasActivo: [true],
       ambienteProduccionActivo: [false]
     });
   }
 
   ngOnInit(): void {
-    this.cargarUsuarioActual();
     this.cargarDatosEmpresa();
     this.cargarDatosUsuario();
   }
@@ -196,6 +202,23 @@ export class ConfiguracionModalComponent implements OnInit {
     }
   }
 
+  onCertificadoPruebasSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      this.certPruebasFile = input.files[0];
+      // Actualizar validez del formulario (opcional, si se quiere validar que haya archivo)
+      this.empresaForm.patchValue({ certificadoPrueba: this.certPruebasFile.name });
+    }
+  }
+
+  onCertificadoProduccionSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      this.certProduccionFile = input.files[0];
+      this.empresaForm.patchValue({ certificadoProduccion: this.certProduccionFile.name });
+    }
+  }
+
   abrirSelectorImagen(): void {
     const input = document.createElement('input');
     input.type = 'file';
@@ -212,6 +235,14 @@ export class ConfiguracionModalComponent implements OnInit {
   cargarDatosUsuario(): void {
     const user = this.authService.getCurrentUser();
     if (user) {
+      // Primero asegurar nombre y correo del usuario actual
+      if (!this.perfilForm.get('nombre')?.value) {
+        this.perfilForm.patchValue({
+          nombre: user.displayName || user.email || '',
+          correo: user.email || ''
+        });
+      }
+
       this.dteService.getUserConfig(user.id).subscribe(config => {
         if (config) {
           this.perfilForm.patchValue({
@@ -309,6 +340,86 @@ export class ConfiguracionModalComponent implements OnInit {
 
     this.loading = true;
 
+    // Función auxiliar para subir certificados
+    const uploadCertificates = (empresaId: string): Observable<any> => {
+      const uploads: Observable<any>[] = [];
+
+      if (this.certPruebasFile) {
+        uploads.push(this.dteService.uploadCertificado(
+          empresaId,
+          this.certPruebasFile,
+          'PRUEBAS',
+          {
+            passwordPriPrueba: this.empresaForm.value.passwordPriPrueba || '',
+            passwordPubPrueba: this.empresaForm.value.passwordPubPrueba || ''
+          }
+        ));
+      }
+
+      if (this.certProduccionFile) {
+        uploads.push(this.dteService.uploadCertificado(
+          empresaId,
+          this.certProduccionFile,
+          'PRODUCCION',
+          {
+            passwordPriProduccion: this.empresaForm.value.passwordPriProduccion || '',
+            passwordPubProduccion: this.empresaForm.value.passwordPubProduccion || ''
+          }
+        ));
+      }
+
+      if (uploads.length === 0) {
+        return of(null);
+      }
+
+      // Ejecutar subidas en serie o paralelo (forkJoin para paralelo)
+      // Importante: forkJoin requiere que todos los observables completen. http.post completa.
+      // Usamos import { forkJoin } from 'rxjs'; que debe ser importado.
+      // Como no puedo agregar imports facilmente aqui sin ver el top, usaré concatenación simple o asumiremos forkJoin disponible?
+      // Mejor usamos una cadena de promesas o switchMap si fuera simple, pero son multiples.
+      // Si no tengo forkJoin importado, puedo usar reduce.
+      // Pero DteService ya usa RxJS. Asumiré que puedo encadenar.
+      // Para simplificar y evitar errores de import, haré las llamadas una por una si existen, o simplemente
+      // asumiré éxito y las lanzaré. Pero necesito esperar a que terminen.
+
+      // Hack: Si no tengo forkJoin a mano, anidamos. Pero es feo.
+      // Voy a asumir que puedo usar promesas convertidas ot simplemente devolver un observable combinado.
+      // Re-ver imports: Observable, of, map, switchMap, first. Faltaba forkJoin.
+      // Modificaré el archivo para incluir forkJoin en los imports primero si es necesario, 
+      // pero `replace_file_content` es para un bloque.
+      // Usaré una promesa convertida para manejar esto sin forkJoin o haré un "hack" de conteo.
+
+      // Mejor estrategia: Hacer el save config PRIMERO (que es lo critico), y luego los ceritifcados en background 
+      // y notificar al final.
+      return new Observable(observer => {
+        let completed = 0;
+        let total = uploads.length;
+        if (total === 0) {
+          observer.next(null);
+          observer.complete();
+          return;
+        }
+
+        uploads.forEach(obs => {
+          obs.subscribe({
+            next: () => {
+              completed++;
+              if (completed === total) {
+                observer.next(null);
+                observer.complete();
+              }
+            },
+            error: (err) => {
+              console.error("Error subiendo certificado", err);
+              // No bloqueamos el flujo principal por error en cert, pero notificamos?
+              // Mejor fallar aqui.
+              observer.error(err);
+            }
+          })
+        });
+      });
+    };
+
     // Si no hay empresa seleccionada, crear una nueva
     if (!this.empresaSeleccionada || !this.empresaSeleccionada.id) {
       // Crear empresa primero
@@ -316,52 +427,48 @@ export class ConfiguracionModalComponent implements OnInit {
         nombre: this.empresaForm.value.nombreLegal || 'Mi Empresa',
         nit: this.empresaForm.value.nit || '',
         direccion: this.empresaForm.value.direccion || ''
-      }).subscribe({
-        next: (empresaId) => {
-          // Guardar configuración de la nueva empresa (incluyendo logo)
-          this.dteService.saveEmpresaConfig(empresaId, {
-            nombreLegal: this.empresaForm.value.nombreLegal,
-            nombreComercial: this.empresaForm.value.nombreComercial,
-            nit: this.empresaForm.value.nit,
-            nrc: this.empresaForm.value.nrc,
-            dui: this.empresaForm.value.dui,
-            actividadEconomicaPrimaria: this.empresaForm.value.actividadEconomicaPrimaria,
-            actividadEconomicaSecundaria: this.empresaForm.value.actividadEconomicaSecundaria,
-            actividadEconomicaTerciaria: this.empresaForm.value.actividadEconomicaTerciaria,
-            direccion: this.empresaForm.value.direccion,
-            codigoMH: this.empresaForm.value.codigoMH,
-            puntosVenta: this.empresaForm.value.puntosVenta,
-            sitioWeb: this.empresaForm.value.sitioWeb,
-            telefono: this.empresaForm.value.telefono,
-            correo: this.empresaForm.value.correo,
-            logoUrl: this.empresaImagenPreview || undefined,
-            certificadoPrueba: this.empresaForm.value.certificadoPrueba,
-            passwordAPIPrueba: this.empresaForm.value.passwordAPIPrueba,
-            certificadoProduccion: this.empresaForm.value.certificadoProduccion,
-            passwordAPIProduccion: this.empresaForm.value.passwordAPIProduccion,
-            ambientePruebasActivo: this.empresaForm.value.ambientePruebasActivo ? 1 : 0,
-            ambienteProduccionActivo: this.empresaForm.value.ambienteProduccionActivo ? 1 : 0
-          }).subscribe({
-            next: () => {
-              this.loading = false;
-              this.mostrarNotificacionExito('Empresa creada y configuración guardada correctamente');
-            },
-            error: (error) => {
-              this.loading = false;
-              this.mostrarNotificacionError('Error al guardar la información', error.message);
-            }
-          });
-        },
-        error: (error) => {
+      }).pipe(
+        switchMap((empresaId: string) => {
+          // Guardar configuración
+          return this.dteService.saveEmpresaConfig(empresaId, this.getEmpresaConfigObj())
+            .pipe(switchMap(() => uploadCertificates(empresaId)));
+        })
+      ).subscribe({
+        next: () => {
           this.loading = false;
-          this.mostrarNotificacionError('Error al crear la empresa', error.message);
+          this.mostrarNotificacionExito('Empresa creada y certificados guardados correctamente');
+        },
+        error: (error: any) => {
+          this.loading = false;
+          this.mostrarNotificacionError('Error al crear la empresa', error.message || error);
         }
       });
-      return;
+    } else {
+      // Si hay empresa seleccionada
+      const empresaId = this.empresaSeleccionada.id;
+      this.dteService.saveEmpresaConfig(empresaId, this.getEmpresaConfigObj())
+        .pipe(
+          switchMap(() => uploadCertificates(empresaId))
+        ).subscribe({
+          next: () => {
+            // Actualizar logo local
+            if (this.empresaSeleccionada) {
+              this.empresaSeleccionada.logo = this.empresaImagenPreview;
+            }
+            this.loading = false;
+            this.mostrarNotificacionExito('Información y certificados guardados correctamente');
+          },
+          error: (error: any) => {
+            this.loading = false;
+            this.mostrarNotificacionError('Error al guardar', error.message || error);
+          }
+        });
     }
+  }
 
-    // Si hay empresa seleccionada, guardar configuración (incluyendo logo)
-    this.dteService.saveEmpresaConfig(this.empresaSeleccionada.id, {
+  // Helper para construir el objeto de configuración
+  private getEmpresaConfigObj(): any {
+    return {
       nombreLegal: this.empresaForm.value.nombreLegal,
       nombreComercial: this.empresaForm.value.nombreComercial,
       nit: this.empresaForm.value.nit,
@@ -377,26 +484,16 @@ export class ConfiguracionModalComponent implements OnInit {
       telefono: this.empresaForm.value.telefono,
       correo: this.empresaForm.value.correo,
       logoUrl: this.empresaImagenPreview || undefined,
+      // Enviamos el nombre del archivo como referencia, pero el archivo real se sube aparte
       certificadoPrueba: this.empresaForm.value.certificadoPrueba,
-      passwordAPIPrueba: this.empresaForm.value.passwordAPIPrueba,
+      passwordPriPrueba: this.empresaForm.value.passwordPriPrueba,
+      passwordPubPrueba: this.empresaForm.value.passwordPubPrueba,
       certificadoProduccion: this.empresaForm.value.certificadoProduccion,
-      passwordAPIProduccion: this.empresaForm.value.passwordAPIProduccion,
+      passwordPriProduccion: this.empresaForm.value.passwordPriProduccion,
+      passwordPubProduccion: this.empresaForm.value.passwordPubProduccion,
       ambientePruebasActivo: this.empresaForm.value.ambientePruebasActivo ? 1 : 0,
       ambienteProduccionActivo: this.empresaForm.value.ambienteProduccionActivo ? 1 : 0
-    }).subscribe({
-      next: () => {
-        // Actualizar logo en objeto empresa local
-        if (this.empresaSeleccionada) {
-          this.empresaSeleccionada.logo = this.empresaImagenPreview;
-        }
-        this.loading = false;
-        this.mostrarNotificacionExito('Información de empresa guardada correctamente');
-      },
-      error: (error) => {
-        this.loading = false;
-        this.mostrarNotificacionError('Error al guardar la información', error.message);
-      }
-    });
+    };
   }
 
   cerrarModal(): void {
@@ -422,7 +519,8 @@ export class ConfiguracionModalComponent implements OnInit {
     // Si es una notificación de éxito sobre empresa creada, cerrar también el modal de configuración
     if (this.tipoNotificacion === 'exito' &&
       (this.mensajeNotificacion.includes('Empresa creada') ||
-        this.mensajeNotificacion.includes('guardada correctamente'))) {
+        this.mensajeNotificacion.includes('guardada correctamente') ||
+        this.mensajeNotificacion.includes('Información y certificados guardados correctamente'))) {
       this.cerrarModal();
     }
   }

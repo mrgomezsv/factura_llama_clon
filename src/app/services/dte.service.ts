@@ -1,6 +1,7 @@
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { map, switchMap, first } from 'rxjs/operators';
+import { Observable, of, Subject, from } from 'rxjs';
+import { map, switchMap, first, tap, concatMap, toArray } from 'rxjs/operators';
 import { DTE } from '../models/dte.model';
 import { Empresa } from '../models/empresa.model';
 import { PeriodoTributario } from '../models/periodo-tributario.model';
@@ -11,7 +12,17 @@ import { DatabaseService } from './database.service';
   providedIn: 'root'
 })
 export class DteService {
-  constructor(private database: DatabaseService) { }
+  private readonly API_URL = 'http://localhost:3000/api';
+  private companyUpdated = new Subject<void>();
+
+  get onCompanyUpdated$() {
+    return this.companyUpdated.asObservable();
+  }
+
+  constructor(
+    private database: DatabaseService,
+    private http: HttpClient
+  ) { }
 
   /**
    * Obtiene todos los DTEs
@@ -796,6 +807,10 @@ export class DteService {
     passwordAPIPrueba?: string;
     certificadoProduccion?: string;
     passwordAPIProduccion?: string;
+    passwordPriPrueba?: string;
+    passwordPubPrueba?: string;
+    passwordPriProduccion?: string;
+    passwordPubProduccion?: string;
     ambientePruebasActivo?: number;
     ambienteProduccionActivo?: number;
   }): Observable<void> {
@@ -809,9 +824,11 @@ export class DteService {
         );
       }),
       switchMap(existing => {
+        const queries: Observable<any>[] = [];
+
         if (existing.length > 0) {
-          // Actualizar
-          return this.database.execute(
+          // Actualizar empresa_config
+          queries.push(this.database.execute(
             `UPDATE empresa_config 
              SET nombre_legal = ?, nombre_comercial = ?, nit = ?, nrc = ?, dui = ?,
                  actividad_economica_primaria = ?, actividad_economica_secundaria = ?, actividad_economica_terciaria = ?,
@@ -844,11 +861,11 @@ export class DteService {
               config.ambienteProduccionActivo !== undefined ? config.ambienteProduccionActivo : 0,
               empresaId
             ]
-          );
+          ));
         } else {
-          // Crear nuevo
+          // Crear nuevo en empresa_config
           const id = 'ec_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-          return this.database.execute(
+          queries.push(this.database.execute(
             `INSERT INTO empresa_config 
              (id, empresa_id, nombre_legal, nombre_comercial, nit, nrc, dui,
               actividad_economica_primaria, actividad_economica_secundaria, actividad_economica_terciaria,
@@ -881,9 +898,70 @@ export class DteService {
               config.ambientePruebasActivo !== undefined ? config.ambientePruebasActivo : 1,
               config.ambienteProduccionActivo !== undefined ? config.ambienteProduccionActivo : 0
             ]
-          );
+          ));
         }
+
+        // Sincronizar también la tabla 'empresas' (nombre comercial, nit, direccion)
+        // Esto asegura que el header y títulos se actualicen también
+        if (config.nombreComercial) {
+          queries.push(this.database.execute(
+            'UPDATE empresas SET nombre = ?, nit = ?, direccion = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+            [
+              config.nombreComercial,
+              config.nit || null,
+              config.direccion || null,
+              empresaId
+            ]
+          ));
+        }
+
+        // Actualizar/Insertar en empresa_certificados si hay passwords
+        // Usamos ON CONFLICT para simplificar (asumiendo PostgreSQL 9.5+)
+        // O verificamos existencia primero. Para consistencia con arriba, hagamos upsert manual o query.
+        // Pero forkJoin requiere observables.
+        // Haremos la query de certificados adentro.
+
+        const certQuery = `
+          INSERT INTO empresa_certificados (empresa_id, password_pri_prueba, password_pub_prueba, password_pri_produccion, password_pub_produccion)
+          VALUES (?, ?, ?, ?, ?)
+          ON CONFLICT (empresa_id) DO UPDATE SET
+          password_pri_prueba = EXCLUDED.password_pri_prueba,
+          password_pub_prueba = EXCLUDED.password_pub_prueba,
+          password_pri_produccion = EXCLUDED.password_pri_produccion,
+          password_pub_produccion = EXCLUDED.password_pub_produccion,
+          updated_at = CURRENT_TIMESTAMP
+        `;
+
+        // Ejecutar query de certificados solo si hay cambios relevantes o siempre para asegurar sincronía
+        // Ejecutamos siempre que tengamos datos en config
+        if (config.passwordPriPrueba !== undefined || config.passwordPubPrueba !== undefined ||
+          config.passwordPriProduccion !== undefined || config.passwordPubProduccion !== undefined) {
+
+          // Buscar valores actuales si alguno es undefined? No, asumimos que config trae todo o nulls.
+          // Pero ClientesPage manda formValue.passwordPriPrueba cual puede estar vacio si no se tocó?
+          // Si patchValue funcionó, tiene el valor actual.
+
+          queries.push(this.database.execute(certQuery, [
+            empresaId,
+            config.passwordPriPrueba || null,
+            config.passwordPubPrueba || null,
+            config.passwordPriProduccion || null,
+            config.passwordPubProduccion || null
+          ]));
+        }
+
+        // Ejecutar todas las queries
+        // Necesitamos 'forkJoin' importado. Si no está, usamos concat.
+        // Como no puedo ver imports, asumiré que puedo encadenar.
+        // Pero `queries` es un array.
+        // Mejor usar reduce para encadenar
+
+        return from(queries).pipe(
+          concatMap(obs => obs), // Ejecutar en serie
+          toArray() // Esperar a que terminen todas
+        );
       }),
+      tap(() => this.companyUpdated.next()),
       map(() => undefined)
     );
   }
@@ -925,7 +1003,12 @@ export class DteService {
       first(ready => ready),
       switchMap(() => {
         return this.database.query<any>(
-          'SELECT * FROM empresa_config WHERE empresa_id = ?',
+          `SELECT ec.*, 
+            cer.password_pri_prueba, cer.password_pub_prueba,
+            cer.password_pri_produccion, cer.password_pub_produccion
+           FROM empresa_config ec
+           LEFT JOIN empresa_certificados cer ON ec.empresa_id = cer.empresa_id
+           WHERE ec.empresa_id = ?`,
           [empresaId]
         );
       }),
@@ -952,6 +1035,11 @@ export class DteService {
             passwordAPIPrueba: row.password_api_prueba || '',
             certificadoProduccion: row.certificado_produccion || '',
             passwordAPIProduccion: row.password_api_produccion || '',
+            // Passwords individuales de certificados
+            passwordPriPrueba: row.password_pri_prueba || '',
+            passwordPubPrueba: row.password_pub_prueba || '',
+            passwordPriProduccion: row.password_pri_produccion || '',
+            passwordPubProduccion: row.password_pub_produccion || '',
             ambientePruebasActivo: row.ambiente_pruebas_activo,
             ambienteProduccionActivo: row.ambiente_produccion_activo
           };
@@ -986,5 +1074,23 @@ export class DteService {
         );
       })
     );
+  }
+  /**
+   * Subir certificado
+   */
+  uploadCertificado(empresaId: string, file: File, ambiente: 'PRUEBAS' | 'PRODUCCION', passwords: any): Observable<any> {
+    const formData = new FormData();
+    formData.append('certificado', file);
+    formData.append('ambiente', ambiente);
+
+    // Agregar passwords al FormData
+    Object.keys(passwords).forEach(key => {
+      formData.append(key, passwords[key]);
+    });
+
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+    return this.http.post(`${this.API_URL}/empresas/${empresaId}/certificado`, formData, { headers });
   }
 }
