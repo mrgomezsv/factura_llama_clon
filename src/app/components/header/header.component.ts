@@ -20,7 +20,7 @@ export class HeaderComponent implements OnInit {
   mostrarModalConfiguracion: boolean = false;
 
   constructor(
-    private dteService: DteService, 
+    private dteService: DteService,
     private router: Router,
     private authService: AuthService
   ) {
@@ -101,6 +101,7 @@ export class HeaderComponent implements OnInit {
 
   cerrarModalConfiguracion(): void {
     this.mostrarModalConfiguracion = false;
+    this.cargarEmpresas();
   }
 
   @HostListener('document:click', ['$event'])
