@@ -11,7 +11,7 @@ class DteApiService {
     constructor() {
         // URLs Ambiente PRUEBAS (API V3)
         this.testAuthUrl = process.env.MH_AUTH_URL || 'https://apitest.dtes.mh.gob.sv/seguridad/auth';
-        this.testApiUrl = process.env.MH_API_URL || 'https://apitest.dtes.mh.gob.sv/dte/recepcion';
+        this.testApiUrl = process.env.MH_API_URL || 'https://apitest.dtes.mh.gob.sv/fesv/recepciondte';
 
         // URLs Ambiente PRODUCCIÓN
         this.prodAuthUrl = process.env.MH_AUTH_URL_PROD || 'https://api.dtes.mh.gob.sv/seguridad/auth';
@@ -106,35 +106,46 @@ class DteApiService {
                 token = await this.login(config);
             }
 
-            // Estructura requerida por MH:
-            // { "ambiente": "00" o "01", "idEnvio": 1, "version": 1, "tipoDte": "...", "documento": "..." }
-            // El "documento" debe ser el string en Base64 O el JSON firmado directo?
-            // SEGÚN MANUAL: Se envía el JSON firmado dentro de la propiedad "documento".
+            // Extract metadata (Priority: config.dteJson > dteSignedJson)
+            let ambiente, tipoDte, version, identificacion, numeroControl;
 
-            const identificacion = dteSignedJson.identificacion;
-            const ambiente = identificacion.ambiente; // "00" o "01"
-            const tipoDte = identificacion.tipoDte;
-            const numeroControl = identificacion.numeroControl;
-            const codigoGeneracion = identificacion.codigoGeneracion;
+            if (config.dteJson && config.dteJson.identificacion) {
+                identificacion = config.dteJson.identificacion;
+            } else if (dteSignedJson && dteSignedJson.identificacion) {
+                identificacion = dteSignedJson.identificacion;
+            }
+
+            if (identificacion) {
+                ambiente = identificacion.ambiente;
+                tipoDte = identificacion.tipoDte;
+                version = parseInt(identificacion.version);
+                numeroControl = identificacion.numeroControl;
+            } else {
+                // Fallback or error if critical data missing
+                console.warn('⚠️ No se pudo identificar metadatos del DTE para transmisión. Usando valores por defecto.');
+                ambiente = config.ambiente || '00';
+                // These are critical, might throw if missing
+            }
 
             const apiUrl = this.getUrl(ambiente, 'API');
 
             const payload = {
                 ambiente: ambiente, // "00" Pruebas, "01" Producción
                 idEnvio: 1, // Puede ser autoincremental
-                version: parseInt(identificacion.version),
-                tipoDte: tipoDte,
-                documento: dteSignedJson // El JSON firmado completo
+                version: version || 1, // Fallback to 1
+                tipoDte: tipoDte || config.tipoDte || '',
+                documento: dteSignedJson // El JSON firmado completo (JWS)
             };
 
-            console.log(`📤 Enviando DTE ${numeroControl} a MH (Ambiente: ${ambiente})... URL: ${apiUrl}`);
+            console.log(`📤 Enviando DTE ${numeroControl || 'S/N'} a MH (Ambiente: ${ambiente})... URL: ${apiUrl}`);
+            require('fs').appendFileSync('debug_mh.log', `[${new Date().toISOString()}] MH Request Payload: ${JSON.stringify(payload)}\n`);
 
             const response = await axios.post(
                 apiUrl,
                 payload,
                 {
                     headers: {
-                        'Authorization': `Bearer ${token}`,
+                        'Authorization': token.startsWith('Bearer ') ? token : `Bearer ${token}`,
                         'Content-Type': 'application/json',
                         'User-Agent': 'FacturaLlamaClon/1.0'
                     }
@@ -158,6 +169,7 @@ class DteApiService {
 
             if (error.response) {
                 console.error('Detalles MH:', error.response.data);
+                require('fs').appendFileSync('debug_mh.log', `[${new Date().toISOString()}] MH Error Details: ${JSON.stringify(error.response.data)}\n`);
                 // Retornar error estructurado
                 return {
                     success: false,

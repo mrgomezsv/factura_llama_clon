@@ -10,7 +10,6 @@ import { CrearClienteModalComponent } from '../../components/crear-cliente-modal
 import { CrearSucursalModalComponent } from '../../components/crear-sucursal-modal/crear-sucursal-modal.component';
 import { CrearProductoModalComponent } from '../../components/crear-producto-modal/crear-producto-modal.component';
 import { ConfirmarEliminacionModalComponent } from '../../components/confirmar-eliminacion-modal/confirmar-eliminacion-modal.component';
-import { PaginacionComponent } from '../../components/paginacion/paginacion.component';
 
 @Component({
   selector: 'app-clientes-page',
@@ -22,8 +21,7 @@ import { PaginacionComponent } from '../../components/paginacion/paginacion.comp
     CrearClienteModalComponent,
     CrearSucursalModalComponent,
     CrearProductoModalComponent,
-    ConfirmarEliminacionModalComponent,
-    PaginacionComponent
+    ConfirmarEliminacionModalComponent
   ],
   templateUrl: './clientes-page.component.html',
   styleUrl: './clientes-page.component.scss'
