@@ -8,7 +8,7 @@ import { DteService } from '../../../services/dte.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './items.component.html',
-      styleUrl: './items.component.scss'
+  styleUrl: './items.component.scss'
 })
 export class ComprobanteCreditoFiscalItemsComponent {
   @Output() itemsChanged = new EventEmitter<any[]>();
@@ -47,13 +47,13 @@ export class ComprobanteCreditoFiscalItemsComponent {
   agregarItem(): void {
     const v = this.form.value;
     const item = this.fb.group({
-      producto: [v.producto], descripcion: [v.descripcion], cantidad: [Number(v.cantidad)||1],
-      precio: [Number(v.precio)||0], descuento: [Number(v.descuento)||0], tipoVenta: [v.tipoVenta],
+      producto: [v.producto], descripcion: [v.descripcion], cantidad: [Number(v.cantidad) || 1],
+      precio: [Number(v.precio) || 0], descuento: [Number(v.descuento) || 0], tipoVenta: [v.tipoVenta],
       unidad: [v.unidad], codigo: [v.codigo]
     });
     this.items.push(item);
     this.itemsChanged.emit(this.items.value);
-    
+
     // Limpiar el formulario después de agregar el item
     this.form.patchValue({
       producto: '',
@@ -92,20 +92,45 @@ export class ComprobanteCreditoFiscalItemsComponent {
     const input = e.target as HTMLInputElement;
     input.value = input.value.replace(/[^0-9.]/g, '');
   }
-  formatNumber(ctrl: 'cantidad'|'precio'|'descuento', decimals: number) {
+  formatNumber(ctrl: 'cantidad' | 'precio' | 'descuento', decimals: number) {
     const val = Number(this.form.value[ctrl]);
     if (!isNaN(val)) this.form.patchValue({ [ctrl]: val.toFixed(decimals) }, { emitEvent: false });
   }
 
   // Productos dropdown (búsqueda simple al tipear en campo producto)
   productMenu = false;
-  allProducts: Array<{ id:string; nombre:string; codigo?: string }> = [];
-  filteredProducts: Array<{ id:string; nombre:string; codigo?: string }> = [];
-  openProducts(){ this.productMenu = true; this.filterProducts(); }
-  filterProducts(){
+  allProducts: Array<{ id: string; nombre: string; codigo?: string; precioConIva?: number; unidadMedida?: string; descripcion?: string }> = [];
+  filteredProducts: Array<{ id: string; nombre: string; codigo?: string; precioConIva?: number; unidadMedida?: string; descripcion?: string }> = [];
+  openProducts() { this.productMenu = true; this.filterProducts(); }
+  filterProducts() {
     const q = (this.form.value.producto || '').toLowerCase();
-    this.filteredProducts = this.allProducts.filter(p => p.nombre.toLowerCase().includes(q) || (p.codigo||'').toLowerCase().includes(q));
+    this.filteredProducts = this.allProducts.filter(p => p.nombre.toLowerCase().includes(q) || (p.codigo || '').toLowerCase().includes(q));
   }
-  chooseProduct(p: any){ this.form.patchValue({ producto: p.nombre, codigo: p.codigo||'' }); this.productMenu = false; }
-}
+  chooseProduct(p: any) {
+    // Calcular precio neto (sin IVA) a partir del precio con IVA
+    // Precio Neto = Precio Con IVA / 1.13
+    const precioConIva = p.precioConIva !== undefined && p.precioConIva !== null ? Number(p.precioConIva) : 0;
+    const precioNeto = precioConIva > 0 ? (precioConIva / 1.13) : 0;
 
+    // Convertir nombres de unidades si es necesario o usar el del producto
+    const unidad = p.unidadMedida || 'Unidad';
+    const descripcion = p.descripcion || '';
+
+    this.form.patchValue({
+      producto: p.nombre,
+      codigo: p.codigo || '',
+      unidad: unidad,
+      descripcion: descripcion
+    });
+
+    // Establecer el precio neto formateado directamente
+    const precioControl = this.form.get('precio');
+    if (precioControl) {
+      // Usar 4 decimales para mayor precisión en el precio neto
+      const precioFormateado = precioNeto.toFixed(4);
+      precioControl.setValue(precioFormateado, { emitEvent: false });
+    }
+
+    this.productMenu = false;
+  }
+}
