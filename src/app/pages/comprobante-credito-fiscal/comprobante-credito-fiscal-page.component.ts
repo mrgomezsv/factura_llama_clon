@@ -2,7 +2,7 @@ import { Component, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ComprobanteCreditoFiscalClienteComponent } from '../../components/comprobante-credito-fiscal/cliente/cliente.component';
 import { ComprobanteCreditoFiscalSucursalComponent } from '../../components/comprobante-credito-fiscal/sucursal/sucursal.component';
 import { ComprobanteCreditoFiscalRetencionesComponent } from '../../components/comprobante-credito-fiscal/retenciones/retenciones.component';
@@ -35,7 +35,7 @@ import { ItemFactura, Retenciones, ResultadosCalculoFacturacion } from '../../mo
 })
 export class ComprobanteCreditoFiscalPageComponent {
   @ViewChild(ComprobanteCreditoFiscalItemsComponent) itemsComponent!: ComprobanteCreditoFiscalItemsComponent;
-  
+
   cliente: any = {};
   items: ItemFactura[] = [];
   itemsRaw: any[] = [];
@@ -47,7 +47,7 @@ export class ComprobanteCreditoFiscalPageComponent {
   vistaPrevia = true;
   empresaSeleccionada: any = null;
   generandoDTE = false;
-  
+
   constructor(
     private router: Router,
     private facturacionService: FacturacionCalculationsService,
@@ -61,7 +61,7 @@ export class ComprobanteCreditoFiscalPageComponent {
     });
   }
 
-  onCliente(v: any) { 
+  onCliente(v: any) {
     this.cliente = {
       id: v.id,
       nombre: v.nombre,
@@ -75,7 +75,7 @@ export class ComprobanteCreditoFiscalPageComponent {
   }
   onDescuento(v: number) { this.descuentoGlobal = v || 0; }
   onRetenciones(v: Retenciones) { this.retenciones = v; }
-  onItems(items: any[]) { 
+  onItems(items: any[]) {
     this.itemsRaw = items || [];
     this.items = (items || []).map(item => ({
       cantidad: Number(item.cantidad || 0),
@@ -85,6 +85,12 @@ export class ComprobanteCreditoFiscalPageComponent {
       descripcion: item.descripcion || item.producto || '',
       unidad: item.unidad || 'Unidad'
     }));
+  }
+
+  eliminarItem(index: number): void {
+    if (this.itemsComponent && this.itemsComponent.items) {
+      this.itemsComponent.eliminarItem(index);
+    }
   }
 
   /**
@@ -170,7 +176,16 @@ export class ComprobanteCreditoFiscalPageComponent {
       ambiente: this.ambienteProduccion ? 'PRODUCCIÓN' : 'PRUEBAS'
     };
 
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      alert('Error: No se encontró sesión activa. Por favor inicie sesión nuevamente.');
+      return;
+    }
+
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
     this.http.post('http://localhost:3000/api/dtes/generar', datosDTE, {
+      headers: headers,
       responseType: 'blob'
     }).subscribe({
       next: (pdfBlob: Blob) => {
