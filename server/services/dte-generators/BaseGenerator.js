@@ -134,9 +134,20 @@ class BaseGenerator {
             } else {
                 // Gravada
                 ventaGravada = subtotal;
-                montoImpuesto = Math.round((ventaGravada * 0.13) * 100) / 100;
-                if (ventaGravada > 0) {
-                    tributos = ['20'];
+                if (tipoDte === 'FAC') {
+                    // For FAC, input prices are GROSS (include VAT). 
+                    // We must EXTRACT VAT, not add it.
+                    // VAT = Gross - (Gross / 1.13)
+                    const baseGravada = ventaGravada / 1.13;
+                    montoImpuesto = parseFloat((ventaGravada - baseGravada).toFixed(6));
+                    // ventaGravada remains GROSS for FAC body
+                } else {
+                    // For CCF/Standard, input prices are NET (exclude VAT).
+                    // We ADD VAT.
+                    montoImpuesto = parseFloat((ventaGravada * 0.13).toFixed(6));
+                    if (ventaGravada > 0) {
+                        tributos = ['20'];
+                    }
                 }
             }
 
@@ -154,14 +165,14 @@ class BaseGenerator {
                 codigo: item.codigo || null,
                 codTributo: null,
                 descripcion: item.descripcion || item.producto || '',
-                cantidad: cantidad,
+                cantidad: parseFloat(cantidad.toFixed(4)), // Standard usually allows more precision
                 uniMedida: unidadMedida,
-                precioUni: precioUnitario,
-                montoDescu: descuento,
-                ventaNoSuj: ventaNoSujeta,
-                ventaExenta: ventaExenta,
-                ventaGravada: ventaGravada,
-                tributos: tributos,
+                precioUni: parseFloat(precioUnitario.toFixed(6)), // Allow up to 6
+                montoDescu: parseFloat(descuento.toFixed(2)), // Discount usually 2?
+                ventaNoSuj: parseFloat(ventaNoSujeta.toFixed(6)),
+                ventaExenta: parseFloat(ventaExenta.toFixed(6)),
+                ventaGravada: parseFloat(ventaGravada.toFixed(6)),
+                tributos: tipoDte === 'FAC' ? null : tributos, // FAC does not use tributos in body
                 psv: 0.0,
                 noGravado: 0.0
             };
@@ -191,17 +202,23 @@ class BaseGenerator {
             // Or sum ivaItem?
             // Old logic recalculated it.
             if (item.ventaGravada > 0) {
-                totalImpuestos += Math.round((item.ventaGravada * 0.13) * 100) / 100;
+                // If item has ivaItem (which we added in buildItemsStandard), use it.
+                // Otherwise calculate.
+                if (item.ivaItem) {
+                    totalImpuestos += item.ivaItem;
+                } else {
+                    totalImpuestos += Math.round((item.ventaGravada * 0.13) * 100) / 100;
+                }
             }
             totalDescuentos += parseFloat(item.montoDescu || 0);
         });
 
         return {
-            totalVentaGravada: Math.round(totalVentaGravada * 100) / 100,
-            totalVentaExenta: Math.round(totalVentaExenta * 100) / 100,
-            totalVentaNoSujeta: Math.round(totalVentaNoSujeta * 100) / 100,
-            totalImpuestos: Math.round(totalImpuestos * 100) / 100, // This is IVA
-            totalDescuentos: Math.round(totalDescuentos * 100) / 100,
+            totalVentaGravada: parseFloat(totalVentaGravada.toFixed(2)),
+            totalVentaExenta: parseFloat(totalVentaExenta.toFixed(2)),
+            totalVentaNoSujeta: parseFloat(totalVentaNoSujeta.toFixed(2)),
+            totalImpuestos: parseFloat(totalImpuestos.toFixed(2)), // This is IVA
+            totalDescuentos: parseFloat(totalDescuentos.toFixed(2)),
         };
     }
 

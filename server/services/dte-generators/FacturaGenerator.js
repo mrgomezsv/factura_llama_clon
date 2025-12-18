@@ -27,10 +27,11 @@ class FacturaGenerator extends BaseGenerator {
         const cuerpoDocumento = this.buildItemsStandard(items, 'FAC');
         const totalsFromItems = this.calculateTotalsStandard(cuerpoDocumento);
 
-        const subTotalVentas = totalsFromItems.totalVentaGravada + totalsFromItems.totalVentaExenta + totalsFromItems.totalVentaNoSujeta;
-        const subTotal = subTotalVentas - totalsFromItems.totalDescuentos - descuentoGlobal;
+        const subTotalVentas = parseFloat((totalsFromItems.totalVentaGravada + totalsFromItems.totalVentaExenta + totalsFromItems.totalVentaNoSujeta).toFixed(2));
+        const subTotal = parseFloat((subTotalVentas - totalsFromItems.totalDescuentos - descuentoGlobal).toFixed(2));
         const iva = totalsFromItems.totalImpuestos;
-        const montoTotalOperacion = subTotal + iva - retenciones.iva - retenciones.renta;
+        // For FAC, subTotal is GROSS (includes VAT), so we do NOT add IVA again.
+        const montoTotalOperacion = parseFloat((subTotal - retenciones.iva - retenciones.renta).toFixed(2));
         const totalPagar = montoTotalOperacion;
 
         const dteJson = {
