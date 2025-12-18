@@ -113,7 +113,8 @@
               <div class="tot-row"><span>Sumatoria de Ventas</span><span>{{ sumatoriaVentas | currency:'USD':'symbol':'1.2-2' }}</span></div>
               <div class="tot-row"><span>Descuento Global Ventas Gravadas</span><span>{{ descuentoGlobalVentasGravadas | currency:'USD':'symbol':'1.2-2' }}</span></div>
               <div class="tot-row subtotal"><span>Sub Total</span><span>{{ subTotal | currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row"><span>(+)IVA (13%)</span><span>{{ iva | currency:'USD':'symbol':'1.2-2' }}</span></div>
+              <!-- No mostrar IVA en facturas a consumidor final (FAC) porque el precio ya lo incluye -->
+              <div class="tot-row" *ngIf="false"><span>(+)IVA (13%)</span><span>{{ iva | currency:'USD':'symbol':'1.2-2' }}</span></div>
               <div class="tot-row"><span>(-)IVA Retenido</span><span>{{ ivaRetenido | currency:'USD':'symbol':'1.2-2' }}</span></div>
               <div class="tot-row"><span>(-)Retención Renta</span><span>{{ retencionRenta | currency:'USD':'symbol':'1.2-2' }}</span></div>
               <div class="tot-row"><span>Monto Total de Operación</span><span>{{ montoTotalOperacion | currency:'USD':'symbol':'1.2-2' }}</span></div>

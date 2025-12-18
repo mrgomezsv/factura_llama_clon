@@ -51,6 +51,14 @@ export class FacturacionCalculationsService {
   }
 
   /**
+   * Determinar si el tipo de DTE no debe calcular IVA (Factura a Consumidor Final)
+   * Las facturas FAC no desglosan IVA porque el precio ya lo incluye
+   */
+  private shouldNotCalculateIva(tipoDte?: string): boolean {
+    return tipoDte === 'FAC';
+  }
+
+  /**
    * Calcula todos los valores de facturación según normativas de El Salvador
    */
   calcularFacturacion(parametros: ParametrosCalculoFacturacion): ResultadosCalculoFacturacion {
@@ -104,8 +112,11 @@ export class FacturacionCalculationsService {
     const subTotal = Math.max(sumatoriaVentas - descuentoGlobal, 0);
 
     // IVA (13% sobre ventas gravadas netas)
-    // NO calcular IVA si el tipo de DTE es exento (FEX, FSE)
-    const ivaCalculado = isExemptDte ? 0 : ventasGravadasNetas * this.IVA_RATE;
+    // NO calcular IVA si:
+    // - El tipo de DTE es exento (FEX, FSE)
+    // - El tipo de DTE es FAC (Factura a Consumidor Final - el precio ya incluye IVA)
+    const shouldNotCalculateIva = this.shouldNotCalculateIva(tipoDte);
+    const ivaCalculado = (isExemptDte || shouldNotCalculateIva) ? 0 : ventasGravadasNetas * this.IVA_RATE;
     const iva = Math.round(ivaCalculado * 100) / 100;
 
     // Retenciones
