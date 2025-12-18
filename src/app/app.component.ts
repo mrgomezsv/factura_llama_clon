@@ -94,10 +94,12 @@ export class AppComponent implements OnInit {
     this.router.events.subscribe(evt => {
       if (evt instanceof NavigationEnd) {
         this.isLoginRoute = this.isAuthRoute(evt.urlAfterRedirects);
-        // Nota: La carga de datos ya se maneja con la suscripción a isAuthenticated()
-        // o si es necesario recargar al cambiar de ruta mientras se está logueado:
-        if (!this.isLoginRoute) {
-          // Opcional: Podríamos recargar aquí si fuera necesario actualizar vistas
+        this.showMainLayout = this.shouldShowMainLayout(evt.urlAfterRedirects);
+        this.showDTEsContent = this.shouldShowDTEsContent(evt.urlAfterRedirects);
+
+        // Recargar DTEs si estamos en la vista principal y no en login/auth
+        if (!this.isLoginRoute && this.showDTEsContent) {
+          this.cargarDTEs();
         }
       }
     });
