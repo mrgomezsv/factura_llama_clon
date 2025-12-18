@@ -117,7 +117,7 @@ async function testTransmission() {
 
         const dteRes = await client.query(`
             SELECT numero_control, estado, sello_recibido, codigo_mensaje, descripcion_mensaje 
-            FROM documento_factura 
+            FROM documento_credito_fiscal 
             ORDER BY id DESC LIMIT 1
         `);
 
