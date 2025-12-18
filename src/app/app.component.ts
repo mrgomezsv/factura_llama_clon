@@ -97,6 +97,17 @@ export class AppComponent implements OnInit {
         this.showMainLayout = this.shouldShowMainLayout(evt.urlAfterRedirects);
         this.showDTEsContent = this.shouldShowDTEsContent(evt.urlAfterRedirects);
 
+        // Si estamos navegando a /dtes o la ruta principal, actualizar período al mes actual
+        const url = evt.urlAfterRedirects;
+        if ((url === '/' || url === '/dtes' || url === '/home') && !this.isLoginRoute) {
+          const periodoActual = PeriodoTributario.ahora();
+          // Si el período seleccionado no es del mes actual, actualizarlo
+          if (this.periodoSeleccionado.mes !== periodoActual.mes || 
+              this.periodoSeleccionado.año !== periodoActual.año) {
+            this.periodoSeleccionado = periodoActual;
+          }
+        }
+
         // Recargar DTEs si estamos en la vista principal y no en login/auth
         if (!this.isLoginRoute && this.showDTEsContent) {
           this.cargarDTEs();
