@@ -1,0 +1,234 @@
+const crypto = require('crypto');
+
+class BaseGenerator {
+    constructor() {
+        this.unidadesMap = {
+            'UNI': 1, 'CJ': 2, 'PQ': 3, 'KG': 4, 'LB': 5, 'LT': 6, 'GL': 7,
+            'M': 8, 'M2': 9, 'M3': 10, 'PZ': 11, 'PAR': 12, 'DOC': 13,
+            'BOL': 14, 'CAJ': 15, 'BOT': 16, 'TUB': 17, 'LAT': 18, 'BLK': 19,
+            'ROL': 20, 'PLG': 21, 'PIE': 22, 'YRD': 23, 'MI': 24, 'KM': 25,
+            'GR': 26, 'OZ': 27, 'GAL': 29, 'QT': 30, 'PT': 31, 'FL': 32,
+            'OZ': 33, 'TB': 34, 'TS': 35, 'CUP': 36, 'PK': 37, 'BU': 38,
+            'BBL': 39, 'TON': 40, 'MT': 42, 'FT': 43, 'YD': 44, 'IN': 45,
+            'FT2': 46, 'YD2': 47, 'AC': 49, 'MI2': 50, 'FT3': 51, 'YD3': 52,
+            'AC-FT': 53, 'CORD': 54, 'BTU': 55, 'L': 56, 'N': 57, 'PA': 58,
+            'W': 59, 'J': 60, 'V': 61, 'F': 62, 'C': 63, 'S': 64, 'HZ': 65,
+            '1/S': 66, 'M/S': 67, 'M/S2': 68, 'M3/S': 69, 'M3/H': 70,
+            'L/H': 71, 'W/M2': 72, 'J/K': 73, 'PA-S': 74, 'N-M': 75, 'N/M': 76,
+            'RAD/S': 77, 'RAD/S2': 78, 'W/M-K': 79, 'J/KG-K': 80, 'J/KG': 81,
+            'J/K-MOL': 82, 'J/MOL': 83, 'MOL/M3': 84, 'MOL/KG': 85, 'MOL/MOL': 86,
+            '1': 87, 'GY': 88, 'GY/S': 89, 'W/SR': 90, 'W/SR-M2': 91, 'PA/M': 92,
+            'J/M2': 93, 'K-GY': 94, 'J/KG': 95, 'SV': 96, 'SV/S': 97, 'SV/H': 98,
+            'SERV': 99
+        };
+    }
+
+    generateUUID() {
+        return crypto.randomUUID().toUpperCase();
+    }
+
+    buildControlNumber(tipoDte, codigoEstablecimiento, puntoEmision, numeroDocumento) {
+        const tipo = tipoDte === 'FAC' ? 'DTE-01' :
+            tipoDte === 'CCF' ? 'DTE-03' :
+                tipoDte === 'NR' ? 'DTE-01' : 'DTE-00';
+
+        // Format: DTE-XX-MKVVVVVV-NNNNNNNNNNNNNNN
+        // XX: Tipo de Documento
+        // M: Código de Establecimiento (Min 4 chars)
+        // K: Código de Punto de Venta (Min 3 chars? No, user says 00010001 = 8 chars)
+        // Joaquin requested: DTE-01-00010001-000000000000001
+        // Where 00010001 is Est (4) + Punto (4).
+
+        // Note: The caller should pass padded values.
+        const numDocPadded = String(numeroDocumento).padStart(15, '0');
+        return `${tipo}-${codigoEstablecimiento}${puntoEmision}-${numDocPadded}`;
+    }
+
+    buildIdentificacion(tipoDte, numeroControl, codigoGeneracion, fechaEmision, ambiente, version = 1) {
+        // Determine TipoDte code (01, 03, etc.)
+        const tipos = { 'FAC': '01', 'CCF': '03', 'NR': '01' }; // NR is usually 01? No, NR is Nota Remision? 
+        // Actually BaseGenerator should verify this mapping.
+        // For now assuming caller passes correct code or we map 'FAC'->'01'.
+        const tipoCodigo = tipos[tipoDte] || '01'; // Default
+
+        const fechaStr = fechaEmision.toISOString().split('T')[0];
+        const horaStr = fechaEmision.toTimeString().split(' ')[0];
+
+        return {
+            version: version, // V1 generally, V3 for schema but content version is often 1 or 3 depending on doc. 
+            // FAC is V1 in JSON. CCF is V3?
+            // Let's assume 1 for FAC. Generators can override.
+            ambiente: ambiente === 'PRODUCCIÓN' ? '01' : '00',
+            tipoDte: tipoCodigo,
+            numeroControl: numeroControl,
+            codigoGeneracion: codigoGeneracion,
+            tipoModelo: 1, // 1: Normal, 2: Previo
+            tipoOperacion: 1, // 1: Normal
+            tipoContingencia: null,
+            motivoContin: null,
+            fecEmi: fechaStr,
+            horEmi: horaStr,
+            tipoMoneda: 'USD'
+        };
+    }
+
+    buildEmisor(empresaConfig, codigoEstablecimiento, puntoEmision) {
+        return {
+            nit: empresaConfig.nit,
+            nrc: empresaConfig.nrc,
+            nombre: empresaConfig.nombreLegal,
+            codActividad: /^\d{5}$/.test(empresaConfig.actividadEconomicaPrimaria) ? empresaConfig.actividadEconomicaPrimaria : '56101',
+            descActividad: empresaConfig.descActividad || 'VENTA DE COMIDAS Y BEBIDAS', // Fallback or from DB if added
+            nombreComercial: empresaConfig.nombreComercial || empresaConfig.nombreLegal || '',
+            tipoEstablecimiento: '01', // Sucursal / Agencia
+            direccion: {
+                departamento: empresaConfig.direccion?.departamento || '06', // Default San Salvador
+                municipio: empresaConfig.direccion?.municipio || '14', // Default San Salvador
+                complemento: String(empresaConfig.direccion?.complemento || empresaConfig.direccion || 'San Salvador, El Salvador').substring(0, 200)
+            },
+            telefono: empresaConfig.telefono || '',
+            correo: empresaConfig.correo || '',
+            codEstableMH: null,
+            codEstable: codigoEstablecimiento,
+            codPuntoVentaMH: null,
+            codPuntoVenta: puntoEmision
+        };
+    }
+
+    mapUnidadMedida(unidad) {
+        return this.unidadesMap[unidad.toUpperCase()] || 59; // Default 59 (Unidad)? Old code had 1? 
+        // Wait, old code returned 1 for UNI.
+        // Joaquin said "Unidad de medida real".
+        // 59 is "Unidad" in MH Catalog? Or 1?
+        // Let's stick to old code logic unless verified.
+        // Old code: return unidades[unidad.toUpperCase()] || 1;
+        // But I changed it to return input if numeric in builder.
+        // BaseGenerator should provide the map.
+        return this.unidadesMap[unidad.toUpperCase()] || 1;
+    }
+
+    buildItemsStandard(facturaItems, tipoDte) {
+        // Same logic as corrected in dte-builder.js
+        const items = [];
+        const includeIvaItem = tipoDte === 'FAC';
+
+        facturaItems.forEach((item, index) => {
+            const cantidad = parseFloat(item.cantidad || 0);
+            // FIXED LOGIC: Accept precioUni first
+            const precioUnitario = parseFloat(item.precioUni || item.precio || 0);
+            const descuento = parseFloat(item.descuento || item.montoDescu || 0);
+            const subtotal = cantidad * precioUnitario;
+            // Assuming tipoVenta is handled by caller or default 'Gravada'
+            const tipoVenta = (item.tipoVenta || 'Gravada').trim();
+
+            let ventaGravada = 0;
+            let ventaExenta = 0;
+            let ventaNoSujeta = 0;
+            let montoImpuesto = 0;
+            let tributos = null;
+
+            if (tipoVenta === 'Exenta') {
+                ventaExenta = subtotal;
+            } else if (tipoVenta === 'No Sujeta') {
+                ventaNoSujeta = subtotal;
+            } else {
+                // Gravada
+                ventaGravada = subtotal;
+                montoImpuesto = Math.round((ventaGravada * 0.13) * 100) / 100;
+                if (ventaGravada > 0) {
+                    tributos = ['20'];
+                }
+            }
+
+            let unidadMedida = 59;
+            if (item.uniMedida) {
+                unidadMedida = parseInt(item.uniMedida);
+            } else {
+                unidadMedida = this.mapUnidadMedida(item.unidad || 'UNI');
+            }
+
+            const itemObj = {
+                numItem: index + 1,
+                tipoItem: item.tipoItem ? parseInt(item.tipoItem) : 1,
+                numeroDocumento: null,
+                codigo: item.codigo || null,
+                codTributo: null,
+                descripcion: item.descripcion || item.producto || '',
+                cantidad: cantidad,
+                uniMedida: unidadMedida,
+                precioUni: precioUnitario,
+                montoDescu: descuento,
+                ventaNoSuj: ventaNoSujeta,
+                ventaExenta: ventaExenta,
+                ventaGravada: ventaGravada,
+                tributos: tributos,
+                psv: 0.0,
+                noGravado: 0.0
+            };
+
+            if (includeIvaItem) {
+                itemObj.ivaItem = montoImpuesto;
+            }
+
+            items.push(itemObj);
+        });
+
+        return items;
+    }
+
+    calculateTotalsStandard(items) {
+        let totalVentaGravada = 0;
+        let totalVentaExenta = 0;
+        let totalVentaNoSujeta = 0;
+        let totalImpuestos = 0;
+        let totalDescuentos = 0;
+
+        items.forEach(item => {
+            totalVentaGravada += parseFloat(item.ventaGravada || 0);
+            totalVentaExenta += parseFloat(item.ventaExenta || 0);
+            totalVentaNoSujeta += parseFloat(item.ventaNoSuj || 0);
+            // Calc IVA from Gravada items implicitly (since items have it?)
+            // Or sum ivaItem?
+            // Old logic recalculated it.
+            if (item.ventaGravada > 0) {
+                totalImpuestos += Math.round((item.ventaGravada * 0.13) * 100) / 100;
+            }
+            totalDescuentos += parseFloat(item.montoDescu || 0);
+        });
+
+        return {
+            totalVentaGravada: Math.round(totalVentaGravada * 100) / 100,
+            totalVentaExenta: Math.round(totalVentaExenta * 100) / 100,
+            totalVentaNoSujeta: Math.round(totalVentaNoSujeta * 100) / 100,
+            totalImpuestos: Math.round(totalImpuestos * 100) / 100, // This is IVA
+            totalDescuentos: Math.round(totalDescuentos * 100) / 100,
+        };
+    }
+
+    numeroALetras(monto) {
+        // Basic implementation copied from dte-builder.js
+        const unidades = ['', 'UN ', 'DOS ', 'TRES ', 'CUATRO ', 'CINCO ', 'SEIS ', 'SIETE ', 'OCHO ', 'NUEVE '];
+        const decenas = ['', 'DIEZ ', 'VEINTE ', 'TREINTA ', 'CUARENTA ', 'CINCUENTA ', 'SESENTA ', 'SETENTA ', 'OCHENTA ', 'NOVENTA '];
+        const diez_veinte = ['DIEZ ', 'ONCE ', 'DOCE ', 'TRECE ', 'CATORCE ', 'QUINCE ', 'DIECISES ', 'DIECISIETE ', 'DIECIOCHO ', 'DIECINUEVE '];
+        const centenas = ['', 'CIENTO ', 'DOSCIENTOS ', 'TRESCIENTOS ', 'CUATROCIENTOS ', 'QUINIENTOS ', 'SEISCIENTOS ', 'SETECIENTOS ', 'OCHOCIENTOS ', 'NOVECIENTOS '];
+
+        let valor = parseFloat(monto).toFixed(2);
+        let partes = valor.split('.');
+        let entero = parseInt(partes[0]);
+        let centavos = partes[1];
+
+        if (entero === 0) return `CERO ${centavos}/100 USD`;
+        if (entero === 100) return `CIEN ${centavos}/100 USD`;
+
+        let letras = '';
+        if (entero >= 1000) { letras += 'MIL '; entero = entero % 1000; } // Simplified
+        if (entero >= 100) { letras += centenas[Math.floor(entero / 100)]; entero = entero % 100; }
+        if (entero >= 20) { letras += decenas[Math.floor(entero / 10)]; entero = entero % 10; if (entero > 0) letras += 'Y '; }
+        else if (entero >= 10) { letras += diez_veinte[entero - 10]; entero = 0; }
+        if (entero > 0) { letras += unidades[entero]; }
+
+        return `${letras.trim()} ${centavos}/100 USD`;
+    }
+}
+
+module.exports = BaseGenerator;

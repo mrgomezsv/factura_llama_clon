@@ -22,6 +22,8 @@ function getTableNameByTipoDte(tipoDte) {
   const tipoToTable = {
     'FAC': 'documento_factura',
     'CCF': 'documento_credito_fiscal',
+    '01': 'documento_factura',
+    '03': 'documento_credito_fiscal',
     'NCR': 'documento_nota_credito',
     'NDB': 'documento_nota_debito',
     'FSE': 'documento_factura_sujeto_excluido',
@@ -544,7 +546,7 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
     console.log('✅ Configuración de empresa obtenida');
 
     // Obtener datos del cliente
-    let cliente = { nombre: 'CONSUMIDOR FINAL' };
+    let cliente = null;
     if (clienteId) {
       const clienteResult = await pool.query(
         'SELECT * FROM clientes WHERE id = $1',
@@ -553,6 +555,8 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
       if (clienteResult.rows.length > 0) {
         cliente = clienteResult.rows[0];
       }
+    } else if (req.body.cliente) {
+      cliente = req.body.cliente;
     }
 
     // Obtener el siguiente número de documento
@@ -590,34 +594,28 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
       codigoMH: empresaConfig.codigo_mh,
       logoUrl: empresaConfig.logo_url
     };
-    console.log('👀 DEBUG empresaConfigBuilder:', empresaConfigBuilder);
 
     const { dteJson, codigoGeneracion, numeroControl } = dteBuilder.buildDteJson({
       tipoDte,
       empresaConfig: empresaConfigBuilder,
       cliente: {
-        nombre: cliente.nombre,
-        nit: cliente.nit,
-        nrc: cliente.nrc,
-        direccion: cliente.direccion,
-        telefono: cliente.telefono,
-        correo: cliente.correo,
-        numeroDocumento: cliente.nit,
-        departamento: null,
-        municipio: null,
-        actividadEconomica: cliente.actividad_economica
+        nombre: cliente?.nombre || 'Consumidor Final',
+        nit: cliente?.nit,
+        nrc: cliente?.nrc,
+        direccion: cliente?.direccion,
+        telefono: cliente?.telefono,
+        correo: cliente?.correo,
+        numeroDocumento: cliente?.nit || cliente?.numDocumento,
+        departamento: cliente?.departamento,
+        municipio: cliente?.municipio,
+        codActividad: cliente?.codActividad || cliente?.cod_actividad,
+        descActividad: cliente?.descActividad || cliente?.desc_actividad
       },
       items,
       totales,
       retenciones,
       ambiente: ambiente, // Pasar ambiente para identificacion
       descuentoGlobal,
-      ambiente,
-      items,
-      totales,
-      retenciones,
-      descuentoGlobal,
-      ambiente,
       numeroDocumento: nextNumero,
       // Nuevos campos para exportación
       incoterms: req.body.incoterms,
@@ -643,7 +641,16 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
       dteFirmadoStr = JSON.stringify(dteJson);
     }
 
-    const dteFirmado = typeof dteFirmadoStr === 'string' ? JSON.parse(dteFirmadoStr) : dteFirmadoStr;
+    // Intentar parsear si es string, pero si falla (es JWS raw), mantenerlo como string
+    let dteFirmado = dteFirmadoStr;
+    if (typeof dteFirmadoStr === 'string') {
+      try {
+        const parsed = JSON.parse(dteFirmadoStr);
+        if (typeof parsed === 'object') dteFirmado = parsed;
+      } catch (e) {
+        // Es un string plano (JWS), está bien
+      }
+    }
 
     const { incoterms, modoTransporte, recintoFiscal, regimenAduanero } = req.body;
 
@@ -659,13 +666,16 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
           user: empresaConfig.nit, // El usuario suele ser el NIT
           pwd: ambiente === 'PRODUCCIÓN' ? empresaConfig.password_api_produccion : empresaConfig.password_api_prueba,
           nit: empresaConfig.nit,
-          ambiente: ambiente // 'PRUEBAS' o 'PRODUCCIÓN'
+          ambiente: ambiente, // 'PRUEBAS' o 'PRODUCCIÓN'
+          dteJson: dteJson // Pasar el JSON original para extraer metadatos
         };
 
         // Enviar a MH usando las credenciales de la empresa
         mhResponse = await dteApiService.enviarDte(dteFirmado, null, mhConfig);
+        require('fs').appendFileSync('debug_mh.log', `[${new Date().toISOString()}] MH Response: ${JSON.stringify(mhResponse)}\n`);
       } catch (apiError) {
         console.error('⚠️ Error crítico al comunicar con MH:', apiError.message);
+        require('fs').appendFileSync('debug_mh.log', `[${new Date().toISOString()}] MH Error: ${apiError.message}\n${apiError.stack}\n`);
         // Mantenemos el estado de error
       }
     } else {
