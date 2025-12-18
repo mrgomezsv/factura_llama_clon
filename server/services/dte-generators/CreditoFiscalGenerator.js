@@ -86,7 +86,7 @@ class CreditoFiscalGenerator extends BaseGenerator {
                 saldoFavor: 0.0,
                 condicionOperacion: 1,
                 pagos: [{
-                    codigo: '01', // Example used '05' (Credito?), defaults to 01 (Billetes) for now
+                    codigo: '01', // Billetes y monedas
                     montoPago: totalPagar,
                     referencia: null,
                     plazo: null,
