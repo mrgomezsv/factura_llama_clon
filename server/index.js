@@ -729,7 +729,7 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
         nrcReceptor: cliente.nrc,
         direccionReceptor: cliente.direccion,
         emailReceptor: cliente.correo,
-        selloRecibido: null
+        selloRecibido: mhResponse.selloRecibido || null
       },
       empresaConfig: {
         nombreLegal: empresaConfig.nombre_legal || empresaConfig.nombre_comercial || '',
