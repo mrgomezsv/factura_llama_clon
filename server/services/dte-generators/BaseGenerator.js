@@ -114,8 +114,8 @@ class BaseGenerator {
 
         facturaItems.forEach((item, index) => {
             const cantidad = parseFloat(item.cantidad || 0);
-            // FIXED LOGIC: Accept precioUni first
-            const precioUnitario = parseFloat(item.precioUni || item.precio || 0);
+            // FIXED LOGIC: Accept different variations of price keys
+            const precioUnitario = parseFloat(item.precioUni || item.precio || item.precioUnitario || 0);
             const descuento = parseFloat(item.descuento || item.montoDescu || 0);
             const subtotal = cantidad * precioUnitario;
             // Assuming tipoVenta is handled by caller or default 'Gravada'
