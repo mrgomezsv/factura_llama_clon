@@ -108,9 +108,11 @@ export class ConfiguracionModalComponent implements OnInit {
       certificadoPrueba: [''],
       passwordPriPrueba: [''],
       passwordPubPrueba: [''],
+      passwordAPIPrueba: [''], // Campo nuevo para API Password
       certificadoProduccion: [''],
       passwordPriProduccion: [''],
       passwordPubProduccion: [''],
+      passwordAPIProduccion: [''], // Campo nuevo para API Password
       ambientePruebasActivo: [true],
       ambienteProduccionActivo: [false]
     });
@@ -516,9 +518,11 @@ export class ConfiguracionModalComponent implements OnInit {
       certificadoPrueba: this.empresaForm.value.certificadoPrueba,
       passwordPriPrueba: this.empresaForm.value.passwordPriPrueba,
       passwordPubPrueba: this.empresaForm.value.passwordPubPrueba,
+      passwordAPIPrueba: this.empresaForm.value.passwordAPIPrueba, // Added
       certificadoProduccion: this.empresaForm.value.certificadoProduccion,
       passwordPriProduccion: this.empresaForm.value.passwordPriProduccion,
       passwordPubProduccion: this.empresaForm.value.passwordPubProduccion,
+      passwordAPIProduccion: this.empresaForm.value.passwordAPIProduccion, // Added
       ambientePruebasActivo: this.empresaForm.value.ambientePruebasActivo ? 1 : 0,
       ambienteProduccionActivo: this.empresaForm.value.ambienteProduccionActivo ? 1 : 0
     };

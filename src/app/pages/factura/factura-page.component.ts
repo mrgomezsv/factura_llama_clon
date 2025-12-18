@@ -1,8 +1,8 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, provideHttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders, provideHttpClient } from '@angular/common/http';
 import { FacturaClienteComponent } from '../../components/factura/cliente/cliente.component';
 import { FacturaSucursalComponent } from '../../components/factura/sucursal/sucursal.component';
 import { FacturaRetencionesComponent } from '../../components/factura/retenciones/retenciones.component';
@@ -13,6 +13,7 @@ import { FacturaAppendicesComponent } from '../../components/factura/appendices/
 import { FacturaItemsComponent } from '../../components/factura/items/items.component';
 import { FacturacionCalculationsService } from '../../services/facturacion-calculations.service';
 import { DteService } from '../../services/dte.service';
+import { AuthService } from '../../services/auth.service';
 import { ItemFactura, Retenciones, ResultadosCalculoFacturacion } from '../../models/facturacion.model';
 
 @Component({
@@ -33,9 +34,9 @@ import { ItemFactura, Retenciones, ResultadosCalculoFacturacion } from '../../mo
   templateUrl: './factura-page.component.html',
   styleUrl: './factura-page.component.scss'
 })
-export class FacturaPageComponent {
+export class FacturaPageComponent implements OnInit {
   @ViewChild(FacturaItemsComponent) itemsComponent!: FacturaItemsComponent;
-  
+
   cliente: any = {};
   items: ItemFactura[] = [];
   itemsRaw: any[] = []; // Almacenar los items completos con unidad
@@ -47,12 +48,16 @@ export class FacturaPageComponent {
   vistaPrevia = true;
   empresaSeleccionada: any = null;
   generandoDTE = false;
-  
+  codigoGeneracion: string = '';
+  emisor: any = {};
+  usuario: any = {};
+
   constructor(
     private router: Router,
     private facturacionService: FacturacionCalculationsService,
     private dteService: DteService,
-    private http: HttpClient
+    private http: HttpClient,
+    private authService: AuthService
   ) {
     // Cargar empresa seleccionada
     this.dteService.getEmpresas().subscribe(empresas => {
@@ -62,7 +67,53 @@ export class FacturaPageComponent {
     });
   }
 
-  onCliente(v: any) { 
+  ngOnInit(): void {
+    // Generar código de generación único para esta sesión de factura
+    this.codigoGeneracion = this.generateUUID();
+
+    // Cargar datos del emisor (empresa actual)
+    this.authService.user$.subscribe(usuario => {
+      this.usuario = usuario;
+      if (usuario && usuario.empresaId) {
+        // En lugar de getEmpresa, usamos getEmpresas y filtramos
+        this.dteService.getEmpresas().subscribe(empresas => {
+          const empresa = empresas.find(e => e.id === usuario.empresaId);
+          if (empresa) {
+            this.emisor = empresa;
+            // Si no se habia seleccionado, seleccionar la del usuario
+            if (!this.empresaSeleccionada) {
+              this.empresaSeleccionada = empresa;
+            }
+          }
+        });
+
+        // Cargar configuración extendida para verificar el ambiente por defecto
+        this.dteService.getEmpresaConfig(usuario.empresaId).subscribe(config => {
+          if (config) {
+            // Prioridad: Si pruebas está activo, forzamos pruebas (ambienteProduccion = false).
+            if (config.ambientePruebasActivo) {
+              this.ambienteProduccion = false;
+            } else if (config.ambienteProduccionActivo) {
+              this.ambienteProduccion = true;
+            }
+          }
+        });
+      }
+    });
+
+    // Cargar datos iniciales
+    // this.cargarTiposDocumento(); // Eliminado pues no existen
+    // this.cargarFormasPago(); // Eliminado pues no existen
+  }
+
+  generateUUID(): string {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+  onCliente(v: any) {
     this.cliente = {
       id: v.id,
       nombre: v.nombre,
@@ -76,7 +127,7 @@ export class FacturaPageComponent {
   }
   onDescuento(v: number) { this.descuentoGlobal = v || 0; }
   onRetenciones(v: Retenciones) { this.retenciones = v; }
-  onItems(items: any[]) { 
+  onItems(items: any[]) {
     this.itemsRaw = items || [];
     this.items = (items || []).map(item => ({
       cantidad: Number(item.cantidad || 0),
@@ -182,8 +233,24 @@ export class FacturaPageComponent {
       ambiente: this.ambienteProduccion ? 'PRODUCCIÓN' : 'PRUEBAS'
     };
 
+    // Obtener token de autenticación
+    const token = localStorage.getItem('auth_token');
+
+    if (!token) {
+      console.error('No hay token de autenticación');
+      alert('Error: No ha iniciado sesión o la sesión ha expirado');
+      this.generandoDTE = false;
+      return;
+    }
+
+    // Configurar headers con el token
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+
     // Llamar al endpoint para generar DTE
     this.http.post('http://localhost:3000/api/dtes/generar', datosDTE, {
+      headers: headers,
       responseType: 'blob'
     }).subscribe({
       next: (pdfBlob: Blob) => {
@@ -198,7 +265,7 @@ export class FacturaPageComponent {
         window.URL.revokeObjectURL(url);
 
         this.generandoDTE = false;
-        
+
         // Cerrar el modal y navegar a la lista de DTEs
         this.cerrar();
       },
