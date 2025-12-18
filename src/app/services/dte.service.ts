@@ -31,11 +31,22 @@ export class DteService {
     return this.database.isReady$.pipe(
       first(ready => ready),
       switchMap(() => {
-        // Obtener todos los campos disponibles de la tabla dtes
-        let sql = `SELECT 
+        // Consultar todas las tablas de documentos usando UNION ALL
+        // Mapear tipo_dte a tipo de texto para compatibilidad
+        const baseSelect = `
           id,
           control_number, 
-          tipo, 
+          CASE 
+            WHEN tipo_dte = '01' THEN 'Factura'
+            WHEN tipo_dte = '03' THEN 'Comprobante de Crédito Fiscal'
+            WHEN tipo_dte = '04' THEN 'Nota de Crédito'
+            WHEN tipo_dte = '05' THEN 'Nota de Débito'
+            WHEN tipo_dte = '11' THEN 'Factura de Sujeto Excluido'
+            WHEN tipo_dte = '14' THEN 'Factura de Exportación'
+            WHEN tipo_dte = '15' THEN 'Nota de Remisión'
+            WHEN tipo_dte = '16' THEN 'Comprobante de Retención'
+            ELSE 'Documento'
+          END as tipo,
           tipo_dte,
           codigo_generacion,
           numero_control,
@@ -53,22 +64,85 @@ export class DteService {
           sello_recibido,
           codigo_mensaje,
           descripcion_mensaje
-        FROM dtes WHERE 1=1`;
+        `;
+
+        // Lista de todas las tablas de documentos
+        const tablas = [
+          'documento_factura',
+          'documento_credito_fiscal',
+          'documento_nota_credito',
+          'documento_nota_debito',
+          'documento_factura_sujeto_excluido',
+          'documento_factura_exportacion',
+          'documento_nota_remision',
+          'documento_comprobante_retencion'
+        ];
+
+        // Construir consulta con UNION ALL para todas las tablas
+        let sql = tablas.map((tabla, index) => {
+          const prefix = index === 0 ? '' : ' UNION ALL ';
+          return `${prefix}SELECT ${baseSelect} FROM ${tabla}`;
+        }).join('');
+
+        // Agregar también la tabla dtes para compatibilidad con datos antiguos
+        // La tabla dtes puede tener un campo 'tipo' además de 'tipo_dte'
+        sql += ` UNION ALL SELECT 
+          id,
+          control_number, 
+          COALESCE(tipo, CASE 
+            WHEN tipo_dte = '01' THEN 'Factura'
+            WHEN tipo_dte = '03' THEN 'Comprobante de Crédito Fiscal'
+            WHEN tipo_dte = '04' THEN 'Nota de Crédito'
+            WHEN tipo_dte = '05' THEN 'Nota de Débito'
+            WHEN tipo_dte = '11' THEN 'Factura de Sujeto Excluido'
+            WHEN tipo_dte = '14' THEN 'Factura de Exportación'
+            WHEN tipo_dte = '15' THEN 'Nota de Remisión'
+            WHEN tipo_dte = '16' THEN 'Comprobante de Retención'
+            ELSE 'Documento'
+          END) as tipo,
+          tipo_dte,
+          codigo_generacion,
+          numero_control,
+          numero_documento,
+          receptor, 
+          total, 
+          ambiente, 
+          fecha_creacion,
+          fecha_emision,
+          fecha_envio,
+          fecha_autorizacion,
+          empresa_id,
+          cliente_id,
+          estado,
+          sello_recibido,
+          codigo_mensaje,
+          descripcion_mensaje
+        FROM dtes`;
+
+        // Construir WHERE común para todos los UNION
+        const whereConditions: string[] = [];
         const params: any[] = [];
 
         // Filtrar por período si se proporciona
         if (filtro?.periodo) {
           const mes = filtro.periodo.mes;
           const año = filtro.periodo.año;
-          sql += ' AND EXTRACT(MONTH FROM fecha_creacion) = ? AND EXTRACT(YEAR FROM fecha_creacion) = ?';
+          whereConditions.push('EXTRACT(MONTH FROM fecha_creacion) = ? AND EXTRACT(YEAR FROM fecha_creacion) = ?');
           params.push(mes, año);
         }
 
         // Filtrar por estado según el tipo de tab
         if (filtro?.tipoTab === 'enviados') {
           // Mostrar todos los DTEs generados/enviados (no borradores)
-          sql += ' AND (estado IS NULL OR estado != ?)';
+          whereConditions.push('(estado IS NULL OR estado != ?)');
           params.push('BORRADOR');
+        }
+
+        // Aplicar condiciones WHERE si existen
+        if (whereConditions.length > 0) {
+          sql = `SELECT * FROM (${sql}) AS all_dtes WHERE ${whereConditions.join(' AND ')}`;
+        } else {
+          sql = `SELECT * FROM (${sql}) AS all_dtes`;
         }
 
         sql += ' ORDER BY fecha_creacion DESC, fecha_emision DESC NULLS LAST';
