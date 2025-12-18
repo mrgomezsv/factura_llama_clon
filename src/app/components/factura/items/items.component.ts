@@ -8,7 +8,7 @@ import { DteService } from '../../../services/dte.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './items.component.html',
-      styleUrl: './items.component.scss'
+  styleUrl: './items.component.scss'
 })
 export class FacturaItemsComponent {
   @Output() itemsChanged = new EventEmitter<any[]>();
@@ -47,13 +47,13 @@ export class FacturaItemsComponent {
   agregarItem(): void {
     const v = this.form.value;
     const item = this.fb.group({
-      producto: [v.producto], descripcion: [v.descripcion], cantidad: [Number(v.cantidad)||1],
-      precio: [Number(v.precio)||0], descuento: [Number(v.descuento)||0], tipoVenta: [v.tipoVenta],
+      producto: [v.producto], descripcion: [v.descripcion], cantidad: [Number(v.cantidad) || 1],
+      precio: [Number(v.precio) || 0], descuento: [Number(v.descuento) || 0], tipoVenta: [v.tipoVenta],
       unidad: [v.unidad], codigo: [v.codigo]
     });
     this.items.push(item);
     this.itemsChanged.emit(this.items.value);
-    
+
     // Limpiar el formulario después de agregar el item, manteniendo valores por defecto
     this.form.patchValue({
       producto: '',
@@ -92,46 +92,47 @@ export class FacturaItemsComponent {
     const input = e.target as HTMLInputElement;
     input.value = input.value.replace(/[^0-9.]/g, '');
   }
-  formatNumber(ctrl: 'cantidad'|'precio'|'descuento', decimals: number) {
+  formatNumber(ctrl: 'cantidad' | 'precio' | 'descuento', decimals: number) {
     const val = Number(this.form.value[ctrl]);
     if (!isNaN(val)) this.form.patchValue({ [ctrl]: val.toFixed(decimals) }, { emitEvent: false });
   }
 
   // Productos dropdown (búsqueda simple al tipear en campo producto)
   productMenu = false;
-  allProducts: Array<{ id:string; nombre:string; codigo?: string; precioConIva?: number; unidadMedida?: string; descripcion?: string }> = [];
-  filteredProducts: Array<{ id:string; nombre:string; codigo?: string; precioConIva?: number; unidadMedida?: string; descripcion?: string }> = [];
-  openProducts(){ this.productMenu = true; this.filterProducts(); }
-  filterProducts(){
+  allProducts: Array<{ id: string; nombre: string; codigo?: string; precioConIva?: number; unidadMedida?: string; descripcion?: string }> = [];
+  filteredProducts: Array<{ id: string; nombre: string; codigo?: string; precioConIva?: number; unidadMedida?: string; descripcion?: string }> = [];
+  openProducts() { this.productMenu = true; this.filterProducts(); }
+  filterProducts() {
     const q = (this.form.value.producto || '').toLowerCase();
-    this.filteredProducts = this.allProducts.filter(p => p.nombre.toLowerCase().includes(q) || (p.codigo||'').toLowerCase().includes(q));
+    this.filteredProducts = this.allProducts.filter(p => p.nombre.toLowerCase().includes(q) || (p.codigo || '').toLowerCase().includes(q));
   }
-  chooseProduct(p: any){ 
-    // Establecer nombre, código, precio y unidad de medida del producto seleccionado
-    const precio = p.precioConIva !== undefined && p.precioConIva !== null ? Number(p.precioConIva) : 0;
+  chooseProduct(p: any) {
+    // For FAC, we need to use the Price with IVA directly (Gross Price)
+    // The previous logic divided by 1.13, which was incorrect for FAC.
+    const precioConIva = p.precioConIva !== undefined && p.precioConIva !== null ? Number(p.precioConIva) : 0;
+    const precioFinal = precioConIva; // Use Gross Price directly
+
+    // Convertir nombres de unidades si es necesario o usar el del producto
     const unidad = p.unidadMedida || 'Unidad';
     const descripcion = p.descripcion || '';
-    
+
     // Establecer los valores en el formulario
-    this.form.patchValue({ 
-      producto: p.nombre, 
+    this.form.patchValue({
+      producto: p.nombre,
       codigo: p.codigo || '',
       descripcion: descripcion,
       unidad: unidad
-    }); 
-    
-    // Establecer el precio directamente en el control para asegurar que se muestre
+    });
+
+    // Establecer el precio (con IVA) formateado directamente
     const precioControl = this.form.get('precio');
-    if (precioControl && precio > 0) {
-      precioControl.setValue(precio, { emitEvent: false });
-      // Formatear el precio con 4 decimales
-      const precioFormateado = precio.toFixed(4);
+    if (precioControl) {
+      // Usar 4 decimales para mantener precision
+      const precioFormateado = precioFinal.toFixed(4);
       precioControl.setValue(precioFormateado, { emitEvent: false });
-    } else if (precioControl) {
-      precioControl.setValue(0, { emitEvent: false });
     }
-    
-    this.productMenu = false; 
+
+    this.productMenu = false;
   }
 }
 
