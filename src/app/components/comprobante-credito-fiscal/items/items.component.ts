@@ -46,9 +46,18 @@ export class ComprobanteCreditoFiscalItemsComponent {
 
   agregarItem(): void {
     const v = this.form.value;
+    const precio = Number(v.precio || 0);
+    const cantidad = Number(v.cantidad || 1);
+    
+    // Validar que el precio sea mayor a 0
+    if (precio <= 0) {
+      alert('Error: El precio unitario debe ser mayor a 0');
+      return;
+    }
+    
     const item = this.fb.group({
-      producto: [v.producto], descripcion: [v.descripcion], cantidad: [Number(v.cantidad) || 1],
-      precio: [Number(v.precio) || 0], descuento: [Number(v.descuento) || 0], tipoVenta: [v.tipoVenta],
+      producto: [v.producto], descripcion: [v.descripcion], cantidad: [cantidad],
+      precio: [precio], descuento: [Number(v.descuento) || 0], tipoVenta: [v.tipoVenta],
       unidad: [v.unidad], codigo: [v.codigo]
     });
     this.items.push(item);
