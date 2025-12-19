@@ -2,7 +2,7 @@ import { Component, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { NotaCreditoClienteComponent } from '../../components/nota-credito/cliente/cliente.component';
 import { NotaCreditoSucursalComponent } from '../../components/nota-credito/sucursal/sucursal.component';
 import { NotaCreditoRetencionesComponent } from '../../components/nota-credito/retenciones/retenciones.component';
@@ -214,7 +214,17 @@ export class NotaCreditoPageComponent {
       }]
     };
 
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      this.mostrarAlerta('No se encontró sesión activa. Por favor inicie sesión nuevamente.', 'Sesión Expirada', 'error');
+      this.generandoDTE = false;
+      return;
+    }
+
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
     this.http.post('http://localhost:3000/api/dtes/generar', datosDTE, {
+      headers: headers,
       responseType: 'blob'
     }).subscribe({
       next: (pdfBlob: Blob) => {
