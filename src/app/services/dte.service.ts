@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, of, Subject, from } from 'rxjs';
-import { map, switchMap, first, tap, concatMap, toArray } from 'rxjs/operators';
+import { Observable, of, Subject, from, throwError } from 'rxjs';
+import { map, switchMap, first, tap, concatMap, toArray, catchError } from 'rxjs/operators';
 import { DTE } from '../models/dte.model';
 import { Empresa } from '../models/empresa.model';
 import { PeriodoTributario } from '../models/periodo-tributario.model';
@@ -39,8 +39,9 @@ export class DteService {
           CASE 
             WHEN tipo_dte = '01' THEN 'Factura'
             WHEN tipo_dte = '03' THEN 'Comprobante de Crédito Fiscal'
-            WHEN tipo_dte = '04' THEN 'Nota de Crédito'
-            WHEN tipo_dte = '05' THEN 'Nota de Débito'
+            WHEN tipo_dte = '04' THEN 'Nota de Remisión'
+            WHEN tipo_dte = '05' THEN 'Nota de Crédito'
+            WHEN tipo_dte = '06' THEN 'Nota de Débito'
             WHEN tipo_dte = '11' THEN 'Factura de Sujeto Excluido'
             WHEN tipo_dte = '14' THEN 'Factura de Exportación'
             WHEN tipo_dte = '15' THEN 'Nota de Remisión'
@@ -79,21 +80,24 @@ export class DteService {
         ];
 
         // Construir consulta con UNION ALL para todas las tablas
-        let sql = tablas.map((tabla, index) => {
-          const prefix = index === 0 ? '' : ' UNION ALL ';
-          return `${prefix}SELECT ${baseSelect} FROM ${tabla}`;
-        }).join('');
+        const unionQueries: string[] = [];
+
+        // Agregar consultas de cada tabla
+        tablas.forEach(tabla => {
+          unionQueries.push(`SELECT ${baseSelect} FROM ${tabla}`);
+        });
 
         // Agregar también la tabla dtes para compatibilidad con datos antiguos
         // La tabla dtes puede tener un campo 'tipo' además de 'tipo_dte'
-        sql += ` UNION ALL SELECT 
+        unionQueries.push(`SELECT 
           id,
           control_number, 
           COALESCE(tipo, CASE 
             WHEN tipo_dte = '01' THEN 'Factura'
             WHEN tipo_dte = '03' THEN 'Comprobante de Crédito Fiscal'
-            WHEN tipo_dte = '04' THEN 'Nota de Crédito'
-            WHEN tipo_dte = '05' THEN 'Nota de Débito'
+            WHEN tipo_dte = '04' THEN 'Nota de Remisión'
+            WHEN tipo_dte = '05' THEN 'Nota de Crédito'
+            WHEN tipo_dte = '06' THEN 'Nota de Débito'
             WHEN tipo_dte = '11' THEN 'Factura de Sujeto Excluido'
             WHEN tipo_dte = '14' THEN 'Factura de Exportación'
             WHEN tipo_dte = '15' THEN 'Nota de Remisión'
@@ -117,7 +121,10 @@ export class DteService {
           sello_recibido,
           codigo_mensaje,
           descripcion_mensaje
-        FROM dtes`;
+        FROM dtes`);
+
+        // Construir la consulta UNION ALL completa
+        let unionSql = unionQueries.join(' UNION ALL ');
 
         // Construir WHERE común para todos los UNION
         const whereConditions: string[] = [];
@@ -127,7 +134,8 @@ export class DteService {
         if (filtro?.periodo) {
           const mes = filtro.periodo.mes;
           const año = filtro.periodo.año;
-          whereConditions.push('EXTRACT(MONTH FROM fecha_creacion) = ? AND EXTRACT(YEAR FROM fecha_creacion) = ?');
+          // Usar COALESCE para manejar fechas NULL, usar fecha_emision como fallback
+          whereConditions.push('EXTRACT(MONTH FROM COALESCE(fecha_creacion, fecha_emision, CURRENT_DATE)) = ? AND EXTRACT(YEAR FROM COALESCE(fecha_creacion, fecha_emision, CURRENT_DATE)) = ?');
           params.push(mes, año);
         }
 
@@ -139,13 +147,12 @@ export class DteService {
         }
 
         // Aplicar condiciones WHERE si existen
+        let sql: string;
         if (whereConditions.length > 0) {
-          sql = `SELECT * FROM (${sql}) AS all_dtes WHERE ${whereConditions.join(' AND ')}`;
+          sql = `SELECT * FROM (${unionSql}) AS all_dtes WHERE ${whereConditions.join(' AND ')} ORDER BY fecha_creacion DESC, fecha_emision DESC NULLS LAST`;
         } else {
-          sql = `SELECT * FROM (${sql}) AS all_dtes`;
+          sql = `SELECT * FROM (${unionSql}) AS all_dtes ORDER BY fecha_creacion DESC, fecha_emision DESC NULLS LAST`;
         }
-
-        sql += ' ORDER BY fecha_creacion DESC, fecha_emision DESC NULLS LAST';
 
         return this.database.query<{
           id: number;
@@ -171,6 +178,11 @@ export class DteService {
         }>(sql, params);
       }),
       map(rows => {
+        if (!rows || rows.length === 0) {
+          console.log('No se encontraron DTEs en la consulta');
+          return [];
+        }
+        console.log(`Se encontraron ${rows.length} DTEs`);
         return rows.map(row => {
           return DTE.fromJson({
             id: row.id,
@@ -193,6 +205,10 @@ export class DteService {
             descripcionMensaje: row.descripcion_mensaje
           });
         });
+      }),
+      catchError(error => {
+        console.error('Error al obtener DTEs:', error);
+        return of([]); // Retornar array vacío en caso de error
       })
     );
   }
@@ -232,6 +248,68 @@ export class DteService {
   }
 
   /**
+   * Obtiene documentos relacionables (Facturas y CCF) para un cliente
+   */
+  getDocumentosRelacionables(clienteId: string): Observable<{
+    codigoGeneracion: string;
+    numeroControl: string;
+    tipoDte: string;
+    total: number;
+    fechaEmision: string;
+    tipo: string;
+  }[]> {
+    return this.database.isReady$.pipe(
+      first(ready => ready),
+      switchMap(() => {
+        const sql = `
+          SELECT 
+            codigo_generacion, 
+            tipo_dte, 
+            numero_control, 
+            total, 
+            fecha_emision,
+            'Factura' as tipo_nombre
+          FROM documento_factura 
+          WHERE cliente_id = ?
+          UNION ALL
+          SELECT 
+            codigo_generacion, 
+            tipo_dte, 
+            numero_control, 
+            total, 
+            fecha_emision,
+            'Crédito Fiscal' as tipo_nombre
+          FROM documento_credito_fiscal 
+          WHERE cliente_id = ?
+          ORDER BY fecha_emision DESC
+        `;
+        return this.database.query<{
+          codigo_generacion: string;
+          tipo_dte: string;
+          numero_control: string;
+          total: number;
+          fecha_emision: string;
+          tipo_nombre: string;
+        }>(sql, [clienteId, clienteId]);
+      }),
+      map(rows => {
+        return rows.map(row => ({
+          codigoGeneracion: row.codigo_generacion,
+          numeroControl: row.numero_control,
+          tipoDte: row.tipo_dte,
+          total: row.total,
+          fechaEmision: row.fecha_emision ? new Date(row.fecha_emision).toLocaleDateString('es-SV') : '',
+          tipo: row.tipo_nombre
+        }));
+      }),
+      catchError(error => {
+        console.error('Error al obtener documentos relacionables:', error);
+        return of([]);
+      })
+    );
+  }
+
+  /**
    * Guarda un nuevo DTE
    */
   saveDTE(dte: {
@@ -253,8 +331,8 @@ export class DteService {
           : dte.fechaCreacion;
 
         return this.database.execute(
-          `INSERT INTO dtes (control_number, tipo, receptor, total, ambiente, fecha_creacion, empresa_id, cliente_id, estado)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO dtes(control_number, tipo, receptor, total, ambiente, fecha_creacion, empresa_id, cliente_id, estado)
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             dte.controlNumber,
             dte.tipo,
@@ -754,7 +832,7 @@ export class DteService {
         params.push(id);
 
         return this.database.execute(
-          `UPDATE clientes SET ${updates.join(', ')} WHERE id = ?`,
+          `UPDATE clientes SET ${updates.join(', ')} WHERE id = ? `,
           params
         );
       })
@@ -828,7 +906,7 @@ export class DteService {
         params.push(id);
 
         return this.database.execute(
-          `UPDATE productos SET ${updates.join(', ')} WHERE id = ?`,
+          `UPDATE productos SET ${updates.join(', ')} WHERE id = ? `,
           params
         );
       })
@@ -925,7 +1003,7 @@ export class DteService {
         params.push(id);
 
         return this.database.execute(
-          `UPDATE sucursales SET ${updates.join(', ')} WHERE id = ?`,
+          `UPDATE sucursales SET ${updates.join(', ')} WHERE id = ? `,
           params
         );
       })
@@ -970,7 +1048,7 @@ export class DteService {
           return this.database.execute(
             `UPDATE user_config 
              SET telefono = ?, zona_horaria = ?, rol = ?, updated_at = CURRENT_TIMESTAMP 
-             WHERE user_id = ?`,
+             WHERE user_id = ? `,
             [config.telefono || null, config.zonaHoraria || 'El Salvador (GMT-6)', config.rol || 'PROPIETARIO', userId]
           );
         } else {
@@ -1038,12 +1116,12 @@ export class DteService {
           queries.push(this.database.execute(
             `UPDATE empresa_config 
              SET nombre_legal = ?, nombre_comercial = ?, nit = ?, nrc = ?, dui = ?,
-                 actividad_economica_primaria = ?, actividad_economica_secundaria = ?, actividad_economica_terciaria = ?,
-                 direccion = ?, departamento = ?, municipio = ?, codigo_mh = ?, puntos_venta = ?, sitio_web = ?, telefono = ?, correo = ?, logo_url = ?,
-                 certificado_prueba = ?, password_api_prueba = ?, certificado_produccion = ?, password_api_produccion = ?,
-                 ambiente_pruebas_activo = ?, ambiente_produccion_activo = ?,
-                 updated_at = CURRENT_TIMESTAMP 
-             WHERE empresa_id = ?`,
+          actividad_economica_primaria = ?, actividad_economica_secundaria = ?, actividad_economica_terciaria = ?,
+          direccion = ?, departamento = ?, municipio = ?, codigo_mh = ?, puntos_venta = ?, sitio_web = ?, telefono = ?, correo = ?, logo_url = ?,
+          certificado_prueba = ?, password_api_prueba = ?, certificado_produccion = ?, password_api_produccion = ?,
+          ambiente_pruebas_activo = ?, ambiente_produccion_activo = ?,
+          updated_at = CURRENT_TIMESTAMP 
+             WHERE empresa_id = ? `,
             [
               config.nombreLegal || null,
               config.nombreComercial || null,
@@ -1075,13 +1153,13 @@ export class DteService {
           // Crear nuevo en empresa_config
           const id = 'ec_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
           queries.push(this.database.execute(
-            `INSERT INTO empresa_config 
-             (id, empresa_id, nombre_legal, nombre_comercial, nit, nrc, dui,
-              actividad_economica_primaria, actividad_economica_secundaria, actividad_economica_terciaria,
-              direccion, departamento, municipio, codigo_mh, puntos_venta, sitio_web, telefono, correo, logo_url,
-              certificado_prueba, password_api_prueba, certificado_produccion, password_api_produccion,
-              ambiente_pruebas_activo, ambiente_produccion_activo)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO empresa_config
+          (id, empresa_id, nombre_legal, nombre_comercial, nit, nrc, dui,
+            actividad_economica_primaria, actividad_economica_secundaria, actividad_economica_terciaria,
+            direccion, departamento, municipio, codigo_mh, puntos_venta, sitio_web, telefono, correo, logo_url,
+            certificado_prueba, password_api_prueba, certificado_produccion, password_api_produccion,
+            ambiente_pruebas_activo, ambiente_produccion_activo)
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               id,
               empresaId,
@@ -1133,15 +1211,15 @@ export class DteService {
         // Haremos la query de certificados adentro.
 
         const certQuery = `
-          INSERT INTO empresa_certificados (empresa_id, password_pri_prueba, password_pub_prueba, password_pri_produccion, password_pub_produccion)
-          VALUES (?, ?, ?, ?, ?)
-          ON CONFLICT (empresa_id) DO UPDATE SET
-          password_pri_prueba = EXCLUDED.password_pri_prueba,
+          INSERT INTO empresa_certificados(empresa_id, password_pri_prueba, password_pub_prueba, password_pri_produccion, password_pub_produccion)
+        VALUES(?, ?, ?, ?, ?)
+          ON CONFLICT(empresa_id) DO UPDATE SET
+        password_pri_prueba = EXCLUDED.password_pri_prueba,
           password_pub_prueba = EXCLUDED.password_pub_prueba,
           password_pri_produccion = EXCLUDED.password_pri_produccion,
           password_pub_produccion = EXCLUDED.password_pub_produccion,
           updated_at = CURRENT_TIMESTAMP
-        `;
+            `;
 
         // Ejecutar query de certificados solo si hay cambios relevantes o siempre para asegurar sincronía
         // Ejecutamos siempre que tengamos datos en config
@@ -1222,12 +1300,12 @@ export class DteService {
       first(ready => ready),
       switchMap(() => {
         return this.database.query<any>(
-          `SELECT ec.*, 
-            cer.password_pri_prueba, cer.password_pub_prueba,
-            cer.password_pri_produccion, cer.password_pub_produccion
+          `SELECT ec.*,
+          cer.password_pri_prueba, cer.password_pub_prueba,
+          cer.password_pri_produccion, cer.password_pub_produccion
            FROM empresa_config ec
            LEFT JOIN empresa_certificados cer ON ec.empresa_id = cer.empresa_id
-           WHERE ec.empresa_id = ?`,
+           WHERE ec.empresa_id = ? `,
           [empresaId]
         );
       }),
@@ -1281,7 +1359,7 @@ export class DteService {
           SELECT dte_json 
           FROM dtes 
           WHERE id = ?
-        `;
+          `;
 
         return this.database.query(sql, [dteId]).pipe(
           map((rows: any[]) => {
@@ -1310,8 +1388,8 @@ export class DteService {
     });
 
     const token = localStorage.getItem('auth_token');
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token} `);
 
-    return this.http.post(`${this.API_URL}/empresas/${empresaId}/certificado`, formData, { headers });
+    return this.http.post(`${this.API_URL} /empresas/${empresaId}/certificado`, formData, { headers });
   }
 }
