@@ -23,6 +23,11 @@ class BaseGenerator {
         };
     }
 
+    round(value, decimals = 2) {
+        if (!value) return 0;
+        return parseFloat(parseFloat(value).toFixed(decimals));
+    }
+
     generateUUID() {
         return crypto.randomUUID().toUpperCase();
     }
