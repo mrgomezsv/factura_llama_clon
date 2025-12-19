@@ -132,22 +132,7 @@ class NotaCreditoGenerator extends BaseGenerator {
     }
 
     buildReceptor(cliente) {
-        if (!cliente || !cliente.nit) return null;
-        return {
-            nit: cliente.nit,
-            nrc: cliente.nrc,
-            nombre: cliente.nombre,
-            nombreComercial: cliente.nombreComercial || cliente.nombre,
-            codActividad: cliente.codActividad || '10005',
-            descActividad: cliente.descActividad || 'Otros',
-            direccion: {
-                departamento: cliente.departamento || '06',
-                municipio: cliente.municipio || '14',
-                complemento: cliente.direccion || 'San Salvador'
-            },
-            telefono: cliente.telefono || '00000000',
-            correo: cliente.correo || 'cliente@test.com'
-        };
+        return super.buildReceptor(cliente, 'NCR');
     }
 }
 

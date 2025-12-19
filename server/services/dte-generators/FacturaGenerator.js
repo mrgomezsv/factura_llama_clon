@@ -85,22 +85,7 @@ class FacturaGenerator extends BaseGenerator {
     }
 
     buildReceptor(cliente) {
-        if (!cliente || !cliente.nit) return null;
-        return {
-            tipoDocumento: cliente.nit ? '36' : '13',
-            numDocumento: cliente.nit || cliente.numeroDocumento || '00000000-0',
-            nrc: cliente.nrc || null,
-            nombre: cliente.nombre || 'CONSUMIDOR FINAL',
-            codActividad: null,
-            descActividad: null,
-            direccion: cliente.direccion ? {
-                departamento: cliente.departamento || '01',
-                municipio: cliente.municipio || '01',
-                complemento: cliente.direccion || ''
-            } : null,
-            telefono: cliente.telefono || null,
-            correo: cliente.correo || cliente.correoElectronico || null
-        };
+        return super.buildReceptor(cliente, 'FAC');
     }
 }
 

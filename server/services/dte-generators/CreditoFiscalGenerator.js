@@ -107,27 +107,7 @@ class CreditoFiscalGenerator extends BaseGenerator {
     }
 
     buildReceptor(cliente) {
-        // CCF needs strict receptor data
-        if (!cliente || !cliente.nit) {
-            // Warning: CCF requires valid receptor. 
-            // Returning minimal structure to avoid crash, but this will fail validation if empty.
-            return null;
-        }
-        return {
-            nit: cliente.nit,
-            nrc: cliente.nrc,
-            nombre: cliente.nombre,
-            nombreComercial: cliente.nombreComercial || cliente.nombre,
-            codActividad: cliente.codActividad || '10005', // Example used 86901. Needs real data.
-            descActividad: cliente.descActividad || 'Otros',
-            direccion: {
-                departamento: cliente.departamento || '06',
-                municipio: cliente.municipio || '14',
-                complemento: cliente.direccion || 'San Salvador'
-            },
-            telefono: cliente.telefono || '00000000',
-            correo: cliente.correo || 'cliente@test.com'
-        };
+        return super.buildReceptor(cliente, 'CCF');
     }
 }
 

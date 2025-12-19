@@ -170,7 +170,12 @@ export class NotaCreditoPageComponent {
       return;
     }
     if (!this.documentoSeleccionado) {
-      this.mostrarAlerta('Debe seleccionar un documento a modificar (Factura o CCF)', 'Documento Requerido', 'error');
+      this.mostrarAlerta('Debe seleccionar un documento a modificar (DTE a afectar)', 'Documento Requerido', 'error');
+      return;
+    }
+
+    if (this.documentoSeleccionado.tipo === 'Factura' || this.documentoSeleccionado.tipoDte === '01') {
+      this.mostrarAlerta('El Ministerio de Hacienda no permite emitir Notas de Crédito (DTE-05) para Facturas (DTE-01). Las Notas de Crédito solo pueden afectar a Comprobantes de Crédito Fiscal (DTE-03).', 'Documento No Permitido', 'error');
       return;
     }
 

@@ -251,6 +251,59 @@ class BaseGenerator {
 
         return `${letras.trim()} ${centavos}/100 USD`;
     }
+
+    buildReceptor(cliente, tipoDte = 'FAC') {
+        if (!cliente) return null;
+
+        const isTaxpayer = !!cliente.nit && !!cliente.nrc; // Usually CCF/NCR to taxpayers
+        const hasNit = !!cliente.nit;
+        const hasDui = !!cliente.numeroDocumento || (hasNit && cliente.nit.length === 9); // Simplified DUI check
+
+        if (tipoDte === 'CCF' || (tipoDte === 'NCR' && isTaxpayer)) {
+            // Strict Taxpayer Structure
+            if (!hasNit) return null; // CCF MUST have NIT
+            return {
+                nit: cliente.nit,
+                nrc: cliente.nrc,
+                nombre: cliente.nombre,
+                nombreComercial: cliente.nombreComercial || cliente.nombre,
+                codActividad: cliente.codActividad || '10005',
+                descActividad: cliente.descActividad || 'Otros',
+                direccion: {
+                    departamento: cliente.departamento || '06',
+                    municipio: cliente.municipio || '14',
+                    complemento: String(cliente.direccion || 'San Salvador').substring(0, 200)
+                },
+                telefono: cliente.telefono || '00000000',
+                correo: cliente.correo || 'cliente@test.com'
+            };
+        } else {
+            // Consumer Structure (FAC, or NCR to consumer)
+            let tipoDoc = '36'; // NIT
+            let numDoc = cliente.nit || cliente.numeroDocumento || '00000000-0';
+
+            if (!cliente.nit || cliente.nit.length < 10) {
+                tipoDoc = '13'; // DUI
+                numDoc = cliente.numeroDocumento || cliente.nit || '00000000-0';
+            }
+
+            return {
+                tipoDocumento: tipoDoc,
+                numDocumento: numDoc,
+                nrc: cliente.nrc || null,
+                nombre: cliente.nombre || 'CONSUMIDOR FINAL',
+                codActividad: null,
+                descActividad: null,
+                direccion: cliente.direccion ? {
+                    departamento: cliente.departamento || '06',
+                    municipio: cliente.municipio || '14',
+                    complemento: String(cliente.direccion).substring(0, 200)
+                } : null,
+                telefono: cliente.telefono || null,
+                correo: cliente.correo || null
+            };
+        }
+    }
 }
 
 module.exports = BaseGenerator;
