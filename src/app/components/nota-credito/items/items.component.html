@@ -67,7 +67,7 @@
 </div>
 </div>
 
-<label class="label">Precio Unitario (con IVA)</label>
+<label class="label">Precio Unitario</label>
 <div class="input-group">
 <span class="prefix">$</span>
 <input class="input" formControlName="precio" (input)="numberOnly($event)" (blur)="formatNumber('precio', 4)" />
@@ -92,14 +92,5 @@
 
 <button class="btn btn-primary" type="button" (click)="agregarItem()">Agregar ítem</button>
 </form>
-
-<div class="items-list" *ngIf="items.controls.length > 0">
-<div class="item-row" *ngFor="let it of items.controls; let i = index" [formGroup]="it">
-<span>{{ it.value.descripcion || it.value.producto }}</span>
-<span>x{{ it.value.cantidad }}</span>
-<span>{{ (it.value.precio - (it.value.descuento||0)) * it.value.cantidad | number:'1.2-2' }}</span>
-<button class="btn btn-icon" type="button" (click)="eliminarItem(i)">✕</button>
-</div>
-</div>
 </div>
 </div>
