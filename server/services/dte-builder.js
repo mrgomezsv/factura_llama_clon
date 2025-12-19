@@ -1,10 +1,12 @@
 const FacturaGenerator = require('./dte-generators/FacturaGenerator');
 const CreditoFiscalGenerator = require('./dte-generators/CreditoFiscalGenerator');
+const NotaCreditoGenerator = require('./dte-generators/NotaCreditoGenerator');
 
 class DteBuilder {
   constructor() {
     this.facturaGenerator = new FacturaGenerator();
     this.creditoFiscalGenerator = new CreditoFiscalGenerator();
+    this.notaCreditoGenerator = new NotaCreditoGenerator();
   }
 
   /**
@@ -22,6 +24,10 @@ class DteBuilder {
 
     if (tipo === '03' || tipo === 'CCF') {
       return this.creditoFiscalGenerator.generate(data);
+    }
+
+    if (tipo === '05' || tipo === 'NCR' || tipo === 'NC') {
+      return this.notaCreditoGenerator.generate(data);
     }
 
     // Futuras implementaciones
@@ -44,10 +50,11 @@ class DteBuilder {
     const map = {
       'FAC': '01',
       'CCF': '03',
-      'NR': '01', // Revisar si NR es 01 o tiene otro (Nota Remision es otro, pero aqui se usaba asi?)
+      'NR': '01',
       'FEX': '11',
-      'ND': '05', // Nota Debito? 05 is NC? 06 ND?
-      'NC': '06',
+      'ND': '06', // Nota Debito is 06 usually
+      'NC': '05', // Nota Credito is 05
+      'NCR': '05', // Alias for Nota Credito
       '01': '01',
       '03': '03',
       '11': '11',
