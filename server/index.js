@@ -29,7 +29,9 @@ function getTableNameByTipoDte(tipoDte) {
     'FSE': 'documento_factura_sujeto_excluido',
     'FEX': 'documento_factura_exportacion',
     'REM': 'documento_nota_remision',
-    'CRT': 'documento_comprobante_retencion'
+    'CRT': 'documento_comprobante_retencion',
+    '05': 'documento_nota_credito',
+    '06': 'documento_nota_debito'
   };
 
   return tipoToTable[tipoDte] || null;
@@ -496,7 +498,8 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
       retenciones = { renta: 0, iva: 0 },
       descuentoGlobal = 0,
       otrosMontosNoAfectos = 0,
-      ambiente = 'PRUEBAS'
+      ambiente = 'PRUEBAS',
+      documentoRelacionado = null
     } = req.body;
 
     // USAR EL ID DE LA EMPRESA DEL TOKEN VALIDADO
@@ -614,6 +617,7 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
       items,
       totales,
       retenciones,
+      documentoRelacionado, // Pasado explícitamente
       ambiente: ambiente, // Pasar ambiente para identificacion
       descuentoGlobal,
       numeroDocumento: nextNumero,
