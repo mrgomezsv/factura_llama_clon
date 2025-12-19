@@ -80,7 +80,7 @@
                 <tbody>
                   <tr *ngFor="let item of itemsRaw; let i = index">
                     <td>{{ item.descripcion || item.producto || 'Sin descripción' }}</td>
-                    <td>${{ (item.precio - (item.descuento || 0)) | number:'1.2-2' }}</td>
+                    <td>${{ ((item.precio || 0) * 1.13) | number:'1.2-2' }}</td>
                     <td>{{ item.unidad || 'Unidad' }}</td>
                     <td>
                       <button class="btn-delete-item" type="button" (click)="eliminarItem(i)" title="Eliminar item">

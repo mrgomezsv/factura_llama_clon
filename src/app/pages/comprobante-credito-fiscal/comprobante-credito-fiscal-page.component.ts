@@ -77,14 +77,29 @@ export class ComprobanteCreditoFiscalPageComponent {
   onRetenciones(v: Retenciones) { this.retenciones = v; }
   onItems(items: any[]) {
     this.itemsRaw = items || [];
-    this.items = (items || []).map(item => ({
-      cantidad: Number(item.cantidad || 0),
-      precio: Number(item.precio || 0),
-      descuento: Number(item.descuento || 0),
-      tipoVenta: item.tipoVenta || 'Gravada',
-      descripcion: item.descripcion || item.producto || '',
-      unidad: item.unidad || 'Unidad'
-    }));
+    this.items = (items || []).map(item => {
+      const precio = Number(item.precio || 0);
+      const cantidad = Number(item.cantidad || 1);
+      const descuento = Number(item.descuento || 0);
+      
+      // Para CCF, el precio ingresado es NETO (sin IVA)
+      // El servicio de cálculos espera precio neto
+      // El descuento del item se aplica al subtotal (cantidad * precio)
+      return {
+        cantidad: cantidad,
+        precio: precio,
+        descuento: descuento, // Descuento total del item, no unitario
+        tipoVenta: item.tipoVenta || 'Gravada',
+        descripcion: item.descripcion || item.producto || '',
+        unidad: item.unidad || 'Unidad'
+      };
+    });
+    
+    // Debug: verificar que los items se estén mapeando correctamente
+    if (this.items.length > 0) {
+      console.log('Items mapeados para cálculos:', this.items);
+      console.log('Items raw:', this.itemsRaw);
+    }
   }
 
   eliminarItem(index: number): void {
@@ -97,13 +112,34 @@ export class ComprobanteCreditoFiscalPageComponent {
    * Obtiene todos los cálculos de facturación usando el servicio centralizado
    */
   get calculos(): ResultadosCalculoFacturacion {
-    return this.facturacionService.calcularFacturacion({
-      items: this.items,
+    // Asegurar que los items tengan los datos correctos
+    const itemsParaCalculo = this.items.map(item => ({
+      cantidad: Number(item.cantidad || 0),
+      precio: Number(item.precio || 0),
+      descuento: Number(item.descuento || 0),
+      tipoVenta: item.tipoVenta || 'Gravada',
+      descripcion: item.descripcion || ''
+    }));
+    
+    const resultado = this.facturacionService.calcularFacturacion({
+      items: itemsParaCalculo,
       descuentoGlobal: this.descuentoGlobal,
       retenciones: this.retenciones,
       otrosMontosNoAfectos: this.otrosMontosNoAfectos,
       tipoDte: 'CCF' // Comprobante Crédito Fiscal - gravada
     });
+    
+    // Debug: verificar que los cálculos se estén ejecutando
+    if (itemsParaCalculo.length > 0 && resultado.sumaVentasGravadas === 0) {
+      console.warn('⚠️ Items presentes pero sumaVentasGravadas es 0', {
+        itemsParaCalculo,
+        items: this.items,
+        itemsRaw: this.itemsRaw,
+        resultado
+      });
+    }
+    
+    return resultado;
   }
 
   // Getters que exponen los valores calculados
