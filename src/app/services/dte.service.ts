@@ -298,7 +298,8 @@ export class DteService {
           numeroControl: row.numero_control,
           tipoDte: row.tipo_dte,
           total: row.total,
-          fechaEmision: row.fecha_emision ? new Date(row.fecha_emision).toLocaleDateString('es-SV') : '',
+          fechaEmision: row.fecha_emision ? new Date(row.fecha_emision).toISOString().split('T')[0] : '',
+          fechaEmisionFormateada: row.fecha_emision ? new Date(row.fecha_emision).toLocaleDateString('es-SV') : '',
           tipo: row.tipo_nombre
         }));
       }),

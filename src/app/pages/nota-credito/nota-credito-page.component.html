@@ -17,7 +17,8 @@
               style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
               <option [ngValue]="null">Seleccione un documento...</option>
               <option *ngFor="let doc of documentosRelacionables" [ngValue]="doc">
-                {{ doc.tipo }} - {{ doc.fechaEmision }} - $ {{ doc.total | number:'1.2-2' }} ({{ doc.numeroControl }})
+                {{ doc.tipo }} - {{ doc.fechaEmisionFormateada }} - $ {{ doc.total | number:'1.2-2' }} ({{
+                doc.numeroControl }})
               </option>
             </select>
           </div>

@@ -174,9 +174,9 @@ class BaseGenerator {
                 uniMedida: unidadMedida,
                 precioUni: parseFloat(precioUnitario.toFixed(6)), // Allow up to 6
                 montoDescu: parseFloat(descuento.toFixed(2)), // Discount usually 2?
-                ventaNoSuj: parseFloat(ventaNoSujeta.toFixed(6)),
-                ventaExenta: parseFloat(ventaExenta.toFixed(6)),
-                ventaGravada: parseFloat(ventaGravada.toFixed(6)),
+                ventaNoSuj: this.round(ventaNoSujeta),
+                ventaExenta: this.round(ventaExenta),
+                ventaGravada: this.round(ventaGravada),
                 tributos: tipoDte === 'FAC' ? null : tributos, // FAC does not use tributos in body
                 psv: 0.0,
                 noGravado: 0.0
