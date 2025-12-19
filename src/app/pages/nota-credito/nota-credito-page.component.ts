@@ -14,6 +14,7 @@ import { NotaCreditoItemsComponent } from '../../components/nota-credito/items/i
 import { FacturacionCalculationsService } from '../../services/facturacion-calculations.service';
 import { DteService } from '../../services/dte.service';
 import { ItemFactura, Retenciones, ResultadosCalculoFacturacion } from '../../models/facturacion.model';
+import { NotificacionModalComponent } from '../../components/notificacion-modal/notificacion-modal.component';
 
 @Component({
   selector: 'app-nota-credito-page',
@@ -28,7 +29,8 @@ import { ItemFactura, Retenciones, ResultadosCalculoFacturacion } from '../../mo
     NotaCreditoResponsablesComponent,
     NotaCreditoOtrosComponent,
     NotaCreditoAppendicesComponent,
-    NotaCreditoItemsComponent
+    NotaCreditoItemsComponent,
+    NotificacionModalComponent
   ],
   templateUrl: './nota-credito-page.component.html',
   styleUrl: './nota-credito-page.component.scss'
@@ -51,6 +53,12 @@ export class NotaCreditoPageComponent {
   // Nuevas propiedades para documentos relacionados
   documentosRelacionables: any[] = [];
   documentoSeleccionado: any = null;
+
+  // Propiedades para modal de notificación
+  showModal = false;
+  modalType: 'exito' | 'error' = 'error';
+  modalTitle = '';
+  modalMessage = '';
 
   constructor(
     private router: Router,
@@ -150,19 +158,19 @@ export class NotaCreditoPageComponent {
 
   generarDTE(): void {
     if (!this.empresaSeleccionada || !this.empresaSeleccionada.id) {
-      alert('Error: No hay empresa seleccionada');
+      this.mostrarAlerta('No hay empresa seleccionada', 'Error de Configuración', 'error');
       return;
     }
     if (this.itemsRaw.length === 0) {
-      alert('Error: Debe agregar al menos un item');
+      this.mostrarAlerta('Debe agregar al menos un item', 'Falta Información', 'error');
       return;
     }
     if (!this.cliente || !this.cliente.nombre) {
-      alert('Error: Debe seleccionar un cliente');
+      this.mostrarAlerta('Debe seleccionar un cliente', 'Falta Información', 'error');
       return;
     }
     if (!this.documentoSeleccionado) {
-      alert('Error: Debe seleccionar un documento a modificar (Factura o CCF)');
+      this.mostrarAlerta('Debe seleccionar un documento a modificar (Factura o CCF)', 'Documento Requerido', 'error');
       return;
     }
 
@@ -223,9 +231,17 @@ export class NotaCreditoPageComponent {
       },
       error: (error) => {
         console.error('Error al generar DTE:', error);
-        alert('Error al generar el DTE: ' + (error.error?.error || error.message || 'Error desconocido'));
+        const detail = error.error?.error || error.message || 'Error desconocido';
+        this.mostrarAlerta('Error al generar el DTE: ' + detail, 'Error de Transmisión', 'error');
         this.generandoDTE = false;
       }
     });
+  }
+
+  mostrarAlerta(mensaje: string, titulo: string, tipo: 'exito' | 'error' = 'exito') {
+    this.modalMessage = mensaje;
+    this.modalTitle = titulo;
+    this.modalType = tipo;
+    this.showModal = true;
   }
 }
