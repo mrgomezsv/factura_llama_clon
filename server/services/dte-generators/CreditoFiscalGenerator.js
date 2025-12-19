@@ -30,10 +30,10 @@ class CreditoFiscalGenerator extends BaseGenerator {
         const cuerpoDocumento = this.buildItemsStandard(items, 'CCF');
         const totalsFromItems = this.calculateTotalsStandard(cuerpoDocumento);
 
-        const subTotalVentas = totalsFromItems.totalVentaGravada + totalsFromItems.totalVentaExenta + totalsFromItems.totalVentaNoSujeta;
-        const subTotal = subTotalVentas - totalsFromItems.totalDescuentos - descuentoGlobal;
-        const iva = totalsFromItems.totalImpuestos;
-        const montoTotalOperacion = subTotal + iva - retenciones.iva - retenciones.renta; // Review formula for CCF
+        const subTotalVentas = this.round(totalsFromItems.totalVentaGravada + totalsFromItems.totalVentaExenta + totalsFromItems.totalVentaNoSujeta);
+        const subTotal = this.round(subTotalVentas - (totalsFromItems.totalDescuentos + descuentoGlobal));
+        const iva = this.round(totalsFromItems.totalImpuestos);
+        const montoTotalOperacion = this.round(subTotal + iva - (retenciones.iva || 0) - (retenciones.renta || 0));
         // In Example:
         // subTotalVentas: 66.37
         // tributos (IVA): 8.63

@@ -50,9 +50,9 @@ class NotaCreditoGenerator extends BaseGenerator {
         });
 
         const totalsFromItems = this.calculateTotalsStandard(itemsBuilt);
-        const subTotalVentas = totalsFromItems.totalVentaGravada + totalsFromItems.totalVentaExenta + totalsFromItems.totalVentaNoSujeta;
-        const iva = totalsFromItems.totalImpuestos;
-        const montoTotalOperacion = subTotalVentas + iva - retenciones.iva - retenciones.renta;
+        const subTotalVentas = this.round(totalsFromItems.totalVentaGravada + totalsFromItems.totalVentaExenta + totalsFromItems.totalVentaNoSujeta);
+        const iva = this.round(totalsFromItems.totalImpuestos);
+        const montoTotalOperacion = this.round(subTotalVentas + iva - (retenciones.iva || 0) - (retenciones.renta || 0));
 
         const dteJson = {
             identificacion: this.buildIdentificacion('NCR', numeroControl, codigoGeneracion, fechaEmision, ambiente, 3),
@@ -75,7 +75,7 @@ class NotaCreditoGenerator extends BaseGenerator {
                     descripcion: 'Impuesto al Valor Agregado 13%',
                     valor: iva
                 }] : null,
-                subTotal: subTotalVentas - (totalsFromItems.totalDescuentos + descuentoGlobal),
+                subTotal: this.round(subTotalVentas - (totalsFromItems.totalDescuentos + descuentoGlobal)),
                 ivaPerci1: 0.0,
                 ivaRete1: retenciones.iva || 0,
                 reteRenta: retenciones.renta || 0,
