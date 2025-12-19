@@ -18,12 +18,13 @@
         <th>Estado</th>
         <th>Ambiente</th>
         <th>Fecha de Creación</th>
+        <th>Acciones</th>
       </tr>
     </thead>
     <tbody>
       @if (dtesPaginados.length === 0) {
         <tr>
-          <td colspan="7" class="empty-state">
+          <td colspan="8" class="empty-state">
             No hay DTEs disponibles
           </td>
         </tr>
@@ -41,7 +42,7 @@
                 <span>{{ dte.controlNumber }}</span>
               </div>
             </td>
-            <td>{{ dte.tipo }}</td>
+            <td>{{ getTipoAbreviado(dte.tipo) }}</td>
             <td>{{ dte.receptor }}</td>
             <td class="text-right">{{ dte.formattedTotal }}</td>
             <td>
@@ -60,6 +61,21 @@
               <span class="badge badge-success">{{ dte.ambiente }}</span>
             </td>
             <td>{{ dte.formattedFechaCreacion }}</td>
+            <td>
+              <button 
+                class="btn-acciones"
+                (click)="toggleMenuAcciones(dte, $event)"
+                type="button"
+                aria-label="Acciones"
+                title="Acciones"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <circle cx="10" cy="4" r="1.5" fill="currentColor"/>
+                  <circle cx="10" cy="10" r="1.5" fill="currentColor"/>
+                  <circle cx="10" cy="16" r="1.5" fill="currentColor"/>
+                </svg>
+              </button>
+            </td>
           </tr>
         }
       }
@@ -116,15 +132,15 @@
   </div>
 
   <!-- Menú flotante -->
-  @if (filaHover && filaHoverElement) {
+  @if (filaMenuAbierto && filaMenuAbiertoElement) {
     <app-dte-row-menu
-      [dte]="filaHover"
-      [rowElement]="filaHoverElement"
+      [dte]="filaMenuAbierto"
+      [rowElement]="filaMenuAbiertoElement"
       (eliminar)="eliminarDTE.emit($event)"
       (exportarPDF)="exportarPDF.emit($event)"
       (exportarJSON)="exportarJSON.emit($event)"
       (verDetalles)="verDetalles.emit($event)"
-      (ocultar)="filaHover = null; filaHoverElement = null"
+      (ocultar)="cerrarMenuAcciones()"
     />
   }
 

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, OnChanges, Output, SimpleChanges, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DTE } from '../../models/dte.model';
 import { DteFiltersComponent, FiltrosDTE } from '../dte-filters/dte-filters.component';
@@ -27,6 +27,8 @@ export class DteTableComponent implements OnInit, OnChanges {
   filtros: FiltrosDTE = {};
   filaHover: DTE | null = null;
   filaHoverElement: HTMLElement | null = null;
+  filaMenuAbierto: DTE | null = null;
+  filaMenuAbiertoElement: HTMLElement | null = null;
 
   get totalItems(): number {
     return this.dtes.length;
@@ -129,5 +131,66 @@ export class DteTableComponent implements OnInit, OnChanges {
         }
       }
     }, 100);
+  }
+
+  /**
+   * Convierte el nombre completo del tipo de documento a su abreviatura
+   */
+  getTipoAbreviado(tipo: string): string {
+    const mapeoTipos: { [key: string]: string } = {
+      'Factura': 'FC',
+      'Comprobante de Crédito Fiscal': 'CCF',
+      'Nota de Crédito': 'NC',
+      'Nota de Débito': 'ND',
+      'Factura de Sujeto Excluido': 'FSE',
+      'Factura de Exportación': 'FEX',
+      'Nota de Remisión': 'NR',
+      'Comprobante de Retención': 'CRT',
+      'Documento': 'DOC'
+    };
+
+    return mapeoTipos[tipo] || tipo;
+  }
+
+  /**
+   * Alterna el menú de acciones para una fila específica
+   */
+  toggleMenuAcciones(dte: DTE, event: MouseEvent): void {
+    event.stopPropagation();
+    
+    if (this.filaMenuAbierto === dte) {
+      // Si el menú ya está abierto para esta fila, cerrarlo
+      this.filaMenuAbierto = null;
+      this.filaMenuAbiertoElement = null;
+    } else {
+      // Abrir el menú para esta fila
+      this.filaMenuAbierto = dte;
+      this.filaMenuAbiertoElement = (event.currentTarget as HTMLElement).closest('tr') as HTMLElement;
+    }
+  }
+
+  /**
+   * Cierra el menú de acciones
+   */
+  cerrarMenuAcciones(): void {
+    this.filaMenuAbierto = null;
+    this.filaMenuAbiertoElement = null;
+  }
+
+  /**
+   * Cierra el menú cuando se hace clic fuera de él
+   */
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (this.filaMenuAbiertoElement) {
+      const target = event.target as HTMLElement;
+      const menu = document.querySelector('.row-menu');
+      const button = target.closest('.btn-acciones');
+      
+      // Si el clic no fue en el menú ni en un botón de acciones, cerrar el menú
+      if (!menu?.contains(target) && !button) {
+        this.cerrarMenuAcciones();
+      }
+    }
   }
 }
