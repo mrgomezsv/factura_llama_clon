@@ -35,7 +35,7 @@ import { ItemFactura, Retenciones, ResultadosCalculoFacturacion } from '../../mo
 })
 export class NotaCreditoPageComponent {
   @ViewChild(NotaCreditoItemsComponent) itemsComponent!: NotaCreditoItemsComponent;
-  
+
   cliente: any = {};
   items: ItemFactura[] = [];
   itemsRaw: any[] = [];
@@ -47,7 +47,11 @@ export class NotaCreditoPageComponent {
   vistaPrevia = true;
   empresaSeleccionada: any = null;
   generandoDTE = false;
-  
+
+  // Nuevas propiedades para documentos relacionados
+  documentosRelacionables: any[] = [];
+  documentoSeleccionado: any = null;
+
   constructor(
     private router: Router,
     private facturacionService: FacturacionCalculationsService,
@@ -61,7 +65,7 @@ export class NotaCreditoPageComponent {
     });
   }
 
-  onCliente(v: any) { 
+  onCliente(v: any) {
     this.cliente = {
       id: v.id,
       nombre: v.nombre,
@@ -72,19 +76,41 @@ export class NotaCreditoPageComponent {
       telefono: v.telefono,
       numeroDocumento: v.nit
     };
+
+    // Cargar documentos relacionados
+    if (this.cliente.id) {
+      this.dteService.getDocumentosRelacionables(this.cliente.id).subscribe(docs => {
+        this.documentosRelacionables = docs;
+        this.documentoSeleccionado = null; // Reset selection
+      });
+    }
   }
   onDescuento(v: number) { this.descuentoGlobal = v || 0; }
   onRetenciones(v: Retenciones) { this.retenciones = v; }
-  onItems(items: any[]) { 
+  onItems(items: any[]) {
     this.itemsRaw = items || [];
-    this.items = (items || []).map(item => ({
-      cantidad: Number(item.cantidad || 0),
-      precio: Number(item.precio || 0),
-      descuento: Number(item.descuento || 0),
-      tipoVenta: item.tipoVenta || 'Gravada',
-      descripcion: item.descripcion || item.producto || '',
-      unidad: item.unidad || 'Unidad'
-    }));
+    this.items = (items || []).map(item => {
+      const precio = Number(item.precio || 0);
+      const cantidad = Number(item.cantidad || 1);
+      const descuento = Number(item.descuento || 0);
+
+      // Para NCR, el precio ingresado es NETO (sin IVA)
+      // El servicio de cálculos espera precio neto
+      return {
+        cantidad: cantidad,
+        precio: precio,
+        descuento: descuento,
+        tipoVenta: item.tipoVenta || 'Gravada',
+        descripcion: item.descripcion || item.producto || '',
+        unidad: item.unidad || 'Unidad'
+      };
+    });
+  }
+
+  eliminarItem(index: number): void {
+    if (this.itemsComponent && this.itemsComponent.items) {
+      this.itemsComponent.eliminarItem(index);
+    }
   }
 
   /**
@@ -135,6 +161,10 @@ export class NotaCreditoPageComponent {
       alert('Error: Debe seleccionar un cliente');
       return;
     }
+    if (!this.documentoSeleccionado) {
+      alert('Error: Debe seleccionar un documento a modificar (Factura o CCF)');
+      return;
+    }
 
     this.generandoDTE = true;
     const datosDTE = {
@@ -167,7 +197,13 @@ export class NotaCreditoPageComponent {
       retenciones: this.retenciones,
       descuentoGlobal: this.descuentoGlobal,
       otrosMontosNoAfectos: this.otrosMontosNoAfectos,
-      ambiente: this.ambienteProduccion ? 'PRODUCCIÓN' : 'PRUEBAS'
+      ambiente: this.ambienteProduccion ? 'PRODUCCIÓN' : 'PRUEBAS',
+      documentoRelacionado: [{
+        tipoDocumento: this.documentoSeleccionado.tipo === 'Factura' ? '01' : (this.documentoSeleccionado.tipoDte || '03'),
+        tipoGeneracion: 1,
+        numeroDocumento: this.documentoSeleccionado.codigoGeneracion,
+        fechaEmision: this.documentoSeleccionado.fechaEmision
+      }]
     };
 
     this.http.post('http://localhost:3000/api/dtes/generar', datosDTE, {
