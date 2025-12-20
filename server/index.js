@@ -560,6 +560,8 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
       }
     } else if (req.body.cliente) {
       cliente = req.body.cliente;
+    } else if (req.body.sujetoExcluido) {
+      cliente = req.body.sujetoExcluido;
     }
 
     // Obtener el siguiente número de documento
@@ -612,10 +614,12 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
         departamento: cliente?.departamento,
         municipio: cliente?.municipio,
         codActividad: cliente?.codActividad || cliente?.cod_actividad,
-        descActividad: cliente?.descActividad || cliente?.desc_actividad
+        descActividad: cliente?.descActividad || cliente?.desc_actividad,
       },
+      sujetoExcluido: cliente, // Also pass as sujetoExcluido for FSEGenerator
       items,
-      totales,
+      totalesByBody: totales, // Rename slightly to avoid confusion with internal calculation if any
+      totales: totales || { totalPagar: 0, montoTotalOperacion: 0 },
       retenciones,
       documentoRelacionado, // Pasado explícitamente
       ambiente: ambiente, // Pasar ambiente para identificacion
@@ -627,6 +631,7 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
       recintoFiscal: req.body.recintoFiscal,
       regimenAduanero: req.body.regimenAduanero
     });
+    console.log('✅ JSON del DTE construido');
 
     // Firmar el DTE
     console.log('📝 Firmando DTE...');
@@ -685,6 +690,7 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
     } else {
       console.warn('⚠️ No se envía a MH porque no hay DTE firmado');
     }
+    console.log('✅ Transmisión finalizada, estado:', mhResponse.estado);
 
     const estadoFinal = mhResponse.success ? 'PROCESADO' : (mhResponse.estado || 'RECHAZADO');
 
@@ -698,7 +704,7 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
 
     const values = [
       numeroControl, tipoDteCodigo, codigoGeneracion, numeroControl, nextNumero,
-      cliente.nombre, totales.totalPagar || totales.montoTotalOperacion || 0, ambiente, fechaEmision, fechaEmision,
+      cliente?.nombre || 'Sujeto Excluido', (totales?.totalPagar || totales?.montoTotalOperacion || 0), ambiente, fechaEmision, fechaEmision,
       empresaId, clienteId || null, estadoFinal, JSON.stringify(dteJson), JSON.stringify(dteFirmado),
       mhResponse.selloRecibido || null, mhResponse.codigoMensaje || null, mhResponse.descripcionMensaje || null, JSON.stringify(mhResponse.observaciones || [])
     ];
@@ -719,6 +725,7 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
     const insertResult = await pool.query(insertQuery, values);
 
     const dteId = insertResult.rows[0].id;
+    console.log('✅ DTE guardado en DB, ID:', dteId);
 
     // Generar PDF
     const dteData = {
@@ -728,11 +735,11 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
         numeroControl,
         tipoDte: tipoDteCodigo,
         fechaEmision,
-        nombreReceptor: cliente.nombre,
-        nitReceptor: cliente.nit,
-        nrcReceptor: cliente.nrc,
-        direccionReceptor: cliente.direccion,
-        emailReceptor: cliente.correo,
+        nombreReceptor: cliente?.nombre || 'Sujeto Excluido',
+        nitReceptor: cliente?.nit || cliente?.numDocumento,
+        nrcReceptor: cliente?.nrc,
+        direccionReceptor: cliente?.direccion,
+        emailReceptor: cliente?.correo,
         selloRecibido: mhResponse.selloRecibido || null
       },
       empresaConfig: {
