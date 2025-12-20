@@ -790,22 +790,34 @@ app.get('/api/dtes/:id/pdf', async (req, res) => {
       return res.status(400).json({ error: 'ID de DTE inválido' });
     }
 
-    // Buscar el DTE en todas las tablas posibles
-    const tables = [
-      'documento_factura',
-      'documento_credito_fiscal',
-      'documento_nota_credito',
-      'documento_nota_debito',
-      'documento_factura_sujeto_excluido',
-      'documento_factura_exportacion',
-      'documento_nota_remision',
-      'documento_comprobante_retencion'
-    ];
+    // Obtener tipoDte de los query params para evitar colisiones de ID
+    const tipoDteParam = req.query.tipoDte;
+    let tablesToSearch = [];
+
+    if (tipoDteParam) {
+      const specificTable = getTableNameByTipoDte(tipoDteParam);
+      if (specificTable) {
+        tablesToSearch = [specificTable];
+      }
+    }
+
+    if (tablesToSearch.length === 0) {
+      tablesToSearch = [
+        'documento_factura',
+        'documento_credito_fiscal',
+        'documento_nota_credito',
+        'documento_nota_debito',
+        'documento_factura_sujeto_excluido',
+        'documento_factura_exportacion',
+        'documento_nota_remision',
+        'documento_comprobante_retencion'
+      ];
+    }
 
     let dteResult = null;
     let tableName = null;
 
-    for (const table of tables) {
+    for (const table of tablesToSearch) {
       const result = await pool.query(
         `SELECT d.*, e.*, c.nombre as cliente_nombre, c.nit as cliente_nit, c.nrc as cliente_nrc, 
                 c.direccion as cliente_direccion, c.correo as cliente_correo

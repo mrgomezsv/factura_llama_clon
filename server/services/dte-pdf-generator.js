@@ -176,7 +176,7 @@ class DtePdfGenerator {
                 <div class="qr-container">
                     ${qrImage ? `<img id="qr_cont" src="${qrImage}" alt="QR Code"/>` : ''}
                     <p class="qr-text-bold">Escanea el QR</p>
-                    <p class="qr-text-small">Para poder visualizar la factura en el sitio oficial del Ministerio de Hacienda</p>
+                    <p class="qr-text-small">Para poder visualizar el documento en el sitio oficial del Ministerio de Hacienda</p>
                 </div>
             </div>
         </div>

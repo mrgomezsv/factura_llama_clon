@@ -102,8 +102,8 @@ export class AppComponent implements OnInit {
         if ((url === '/' || url === '/dtes' || url === '/home') && !this.isLoginRoute) {
           const periodoActual = PeriodoTributario.ahora();
           // Si el período seleccionado no es del mes actual, actualizarlo
-          if (this.periodoSeleccionado.mes !== periodoActual.mes || 
-              this.periodoSeleccionado.año !== periodoActual.año) {
+          if (this.periodoSeleccionado.mes !== periodoActual.mes ||
+            this.periodoSeleccionado.año !== periodoActual.año) {
             this.periodoSeleccionado = periodoActual;
           }
         }
@@ -209,12 +209,9 @@ export class AppComponent implements OnInit {
   }
 
   onExportarPDF(dte: DTE): void {
-    if (!dte.id) {
-      alert('Error: DTE no tiene ID');
-      return;
-    }
-
+    const tipoDte = dte.tipoDte;
     this.http.get(`http://localhost:3000/api/dtes/${dte.id}/pdf`, {
+      params: tipoDte ? { tipoDte } : {},
       responseType: 'blob'
     }).subscribe({
       next: (pdfBlob: Blob) => {
@@ -240,7 +237,8 @@ export class AppComponent implements OnInit {
       return;
     }
 
-    this.dteService.getDTEJSON(dte.id).subscribe({
+    const tipoDte = dte.tipoDte;
+    this.dteService.getDTEJSON(dte.id, tipoDte || undefined).subscribe({
       next: (dteJson: any) => {
         const jsonStr = JSON.stringify(dteJson, null, 2);
         const blob = new Blob([jsonStr], { type: 'application/json' });

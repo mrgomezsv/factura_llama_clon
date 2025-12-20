@@ -1350,15 +1350,43 @@ export class DteService {
   }
 
   /**
+   * Obtiene el nombre de la tabla según el tipo de DTE
+   */
+  private getTableNameByTipoDte(tipoDte: string): string {
+    const map: { [key: string]: string } = {
+      'FAC': 'documento_factura',
+      'CCF': 'documento_credito_fiscal',
+      '01': 'documento_factura',
+      '03': 'documento_credito_fiscal',
+      'NCR': 'documento_nota_credito',
+      'NC': 'documento_nota_credito',
+      '05': 'documento_nota_credito',
+      'NDB': 'documento_nota_debito',
+      'ND': 'documento_nota_debito',
+      '06': 'documento_nota_debito',
+      'FSE': 'documento_factura_sujeto_excluido',
+      '14': 'documento_factura_sujeto_excluido',
+      'FEX': 'documento_factura_exportacion',
+      '11': 'documento_factura_exportacion',
+      'REM': 'documento_nota_remision',
+      '04': 'documento_nota_remision',
+      'CRT': 'documento_comprobante_retencion',
+      '07': 'documento_comprobante_retencion'
+    };
+    return map[tipoDte] || 'dtes';
+  }
+
+  /**
    * Obtener JSON de un DTE específico
    */
-  getDTEJSON(dteId: number): Observable<any> {
+  getDTEJSON(dteId: number, tipoDte?: string): Observable<any> {
     return this.database.isReady$.pipe(
       first(ready => ready),
       switchMap(() => {
+        const table = tipoDte ? this.getTableNameByTipoDte(tipoDte) : 'dtes';
         const sql = `
           SELECT dte_json 
-          FROM dtes 
+          FROM ${table} 
           WHERE id = ?
           `;
 
