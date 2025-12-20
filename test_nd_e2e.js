@@ -91,6 +91,20 @@ async function runTest() {
             console.log("✅ Success! Response Status:", response.status);
             console.log("Received PDF size:", response.data.length);
 
+            // Wait a bit for DB update
+            await new Promise(r => setTimeout(r, 2000));
+            console.log("Checking DB for transmission result...");
+            const dbCheck = await pool.query('SELECT estado, sello_recibido, observaciones FROM documento_nota_debito ORDER BY id DESC LIMIT 1');
+            if (dbCheck.rows.length > 0) {
+                const doc = dbCheck.rows[0];
+                console.log("DB Status:", doc.estado);
+                if (doc.sello_recibido) {
+                    console.log("✅ Sello Recibido found!");
+                } else {
+                    console.log("❌ No Sello Recibido. Observaciones:", doc.observaciones);
+                }
+            }
+
         } catch (apiError) {
             console.error("❌ API Error:", apiError.message);
             if (apiError.response) {
