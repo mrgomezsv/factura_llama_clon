@@ -42,7 +42,11 @@ class BaseGenerator {
             '05': 'DTE-05',
             'NDB': 'DTE-06',
             '06': 'DTE-06',
-            'NR': 'DTE-01'
+            'NR': 'DTE-01',
+            'FSE': 'DTE-14',
+            '14': 'DTE-14',
+            'FEX': 'DTE-11',
+            '11': 'DTE-11'
         };
         const tipo = tipoMap[tipoDte] || 'DTE-00';
 
@@ -57,7 +61,9 @@ class BaseGenerator {
             'CCF': '03', '03': '03',
             'NCR': '05', '05': '05',
             'NDB': '06', '06': '06',
-            'NR': '01'
+            'NR': '01',
+            'FSE': '14', '14': '14',
+            'FEX': '11', '11': '11'
         };
         const tipoCodigo = tipos[tipoDte] || '01';
 
