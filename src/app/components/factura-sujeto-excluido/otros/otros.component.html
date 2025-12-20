@@ -1,33 +1,61 @@
 <div class="card">
-<button class="card-header" type="button" (click)="collapsed = !collapsed" [class.active]="!collapsed">
-<span class="icon" aria-hidden="true">
-<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3l9 4-9 4-9-4 9-4Zm9 10-9 4-9-4" stroke="currentColor" stroke-width="1.5"/></svg>
-</span>
-<span class="title">Otros</span>
-<span class="chevron" [class.open]="!collapsed">▾</span>
-</button>
-<div class="card-body" *ngIf="!collapsed">
-<label class="label">Actividad Económica</label>
-<div class="input-group">
-<input class="input" value="Venta al por mayor de otros artículos textiles" />
-<button class="btn btn-icon" type="button">×</button>
-</div>
-<label class="label">Fecha de Venta</label>
-<input class="input" value="Octubre 29, 2025" />
-<label class="label">Hora de Venta</label>
-<div class="input-group">
-<input class="input" placeholder="Selecciona una hora" />
-<button class="btn btn-icon" type="button">×</button>
-</div>
-<label class="label">Forma de Pago</label>
-<div class="input-group">
-<button type="button" class="input select" (click)="openFP = !openFP">{{ formaPago || 'Selecciona una forma de pago' }}</button>
-<button class="btn btn-icon" type="button" (click)="openFP = !openFP">▾</button>
-<div class="dropdown" *ngIf="openFP">
-<button type="button" class="dropdown-item" *ngFor="let f of formasPago" (click)="escogerFP(f)">{{ f }}</button>
-</div>
-</div>
-<label class="label">Observaciones</label>
-<textarea class="input" placeholder="Escribe aquí tus observaciones"></textarea>
-</div>
+    <button class="card-header" type="button" (click)="collapsed = !collapsed" [class.active]="!collapsed">
+        <span class="icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M12 3l9 4-9 4-9-4 9-4Zm9 10-9 4-9-4" stroke="currentColor" stroke-width="1.5" />
+            </svg>
+        </span>
+        <span class="title">Otros y Pagos</span>
+        <span class="chevron" [class.open]="!collapsed">▾</span>
+    </button>
+    <div class="card-body" *ngIf="!collapsed">
+        <form [formGroup]="form">
+            <div class="grid-2">
+                <div>
+                    <label class="label">Condición Operación</label>
+                    <select class="input" formControlName="condicionOperacion">
+                        <option *ngFor="let c of condiciones" [value]="c.value">{{ c.label }}</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="label">Monto de Pago</label>
+                    <div class="input-group">
+                        <span class="prefix">$</span>
+                        <input class="input" type="number" formControlName="montoPago" />
+                    </div>
+                </div>
+            </div>
+
+            <label class="label mt-sm">Forma de Pago</label>
+            <div class="input-group">
+                <button type="button" class="input select" (click)="openFP = !openFP">
+                    {{ formaPagoLabel }}
+                </button>
+                <button class="btn btn-icon" type="button" (click)="openFP = !openFP">▾</button>
+                <div class="dropdown" *ngIf="openFP">
+                    <button type="button" class="dropdown-item" *ngFor="let f of formasPago" (click)="escogerFP(f)">
+                        {{ f.nombre }}
+                    </button>
+                </div>
+            </div>
+
+            <label class="label mt-sm">Referencia de Pago</label>
+            <input class="input" placeholder="N° de cheque, transferencia, etc." formControlName="referencia" />
+
+            <div class="grid-2 mt-sm">
+                <div>
+                    <label class="label">Fecha</label>
+                    <input class="input" type="date" formControlName="fechaVenta" />
+                </div>
+                <div>
+                    <label class="label">Hora</label>
+                    <input class="input" type="time" formControlName="horaVenta" />
+                </div>
+            </div>
+
+            <label class="label mt-sm">Observaciones</label>
+            <textarea class="input" placeholder="Escribe aquí tus observaciones"
+                formControlName="observaciones"></textarea>
+        </form>
+    </div>
 </div>
