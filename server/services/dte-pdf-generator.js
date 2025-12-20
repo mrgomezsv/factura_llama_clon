@@ -129,7 +129,7 @@ class DtePdfGenerator {
     async buildHtmlTemplate(dteData, dteJson) {
         const { dte, empresaConfig } = dteData;
         const identificacion = dteJson.identificacion || {};
-        const receptor = dteJson.receptor || {};
+        const receptor = dteJson.receptor || dteJson.sujetoExcluido || {};
         const cuerpoDocumento = dteJson.cuerpoDocumento || [];
         const resumen = dteJson.resumen || {};
 
@@ -225,9 +225,9 @@ class DtePdfGenerator {
                     <div class="info-box-content">
                         <p><span class="info-label">Nombre o razon social:</span> <span class="info-value">${receptor.nombre || dte.nombreReceptor || 'CONSUMIDOR FINAL'}</span></p>
                         <p><span class="info-label">Nombre comercial:</span> <span class="info-value">CLIENTE TIKETE</span></p>
-                        <p><span class="info-label">${receptor.tipoDocumento === '36' ? 'NIT' : 'DUI'}:</span> <span class="info-value">${receptor.numDocumento || dte.nitReceptor || ''}</span></p>
+                        <p><span class="info-label">${receptor.tipoDocumento === '36' ? 'NIT' : 'DOCUMENTO'}:</span> <span class="info-value">${receptor.numDocumento || dte.nitReceptor || ''}</span></p>
                         <p><span class="info-label">NRC:</span> <span class="info-value">${receptor.nrc || dte.nrcReceptor || ''}</span></p>
-                        <p><span class="info-label">Actividad económica:</span> <span class="info-value"></span></p>
+                        <p><span class="info-label">Actividad económica:</span> <span class="info-value">${receptor.codActividad || ''}</span></p>
                         <p><span class="info-label">Dirección:</span> <span class="info-value">${receptor.direccion?.complemento || dte.direccionReceptor || 'SAN SALVADOR'}</span></p>
                         <p><span class="info-label">Correo electrónico:</span> <span class="info-value">${receptor.correo || dte.emailReceptor || ''}</span></p>
                         <p><span class="info-label">Número de teléfono:</span> <span class="info-value">12345678</span></p>
@@ -340,11 +340,15 @@ class DtePdfGenerator {
                 rows += `
                         <td class="line_ventaNoSuj">${this.formatCurrency(item.ventaNoSuj || 0)}</td>
                         <td class="line_ventaExenta">${this.formatCurrency(item.ventaExenta || 0)}</td>
+                        <td class="line_taxed_field_selector">${this.formatCurrency(item.ventaGravada || 0)}</td>
+        `;
+            } else {
+                rows += `
+                        <td class="line_taxed_field_selector">${this.formatCurrency(item.compra || item.ventaGravada || 0)}</td>
         `;
             }
 
             rows += `
-                        <td class="line_taxed_field_selector">${this.formatCurrency(item.ventaGravada || 0)}</td>
                     </tr>
       `;
         });
@@ -436,7 +440,7 @@ class DtePdfGenerator {
      * Construir resumen financiero
      */
     buildFinancialSummary(resumen) {
-        const totalVentas = (resumen.subTotalVentas || resumen.totalGravada + resumen.totalExenta + resumen.totalNoSuj || 0);
+        const totalVentas = (resumen.totalCompra || resumen.subTotalVentas || resumen.totalGravada + resumen.totalExenta + resumen.totalNoSuj || 0);
 
         return `
         <div class="financial-summary">
