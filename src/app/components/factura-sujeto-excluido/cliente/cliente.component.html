@@ -1,33 +1,67 @@
 <div class="card">
-<button class="card-header" type="button" (click)="collapsed = !collapsed" [class.active]="!collapsed">
-<span class="icon" aria-hidden="true">
-<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm-7 9a7 7 0 0 1 14 0v1H5v-1Z" stroke="currentColor" stroke-width="1.5"/></svg>
-</span>
-<span class="title">Cliente</span>
-<span class="chevron" [class.open]="!collapsed">▾</span>
-</button>
-<div class="card-body" *ngIf="!collapsed">
-<form [formGroup]="form">
-<label class="label">Cliente
-<span class="help" data-tip="Todos tus clientes con nombre y correo electrónico registrados aparecerán en el listado.">i</span>
-</label>
-<div class="input-group" style="position:relative">
-<input class="input" placeholder="Buscar por nombre, correo o alias..." formControlName="busqueda" (focus)="toggleListado(true)" (input)="filtrar()" />
-<button class="btn btn-icon" type="button" (click)="toggleListado()">▾</button>
-<div class="dropdown" *ngIf="mostrarListado">
-<button type="button" class="dropdown-item" *ngFor="let c of clientesFiltrados" (click)="seleccionarCliente(c)">
-<div class="cliente-linea">
-<span class="cliente-nombre">{{ c.nombre }}</span>
-<span class="cliente-email">{{ c.correo }}</span>
-</div>
-</button>
-<div class="dropdown-vacio" *ngIf="clientesFiltrados.length === 0">Sin resultados</div>
-</div>
-</div>
-<label class="label">Nombre</label>
-<input class="input" placeholder="Ingresa el nombre" formControlName="nombre" />
-<label class="label">Correo electrónico</label>
-<input class="input" placeholder="Ingresa el correo electrónico" formControlName="correo" />
-</form>
-</div>
+    <button class="card-header" type="button" (click)="collapsed = !collapsed" [class.active]="!collapsed">
+        <span class="icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm-7 9a7 7 0 0 1 14 0v1H5v-1Z" stroke="currentColor"
+                    stroke-width="1.5" />
+            </svg>
+        </span>
+        <span class="title">Sujeto Excluido (Receptor)</span>
+        <span class="chevron" [class.open]="!collapsed">▾</span>
+    </button>
+    <div class="card-body" *ngIf="!collapsed">
+        <form [formGroup]="form">
+            <label class="label">Buscar Sujeto
+                <span class="help" data-tip="Busca en tu listado de clientes registrados.">i</span>
+            </label>
+            <div class="input-group" style="position:relative">
+                <input class="input" placeholder="Buscar por nombre, correo o alias..." formControlName="busqueda"
+                    (focus)="toggleListado(true)" (input)="filtrar()" />
+                <button class="btn btn-icon" type="button" (click)="toggleListado()">▾</button>
+                <div class="dropdown" *ngIf="mostrarListado">
+                    <button type="button" class="dropdown-item" *ngFor="let c of clientesFiltrados"
+                        (click)="seleccionarCliente(c)">
+                        <div class="cliente-linea">
+                            <span class="cliente-nombre">{{ c.nombre }}</span>
+                            <span class="cliente-email">{{ c.correo }}</span>
+                        </div>
+                    </button>
+                    <div class="dropdown-vacio" *ngIf="clientesFiltrados.length === 0">Sin resultados</div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div>
+                    <label class="label">Nombre</label>
+                    <input class="input" placeholder="Nombre completo" formControlName="nombre" />
+                </div>
+                <div>
+                    <label class="label">Tipo Documento</label>
+                    <select class="input" formControlName="tipoDocumento">
+                        <option *ngFor="let t of documentTypes" [value]="t.value">{{ t.label }}</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid-2 mt-sm">
+                <div>
+                    <label class="label">N° Documento</label>
+                    <input class="input" placeholder="Número de identificación" formControlName="numeroDocumento" />
+                </div>
+                <div>
+                    <label class="label">Cód. Actividad</label>
+                    <input class="input" placeholder="Ej: 56101" formControlName="codActividad" />
+                </div>
+            </div>
+
+            <label class="label mt-sm">Correo electrónico</label>
+            <input class="input" placeholder="Ingresa el correo electrónico" formControlName="correo" />
+
+            <label class="label mt-sm">Dirección</label>
+            <input class="input" placeholder="Dirección completa" formControlName="direccion" />
+
+            <label class="label mt-sm">Teléfono</label>
+            <input class="input" placeholder="Número de contacto" formControlName="telefono" />
+        </form>
+    </div>
 </div>
