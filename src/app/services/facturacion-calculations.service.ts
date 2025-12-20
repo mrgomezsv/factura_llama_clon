@@ -127,10 +127,10 @@ export class FacturacionCalculationsService {
     const totalVentasGravadasConIva = ventasGravadasNetas + iva;
     const totalVentasExentas = ventasExentasNetas;
     const totalVentasNoSujetas = ventasNoSujetasNetas;
-    
+
     const totalAntesRetenciones = totalVentasGravadasConIva + totalVentasExentas + totalVentasNoSujetas;
     const totalRetenciones = ivaRetenido + retencionRenta;
-    
+
     const montoTotalOperacion = Math.max(totalAntesRetenciones - totalRetenciones, 0);
 
     // Otros montos no afectos
@@ -138,6 +138,9 @@ export class FacturacionCalculationsService {
 
     // Total a Pagar
     const totalPagar = montoTotalOperacion + totalOtrosMontosNoAfectos;
+
+    // Descuentos de items
+    const sumatoriaDescuentosItems = itemsNormalizados.reduce((acc, item) => acc + (item.descuento || 0), 0);
 
     return {
       sumaVentasGravadas,
@@ -155,6 +158,10 @@ export class FacturacionCalculationsService {
       montoTotalOperacion,
       totalOtrosMontosNoAfectos,
       totalPagar,
+      // Para FSE
+      totalCompra: sumatoriaVentas + sumatoriaDescuentosItems + (parametros.descuentoGlobal || 0), // Suma bruta real
+      totalDescu: sumatoriaDescuentosItems + (parametros.descuentoGlobal || 0), // Descuento Total real
+      sumatoriaDescuentosItems,
       // Para compatibilidad
       sumaGravadas: sumaVentasGravadas
     };
