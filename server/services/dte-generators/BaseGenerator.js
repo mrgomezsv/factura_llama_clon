@@ -33,28 +33,33 @@ class BaseGenerator {
     }
 
     buildControlNumber(tipoDte, codigoEstablecimiento, puntoEmision, numeroDocumento) {
-        const tipo = tipoDte === 'FAC' ? 'DTE-01' :
-            tipoDte === 'CCF' ? 'DTE-03' :
-                tipoDte === 'NR' ? 'DTE-01' : 'DTE-00';
+        const tipoMap = {
+            'FAC': 'DTE-01',
+            '01': 'DTE-01',
+            'CCF': 'DTE-03',
+            '03': 'DTE-03',
+            'NCR': 'DTE-05',
+            '05': 'DTE-05',
+            'NDB': 'DTE-06',
+            '06': 'DTE-06',
+            'NR': 'DTE-01'
+        };
+        const tipo = tipoMap[tipoDte] || 'DTE-00';
 
-        // Format: DTE-XX-MKVVVVVV-NNNNNNNNNNNNNNN
-        // XX: Tipo de Documento
-        // M: Código de Establecimiento (Min 4 chars)
-        // K: Código de Punto de Venta (Min 3 chars? No, user says 00010001 = 8 chars)
-        // Joaquin requested: DTE-01-00010001-000000000000001
-        // Where 00010001 is Est (4) + Punto (4).
-
-        // Note: The caller should pass padded values.
         const numDocPadded = String(numeroDocumento).padStart(15, '0');
         return `${tipo}-${codigoEstablecimiento}${puntoEmision}-${numDocPadded}`;
     }
 
     buildIdentificacion(tipoDte, numeroControl, codigoGeneracion, fechaEmision, ambiente, version = 1) {
         // Determine TipoDte code (01, 03, etc.)
-        const tipos = { 'FAC': '01', 'CCF': '03', 'NR': '01' }; // NR is usually 01? No, NR is Nota Remision? 
-        // Actually BaseGenerator should verify this mapping.
-        // For now assuming caller passes correct code or we map 'FAC'->'01'.
-        const tipoCodigo = tipos[tipoDte] || '01'; // Default
+        const tipos = {
+            'FAC': '01', '01': '01',
+            'CCF': '03', '03': '03',
+            'NCR': '05', '05': '05',
+            'NDB': '06', '06': '06',
+            'NR': '01'
+        };
+        const tipoCodigo = tipos[tipoDte] || '01';
 
         const fechaStr = fechaEmision.toISOString().split('T')[0];
         const horaStr = fechaEmision.toTimeString().split(' ')[0];

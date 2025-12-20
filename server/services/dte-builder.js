@@ -58,9 +58,10 @@ class DteBuilder {
       'CCF': '03',
       'NR': '01',
       'FEX': '11',
-      'ND': '06', // Nota Debito is 06 usually
-      'NC': '05', // Nota Credito is 05
-      'NCR': '05', // Alias for Nota Credito
+      'ND': '06',
+      'NDB': '06',
+      'NC': '05',
+      'NCR': '05',
       '01': '01',
       '03': '03',
       '11': '11',
