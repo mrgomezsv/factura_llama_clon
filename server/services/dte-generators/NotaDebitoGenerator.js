@@ -81,7 +81,8 @@ class NotaDebitoGenerator extends BaseGenerator {
                 reteRenta: retenciones.renta || 0,
                 montoTotalOperacion: montoTotalOperacion,
                 totalLetras: this.numeroALetras(montoTotalOperacion),
-                condicionOperacion: 1
+                condicionOperacion: 1,
+                numPagoElectronico: null
             },
             extension: {
                 nombEntrega: null,
@@ -126,9 +127,7 @@ class NotaDebitoGenerator extends BaseGenerator {
     }
 
     buildIdentificacion(tipoDte, numeroControl, codigoGeneracion, fechaEmision, ambiente, version = 3) {
-        const base = super.buildIdentificacion(tipoDte, numeroControl, codigoGeneracion, fechaEmision, ambiente, version);
-        base.tipoDte = '06';
-        return base;
+        return super.buildIdentificacion('NDB', numeroControl, codigoGeneracion, fechaEmision, ambiente, version);
     }
 
     buildReceptor(cliente) {

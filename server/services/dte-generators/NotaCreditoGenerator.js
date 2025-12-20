@@ -81,7 +81,8 @@ class NotaCreditoGenerator extends BaseGenerator {
                 reteRenta: retenciones.renta || 0,
                 montoTotalOperacion: montoTotalOperacion,
                 totalLetras: this.numeroALetras(montoTotalOperacion),
-                condicionOperacion: 1
+                condicionOperacion: 1,
+                numPagoElectronico: null
             },
             extension: {
                 nombEntrega: null,
