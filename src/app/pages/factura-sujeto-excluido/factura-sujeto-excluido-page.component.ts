@@ -1,8 +1,8 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { FacturaSujetoExcluidoClienteComponent } from '../../components/factura-sujeto-excluido/cliente/cliente.component';
 import { FacturaSujetoExcluidoSucursalComponent } from '../../components/factura-sujeto-excluido/sucursal/sucursal.component';
 import { FacturaSujetoExcluidoRetencionesComponent } from '../../components/factura-sujeto-excluido/retenciones/retenciones.component';
@@ -13,7 +13,8 @@ import { FacturaSujetoExcluidoAppendicesComponent } from '../../components/factu
 import { FacturaSujetoExcluidoItemsComponent } from '../../components/factura-sujeto-excluido/items/items.component';
 import { FacturacionCalculationsService } from '../../services/facturacion-calculations.service';
 import { DteService } from '../../services/dte.service';
-import { ItemFactura, Retenciones, ResultadosCalculoFacturacion } from '../../models/facturacion.model';
+import { AuthService } from '../../services/auth.service';
+import { ItemFactura, Retenciones, ResultadosCalculoFacturacion, Pago } from '../../models/facturacion.model';
 
 @Component({
   selector: 'app-factura-sujeto-excluido-page',
@@ -33,9 +34,9 @@ import { ItemFactura, Retenciones, ResultadosCalculoFacturacion } from '../../mo
   templateUrl: './factura-sujeto-excluido-page.component.html',
   styleUrl: './factura-sujeto-excluido-page.component.scss'
 })
-export class FacturaSujetoExcluidoPageComponent {
+export class FacturaSujetoExcluidoPageComponent implements OnInit {
   @ViewChild(FacturaSujetoExcluidoItemsComponent) itemsComponent!: FacturaSujetoExcluidoItemsComponent;
-  
+
   cliente: any = {};
   items: ItemFactura[] = [];
   itemsRaw: any[] = [];
@@ -47,12 +48,21 @@ export class FacturaSujetoExcluidoPageComponent {
   vistaPrevia = true;
   empresaSeleccionada: any = null;
   generandoDTE = false;
-  
+  codigoGeneracion: string = '';
+  emisor: any = {};
+  usuario: any = {};
+
+  // Nuevos campos para FSE
+  condicionOperacion: number = 1;
+  pagos: Pago[] = [];
+  observaciones: string = '';
+
   constructor(
     private router: Router,
     private facturacionService: FacturacionCalculationsService,
     private dteService: DteService,
-    private http: HttpClient
+    private http: HttpClient,
+    private authService: AuthService
   ) {
     this.dteService.getEmpresas().subscribe(empresas => {
       if (empresas.length > 0) {
@@ -61,7 +71,43 @@ export class FacturaSujetoExcluidoPageComponent {
     });
   }
 
-  onCliente(v: any) { 
+  ngOnInit(): void {
+    this.codigoGeneracion = this.generateUUID();
+
+    this.authService.user$.subscribe(usuario => {
+      this.usuario = usuario;
+      if (usuario && usuario.empresaId) {
+        this.dteService.getEmpresas().subscribe(empresas => {
+          const empresa = empresas.find(e => e.id === usuario.empresaId);
+          if (empresa) {
+            this.emisor = empresa;
+            if (!this.empresaSeleccionada) {
+              this.empresaSeleccionada = empresa;
+            }
+          }
+        });
+
+        this.dteService.getEmpresaConfig(usuario.empresaId).subscribe(config => {
+          if (config) {
+            if (config.ambientePruebasActivo) {
+              this.ambienteProduccion = false;
+            } else if (config.ambienteProduccionActivo) {
+              this.ambienteProduccion = true;
+            }
+          }
+        });
+      }
+    });
+  }
+
+  generateUUID(): string {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+  onCliente(v: any) {
     this.cliente = {
       id: v.id,
       nombre: v.nombre,
@@ -70,12 +116,15 @@ export class FacturaSujetoExcluidoPageComponent {
       nrc: v.nrc,
       direccion: v.direccion,
       telefono: v.telefono,
-      numeroDocumento: v.nit
+      tipoDocumento: v.tipoDocumento,
+      numDocumento: v.numeroDocumento,
+      codActividad: v.codActividad || null
     };
   }
+
   onDescuento(v: number) { this.descuentoGlobal = v || 0; }
   onRetenciones(v: Retenciones) { this.retenciones = v; }
-  onItems(items: any[]) { 
+  onItems(items: any[]) {
     this.itemsRaw = items || [];
     this.items = (items || []).map(item => ({
       cantidad: Number(item.cantidad || 0),
@@ -83,8 +132,21 @@ export class FacturaSujetoExcluidoPageComponent {
       descuento: Number(item.descuento || 0),
       tipoVenta: item.tipoVenta || 'Gravada',
       descripcion: item.descripcion || item.producto || '',
-      unidad: item.unidad || 'Unidad'
+      unidad: item.unidad || 'Unidad',
+      tipoItem: item.tipoProducto === 'Bienes' ? 1 : 2
     }));
+  }
+
+  onOtros(v: any) {
+    this.condicionOperacion = v.condicionOperacion;
+    this.pagos = v.pagos;
+    this.observaciones = v.observaciones;
+  }
+
+  eliminarItem(index: number): void {
+    if (this.itemsComponent && this.itemsComponent.items) {
+      this.itemsComponent.eliminarItem(index);
+    }
   }
 
   /**
@@ -96,7 +158,7 @@ export class FacturaSujetoExcluidoPageComponent {
       descuentoGlobal: this.descuentoGlobal,
       retenciones: this.retenciones,
       otrosMontosNoAfectos: this.otrosMontosNoAfectos,
-      tipoDte: 'FSE' // Factura de Sujeto Excluido es exenta
+      tipoDte: 'FSE'
     });
   }
 
@@ -106,9 +168,6 @@ export class FacturaSujetoExcluidoPageComponent {
   get sumaVentasNoSujetas(): number { return this.calculos.sumaVentasNoSujetas; }
   get sumatoriaVentas(): number { return this.calculos.sumatoriaVentas; }
   get descuentoGlobalVentasGravadas(): number { return this.calculos.descuentoGlobalVentasGravadas; }
-  get ventasGravadasNetas(): number { return this.calculos.ventasGravadasNetas; }
-  get ventasExentasNetas(): number { return this.calculos.ventasExentasNetas; }
-  get ventasNoSujetasNetas(): number { return this.calculos.ventasNoSujetasNetas; }
   get subTotal(): number { return this.calculos.subTotal; }
   get iva(): number { return this.calculos.iva; }
   get ivaRetenido(): number { return this.calculos.ivaRetenido; }
@@ -116,7 +175,6 @@ export class FacturaSujetoExcluidoPageComponent {
   get montoTotalOperacion(): number { return this.calculos.montoTotalOperacion; }
   get totalOtrosMontosNoAfectos(): number { return this.calculos.totalOtrosMontosNoAfectos; }
   get totalPagar(): number { return this.calculos.totalPagar; }
-  get sumaGravadas(): number { return this.calculos.sumaGravadas; }
 
   cerrar(): void {
     this.router.navigateByUrl('/dtes');
@@ -132,45 +190,59 @@ export class FacturaSujetoExcluidoPageComponent {
       return;
     }
     if (!this.cliente || !this.cliente.nombre) {
-      alert('Error: Debe seleccionar un cliente');
+      alert('Error: Debe seleccionar un sujeto excluido');
       return;
     }
 
     this.generandoDTE = true;
+
     const datosDTE = {
-      tipoDte: 'FSE',
+      tipoDte: 'FSE', // Backend maps this to '14'
       empresaId: this.empresaSeleccionada.id,
       clienteId: this.cliente.id || null,
+      sujetoExcluido: this.cliente,
       items: this.itemsRaw.map(item => ({
         cantidad: Number(item.cantidad || 0),
         precio: Number(item.precio || 0),
         descuento: Number(item.descuento || 0),
-        tipoVenta: item.tipoVenta || 'Gravada',
         descripcion: item.descripcion || item.producto || '',
         unidad: item.unidad || 'Unidad',
-        codigo: item.codigo || null
+        codigo: item.codigo || null,
+        tipoItem: item.tipoProducto === 'Bienes' ? 1 : 2
       })),
       totales: {
-        sumaVentasGravadas: this.sumaVentasGravadas,
-        sumaVentasExentas: this.sumaVentasExentas,
-        sumaVentasNoSujetas: this.sumaVentasNoSujetas,
-        sumatoriaVentas: this.sumatoriaVentas,
-        descuentoGlobalVentasGravadas: this.descuentoGlobalVentasGravadas,
+        totalCompra: this.calculos.totalCompra,
+        descu: this.calculos.sumatoriaDescuentosItems || 0, // Suma de descuentos por ítem
+        totalDescu: this.calculos.totalDescu,
         subTotal: this.subTotal,
-        iva: this.iva,
-        ivaRetenido: this.ivaRetenido,
-        retencionRenta: this.retencionRenta,
-        montoTotalOperacion: this.montoTotalOperacion,
-        totalOtrosMontosNoAfectos: this.totalOtrosMontosNoAfectos,
-        totalPagar: this.totalPagar
+        ivaRete1: this.ivaRetenido,
+        reteRenta: this.retencionRenta,
+        totalPagar: this.totalPagar,
+        condicionOperacion: this.condicionOperacion,
+        pagos: this.pagos.map(p => ({
+          ...p,
+          montoPago: p.montoPago || this.totalPagar // Fallback to total if 0
+        })),
+        observaciones: this.observaciones
       },
       retenciones: this.retenciones,
       descuentoGlobal: this.descuentoGlobal,
-      otrosMontosNoAfectos: this.otrosMontosNoAfectos,
       ambiente: this.ambienteProduccion ? 'PRODUCCIÓN' : 'PRUEBAS'
     };
 
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      alert('Error: No ha iniciado sesión');
+      this.generandoDTE = false;
+      return;
+    }
+
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+
     this.http.post('http://localhost:3000/api/dtes/generar', datosDTE, {
+      headers: headers,
       responseType: 'blob'
     }).subscribe({
       next: (pdfBlob: Blob) => {
