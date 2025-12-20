@@ -8,30 +8,19 @@
       <div class="panel-izquierdo">
         <app-nota-debito-cliente (changed)="onCliente($event)" />
 
-        <div class="card selector-card" *ngIf="documentosRelacionables.length > 0">
-          <div class="card-header">
-            <div class="dashed-line-left"></div>
-            <span class="icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z"
-                  stroke="currentColor" stroke-width="1.5" />
-              </svg>
-            </span>
-            <span class="title">Documento a Modificar</span>
-            <div class="dashed-line-right"></div>
+        <div class="card mt-2 mb-2" *ngIf="documentosRelacionables.length > 0">
+          <div class="card-header" style="padding: 10px;">
+            <span class="title" style="font-size: 14px; font-weight: 600;">Documento a Modificar (Requerido)</span>
           </div>
-          <div class="card-body">
-            <select class="form-select" [(ngModel)]="documentoSeleccionado">
+          <div class="card-body" style="padding: 10px;">
+            <select [(ngModel)]="documentoSeleccionado" class="input"
+              style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
               <option [ngValue]="null">Seleccione un documento...</option>
               <option *ngFor="let doc of documentosRelacionables" [ngValue]="doc">
-                {{ doc.tipo }} #{{ doc.numeroControl }} ({{ doc.fechaEmisionFormateada }} - {{ doc.montoTotal |
-                currency:'USD' }})
+                {{ doc.tipo }} - {{ doc.fechaEmisionFormateada }} - $ {{ doc.total | number:'1.2-2' }} ({{
+                doc.numeroControl }})
               </option>
             </select>
-            <p class="selector-info" *ngIf="documentoSeleccionado">
-              Modificando: {{ documentoSeleccionado.tipo }} #{{ documentoSeleccionado.numeroControl }}
-            </p>
           </div>
         </div>
 
@@ -76,10 +65,53 @@
         </div>
       </div>
       <div class="panel-derecho">
-        <div class="placeholder-totales" *ngIf="items.length === 0">
-          <img class="box-illustration" src="images/empty-state-4bf0c4a3.png" alt="Sin ítems" />
-          <p class="empty-title">No se han agregado ítems</p>
-          <p class="empty-sub">No es posible registrar ventas sin añadir productos o servicios.</p>
+        <div class="items-container">
+          <div class="placeholder-totales" *ngIf="itemsRaw.length === 0">
+            <img class="box-illustration" src="images/empty-state-4bf0c4a3.png" alt="Sin ítems" />
+            <p class="empty-title">No se han agregado ítems</p>
+            <p class="empty-sub">No es posible registrar ventas sin añadir productos o servicios.</p>
+          </div>
+
+          <!-- Tabla de items agregados -->
+          <div class="card items-table-card" *ngIf="itemsRaw.length > 0">
+            <div class="card-header">
+              <div class="dashed-line-left"></div>
+              <span class="icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.5" />
+                </svg>
+              </span>
+              <span class="title">Items Agregados</span>
+              <div class="dashed-line-right"></div>
+            </div>
+            <div class="card-body">
+              <table class="items-table">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Precio con IVA</th>
+                    <th>Unidad de Medida</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of itemsRaw; let i = index">
+                    <td>{{ item.descripcion || item.producto || 'Sin descripción' }}</td>
+                    <td>${{ ((item.precio || 0) * 1.13) | number:'1.2-2' }}</td>
+                    <td>{{ item.unidad || 'Unidad' }}</td>
+                    <td>
+                      <button class="btn-delete-item" type="button" (click)="quitarItem(i)" title="Eliminar item">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                          <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
         <div class="card totales-card">
           <div class="card-header">
