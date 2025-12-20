@@ -2,7 +2,7 @@ import { Component, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { NotaDebitoClienteComponent } from '../../components/nota-debito/cliente/cliente.component';
 import { NotaDebitoSucursalComponent } from '../../components/nota-debito/sucursal/sucursal.component';
 import { NotaDebitoRetencionesComponent } from '../../components/nota-debito/retenciones/retenciones.component';
@@ -14,6 +14,7 @@ import { NotaDebitoItemsComponent } from '../../components/nota-debito/items/ite
 import { FacturacionCalculationsService } from '../../services/facturacion-calculations.service';
 import { DteService } from '../../services/dte.service';
 import { ItemFactura, Retenciones, ResultadosCalculoFacturacion } from '../../models/facturacion.model';
+import { NotificacionModalComponent } from '../../components/notificacion-modal/notificacion-modal.component';
 
 @Component({
   selector: 'app-nota-debito-page',
@@ -28,14 +29,15 @@ import { ItemFactura, Retenciones, ResultadosCalculoFacturacion } from '../../mo
     NotaDebitoResponsablesComponent,
     NotaDebitoOtrosComponent,
     NotaDebitoAppendicesComponent,
-    NotaDebitoItemsComponent
+    NotaDebitoItemsComponent,
+    NotificacionModalComponent
   ],
   templateUrl: './nota-debito-page.component.html',
   styleUrl: './nota-debito-page.component.scss'
 })
 export class NotaDebitoPageComponent {
   @ViewChild(NotaDebitoItemsComponent) itemsComponent!: NotaDebitoItemsComponent;
-  
+
   cliente: any = {};
   items: ItemFactura[] = [];
   itemsRaw: any[] = [];
@@ -47,7 +49,17 @@ export class NotaDebitoPageComponent {
   vistaPrevia = true;
   empresaSeleccionada: any = null;
   generandoDTE = false;
-  
+
+  // Nuevas propiedades para documentos relacionados
+  documentosRelacionables: any[] = [];
+  documentoSeleccionado: any = null;
+
+  // Propiedades para modal de notificación
+  showModal = false;
+  modalType: 'exito' | 'error' = 'error';
+  modalTitle = '';
+  modalMessage = '';
+
   constructor(
     private router: Router,
     private facturacionService: FacturacionCalculationsService,
@@ -61,7 +73,7 @@ export class NotaDebitoPageComponent {
     });
   }
 
-  onCliente(v: any) { 
+  onCliente(v: any) {
     this.cliente = {
       id: v.id,
       nombre: v.nombre,
@@ -72,10 +84,18 @@ export class NotaDebitoPageComponent {
       telefono: v.telefono,
       numeroDocumento: v.nit
     };
+
+    // Cargar documentos relacionados
+    if (this.cliente.id) {
+      this.dteService.getDocumentosRelacionables(this.cliente.id).subscribe(docs => {
+        this.documentosRelacionables = docs;
+        this.documentoSeleccionado = null; // Reset selection
+      });
+    }
   }
   onDescuento(v: number) { this.descuentoGlobal = v || 0; }
   onRetenciones(v: Retenciones) { this.retenciones = v; }
-  onItems(items: any[]) { 
+  onItems(items: any[]) {
     this.itemsRaw = items || [];
     this.items = (items || []).map(item => ({
       cantidad: Number(item.cantidad || 0),
@@ -124,15 +144,19 @@ export class NotaDebitoPageComponent {
 
   generarDTE(): void {
     if (!this.empresaSeleccionada || !this.empresaSeleccionada.id) {
-      alert('Error: No hay empresa seleccionada');
+      this.mostrarAlerta('No hay empresa seleccionada', 'Error de Configuración', 'error');
       return;
     }
     if (this.itemsRaw.length === 0) {
-      alert('Error: Debe agregar al menos un item');
+      this.mostrarAlerta('Debe agregar al menos un item', 'Falta Información', 'error');
       return;
     }
     if (!this.cliente || !this.cliente.nombre) {
-      alert('Error: Debe seleccionar un cliente');
+      this.mostrarAlerta('Debe seleccionar un cliente', 'Falta Información', 'error');
+      return;
+    }
+    if (!this.documentoSeleccionado) {
+      this.mostrarAlerta('Debe seleccionar un documento a modificar (DTE a afectar)', 'Documento Requerido', 'error');
       return;
     }
 
@@ -167,10 +191,26 @@ export class NotaDebitoPageComponent {
       retenciones: this.retenciones,
       descuentoGlobal: this.descuentoGlobal,
       otrosMontosNoAfectos: this.otrosMontosNoAfectos,
-      ambiente: this.ambienteProduccion ? 'PRODUCCIÓN' : 'PRUEBAS'
+      ambiente: this.ambienteProduccion ? 'PRODUCCIÓN' : 'PRUEBAS',
+      documentoRelacionado: [{
+        tipoDocumento: this.documentoSeleccionado.tipo === 'Factura' ? '01' : (this.documentoSeleccionado.tipoDte || '03'),
+        tipoGeneracion: 1,
+        numeroDocumento: this.documentoSeleccionado.codigoGeneracion,
+        fechaEmision: this.documentoSeleccionado.fechaEmision
+      }]
     };
 
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      this.mostrarAlerta('No se encontró sesión activa. Por favor inicie sesión nuevamente.', 'Sesión Expirada', 'error');
+      this.generandoDTE = false;
+      return;
+    }
+
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
     this.http.post('http://localhost:3000/api/dtes/generar', datosDTE, {
+      headers: headers,
       responseType: 'blob'
     }).subscribe({
       next: (pdfBlob: Blob) => {
@@ -187,9 +227,17 @@ export class NotaDebitoPageComponent {
       },
       error: (error) => {
         console.error('Error al generar DTE:', error);
-        alert('Error al generar el DTE: ' + (error.error?.error || error.message || 'Error desconocido'));
+        const detail = error.error?.error || error.message || 'Error desconocido';
+        this.mostrarAlerta('Error al generar el DTE: ' + detail, 'Error de Transmisión', 'error');
         this.generandoDTE = false;
       }
     });
+  }
+
+  mostrarAlerta(mensaje: string, titulo: string, tipo: 'exito' | 'error' = 'exito') {
+    this.modalMessage = mensaje;
+    this.modalTitle = titulo;
+    this.modalType = tipo;
+    this.showModal = true;
   }
 }

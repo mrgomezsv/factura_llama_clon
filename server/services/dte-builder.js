@@ -1,12 +1,14 @@
 const FacturaGenerator = require('./dte-generators/FacturaGenerator');
 const CreditoFiscalGenerator = require('./dte-generators/CreditoFiscalGenerator');
 const NotaCreditoGenerator = require('./dte-generators/NotaCreditoGenerator');
+const NotaDebitoGenerator = require('./dte-generators/NotaDebitoGenerator');
 
 class DteBuilder {
   constructor() {
     this.facturaGenerator = new FacturaGenerator();
     this.creditoFiscalGenerator = new CreditoFiscalGenerator();
     this.notaCreditoGenerator = new NotaCreditoGenerator();
+    this.notaDebitoGenerator = new NotaDebitoGenerator();
   }
 
   /**
@@ -28,6 +30,10 @@ class DteBuilder {
 
     if (tipo === '05' || tipo === 'NCR' || tipo === 'NC') {
       return this.notaCreditoGenerator.generate(data);
+    }
+
+    if (tipo === '06' || tipo === 'NDB' || tipo === 'ND') {
+      return this.notaDebitoGenerator.generate(data);
     }
 
     // Futuras implementaciones
