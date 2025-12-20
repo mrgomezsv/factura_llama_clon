@@ -8,7 +8,7 @@ import { DteService } from '../../../services/dte.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './items.component.html',
-      styleUrl: './items.component.scss'
+  styleUrl: './items.component.scss'
 })
 export class NotaDebitoItemsComponent {
   @Output() itemsChanged = new EventEmitter<any[]>();
@@ -39,21 +39,28 @@ export class NotaDebitoItemsComponent {
     this.items.valueChanges.subscribe(v => this.itemsChanged.emit(v));
     // Cargar productos
     this.dteService.getProductos().subscribe((p: any[]) => {
-      this.allProducts = p;
-      this.filteredProducts = p;
+      this.allProducts = p.map(prod => ({
+        id: prod.id,
+        nombre: prod.nombre,
+        codigo: prod.codigo,
+        precioConIva: prod.precio_unitario || prod.precioConIva,
+        unidadMedida: prod.unidad_medida || prod.unidadMedida,
+        descripcion: prod.descripcion
+      }));
+      this.filteredProducts = this.allProducts;
     });
   }
 
   agregarItem(): void {
     const v = this.form.value;
     const item = this.fb.group({
-      producto: [v.producto], descripcion: [v.descripcion], cantidad: [Number(v.cantidad)||1],
-      precio: [Number(v.precio)||0], descuento: [Number(v.descuento)||0], tipoVenta: [v.tipoVenta],
+      producto: [v.producto], descripcion: [v.descripcion], cantidad: [Number(v.cantidad) || 1],
+      precio: [Number(v.precio) || 0], descuento: [Number(v.descuento) || 0], tipoVenta: [v.tipoVenta],
       unidad: [v.unidad], codigo: [v.codigo]
     });
     this.items.push(item);
     this.itemsChanged.emit(this.items.value);
-    
+
     // Limpiar el formulario después de agregar el item
     this.form.patchValue({
       producto: '',
@@ -92,20 +99,50 @@ export class NotaDebitoItemsComponent {
     const input = e.target as HTMLInputElement;
     input.value = input.value.replace(/[^0-9.]/g, '');
   }
-  formatNumber(ctrl: 'cantidad'|'precio'|'descuento', decimals: number) {
+  formatNumber(ctrl: 'cantidad' | 'precio' | 'descuento', decimals: number) {
     const val = Number(this.form.value[ctrl]);
     if (!isNaN(val)) this.form.patchValue({ [ctrl]: val.toFixed(decimals) }, { emitEvent: false });
   }
 
   // Productos dropdown (búsqueda simple al tipear en campo producto)
   productMenu = false;
-  allProducts: Array<{ id:string; nombre:string; codigo?: string }> = [];
-  filteredProducts: Array<{ id:string; nombre:string; codigo?: string }> = [];
-  openProducts(){ this.productMenu = true; this.filterProducts(); }
-  filterProducts(){
+  allProducts: Array<{ id: string; nombre: string; codigo?: string; precioConIva?: number; unidadMedida?: string; descripcion?: string }> = [];
+  filteredProducts: Array<{ id: string; nombre: string; codigo?: string; precioConIva?: number; unidadMedida?: string; descripcion?: string }> = [];
+  openProducts() { this.productMenu = true; this.filterProducts(); }
+  filterProducts() {
     const q = (this.form.value.producto || '').toLowerCase();
-    this.filteredProducts = this.allProducts.filter(p => p.nombre.toLowerCase().includes(q) || (p.codigo||'').toLowerCase().includes(q));
+    this.filteredProducts = this.allProducts.filter(p => p.nombre.toLowerCase().includes(q) || (p.codigo || '').toLowerCase().includes(q));
   }
-  chooseProduct(p: any){ this.form.patchValue({ producto: p.nombre, codigo: p.codigo||'' }); this.productMenu = false; }
+  chooseProduct(p: any) {
+    // For NDB, we use the Price with IVA as standard, but we need to ensure it's a number
+    const precioConIva = p.precioConIva !== undefined && p.precioConIva !== null ? Number(p.precioConIva) : 0;
+
+    // Convert units if necessary
+    const unidad = p.unidadMedida || 'Unidad';
+    const descripcion = p.descripcion || '';
+
+    // Set values in the form
+    this.form.patchValue({
+      producto: p.nombre,
+      codigo: p.codigo || '',
+      descripcion: descripcion,
+      unidad: unidad
+    });
+
+    // Set the price (which in our system is usually stored including IVA)
+    const precioControl = this.form.get('precio');
+    if (precioControl) {
+      // Divide by 1.13 to get price without IVA for calculation if needed, 
+      // but here we follow the standard of the other forms: 
+      // Most forms use the price as it comes from the DB (often including IVA) 
+      // and let the calculations service handle the split.
+      // However, NDB is a taxable doc, so if DB price is $1.13, Net price is $1.00.
+      // Looking at FacturaItemsComponent, it uses Gross Price.
+      const precioNeto = precioConIva / 1.13;
+      precioControl.setValue(precioNeto.toFixed(4), { emitEvent: false });
+    }
+
+    this.productMenu = false;
+  }
 }
 

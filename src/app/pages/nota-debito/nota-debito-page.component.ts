@@ -98,7 +98,7 @@ export class NotaDebitoPageComponent {
   onItems(items: any[]) {
     this.itemsRaw = items || [];
     this.items = (items || []).map(item => ({
-      cantidad: Number(item.cantidad || 0),
+      cantidad: Number(item.cantidad || 1),
       precio: Number(item.precio || 0),
       descuento: Number(item.descuento || 0),
       tipoVenta: item.tipoVenta || 'Gravada',
@@ -136,7 +136,11 @@ export class NotaDebitoPageComponent {
   get montoTotalOperacion(): number { return this.calculos.montoTotalOperacion; }
   get totalOtrosMontosNoAfectos(): number { return this.calculos.totalOtrosMontosNoAfectos; }
   get totalPagar(): number { return this.calculos.totalPagar; }
-  get sumaGravadas(): number { return this.calculos.sumaGravadas; }
+  quitarItem(index: number): void {
+    if (this.itemsComponent && this.itemsComponent.items) {
+      this.itemsComponent.eliminarItem(index);
+    }
+  }
 
   cerrar(): void {
     this.router.navigateByUrl('/dtes');
