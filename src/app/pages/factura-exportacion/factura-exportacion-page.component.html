@@ -49,11 +49,75 @@
         </div>
       </div>
       <div class="panel-derecho">
-        <div class="placeholder-totales" *ngIf="items.length === 0">
-          <img class="box-illustration" src="images/empty-state-4bf0c4a3.png" alt="Sin ítems" />
-          <p class="empty-title">No se han agregado ítems</p>
-          <p class="empty-sub">No es posible registrar ventas sin añadir productos o servicios.</p>
+        <!-- Contenedor fijo para items/placeholder que mantiene el espacio -->
+        <div class="items-container">
+          <div class="placeholder-totales" *ngIf="items.length === 0">
+            <img class="box-illustration" src="images/empty-state-4bf0c4a3.png" alt="Sin ítems" />
+            <p class="empty-title">No se han agregado ítems</p>
+            <p class="empty-sub">No es posible registrar ventas sin añadir productos o servicios.</p>
+          </div>
+
+          <!-- Tabla de items agregados -->
+          <div class="card items-table-card" *ngIf="items.length > 0">
+            <div class="card-header">
+              <div class="dashed-line-left"></div>
+              <span class="icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.5" />
+                </svg>
+              </span>
+              <span class="title">Items Agregados</span>
+              <div class="dashed-line-right"></div>
+            </div>
+            <div class="card-body">
+              <table class="items-table">
+                <thead>
+                  <tr>
+                    <th>Cant.</th>
+                    <th>Descripción</th>
+                    <th>P. Unitario</th>
+                    <th>Descuento</th>
+                    <th>Total</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of items; let i = index">
+                    <td>{{ item.cantidad }}</td>
+                    <td>{{ item.descripcion || 'Sin descripción' }}</td>
+                    <td>{{ item.precio | currency:'USD':'symbol':'1.2-2' }}</td>
+                    <td>{{ (item.descuento || 0) | currency:'USD':'symbol':'1.2-2' }}</td>
+                    <td>{{ (item.precio - (item.descuento || 0)) * item.cantidad | currency:'USD':'symbol':'1.2-2' }}
+                    </td>
+                    <td>
+                      <div class="action-menu-container">
+                        <button class="btn-action-menu" type="button" (click)="toggleActionMenu(i)">
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path
+                              d="M8 4a1 1 0 100-2 1 1 0 000 2zm0 5a1 1 0 100-2 1 1 0 000 2zm0 5a1 1 0 100-2 1 1 0 000 2z"
+                              fill="currentColor" />
+                          </svg>
+                        </button>
+                        <div class="action-menu-dropdown" *ngIf="activeMenuIndex === i">
+                          <button class="action-menu-item delete" type="button" (click)="eliminarItem(i)">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                              <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                              <path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                            </svg>
+                            Eliminar
+                          </button>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
+
         <div class="card totales-card">
           <div class="card-header">
             <div class="dashed-line-left"></div>
@@ -81,7 +145,8 @@
                   currency:'USD':'symbol':'1.2-2' }}</span></div>
               <div class="tot-row subtotal"><span>Sub Total</span><span>{{ subTotal | currency:'USD':'symbol':'1.2-2'
                   }}</span></div>
-              <div class="tot-row"><span>(+)IVA (13%)</span><span>{{ iva | currency:'USD':'symbol':'1.2-2' }}</span>
+              <div class="tot-row" *ngIf="false"><span>(+)IVA (13%)</span><span>{{ iva | currency:'USD':'symbol':'1.2-2'
+                  }}</span>
               </div>
               <div class="tot-row"><span>(-)IVA Retenido</span><span>{{ ivaRetenido | currency:'USD':'symbol':'1.2-2'
                   }}</span></div>

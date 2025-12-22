@@ -49,6 +49,7 @@ export class FacturaExportacionPageComponent {
   vistaPrevia = true;
   empresaSeleccionada: any = null;
   generandoDTE = false;
+  activeMenuIndex: number | null = null;
 
   // Datos de Logística
   logisticaData: any = {};
@@ -128,6 +129,21 @@ export class FacturaExportacionPageComponent {
   get totalOtrosMontosNoAfectos(): number { return this.calculos.totalOtrosMontosNoAfectos; }
   get totalPagar(): number { return this.calculos.totalPagar; }
   get sumaGravadas(): number { return this.calculos.sumaGravadas; }
+
+  eliminarItem(index: number): void {
+    if (this.itemsComponent) {
+      this.itemsComponent.eliminarItem(index);
+    }
+    this.activeMenuIndex = null;
+  }
+
+  toggleActionMenu(index: number): void {
+    if (this.activeMenuIndex === index) {
+      this.activeMenuIndex = null;
+    } else {
+      this.activeMenuIndex = index;
+    }
+  }
 
   cerrar(): void {
     this.router.navigateByUrl('/dtes');
