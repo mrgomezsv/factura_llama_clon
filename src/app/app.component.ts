@@ -210,6 +210,9 @@ export class AppComponent implements OnInit {
 
   onExportarPDF(dte: DTE): void {
     const tipoDte = dte.tipoDte;
+    console.log('🖨️ [Frontend] Exporting PDF for DTE:', dte);
+    console.log('🖨️ [Frontend] Using tipoDte param:', tipoDte);
+
     this.http.get(`http://localhost:3000/api/dtes/${dte.id}/pdf`, {
       params: tipoDte ? { tipoDte } : {},
       responseType: 'blob'
