@@ -1,0 +1,84 @@
+<div class="dashboard-container">
+    <div class="header">
+        <h1>Panel de Contingencia</h1>
+        <p>Gestiona los eventos de falla técnica y el reporte al Ministerio de Hacienda.</p>
+    </div>
+
+    <div class="status-card" [class.active]="contingenciaActiva">
+        <div class="status-header">
+            <div class="dot" [class.pulse]="contingenciaActiva"></div>
+            <h2>Estado: {{ contingenciaActiva ? 'EN CONTINGENCIA' : 'NORMAL' }}</h2>
+        </div>
+
+        <div class="status-content" *ngIf="contingenciaActiva">
+            <p><strong>Inicio:</strong> {{ contingenciaActiva.fecha_inicio | date:'short' }}</p>
+            <p><strong>Motivo:</strong> {{ getMotivoNombre(contingenciaActiva.codigo_motivo) }}</p>
+            <p><strong>DTEs Pendientes:</strong> {{ dtesPendientes.length }}</p>
+            <button class="btn btn-danger" (click)="finalizarContingencia()">Finalizar Contingencia</button>
+        </div>
+
+        <div class="status-content" *ngIf="!contingenciaActiva && !contingenciaPendienteReporte">
+            <p>El sistema está operando normalmente. Todos los DTEs se transmiten en tiempo real.</p>
+            <button class="btn btn-primary" (click)="mostrarModalInicio = true">Iniciar Contingencia Manual</button>
+        </div>
+
+        <div class="status-content" *ngIf="contingenciaPendienteReporte">
+            <h3>⚠️ Pendiente de Reporte</h3>
+            <p>La contingencia ha finalizado. Debes enviar el reporte del evento al MH.</p>
+            <p><strong>Periodo:</strong> {{ contingenciaPendienteReporte.fecha_inicio | date:'short' }} - {{
+                contingenciaPendienteReporte.fecha_fin | date:'short' }}</p>
+            <button class="btn btn-success" (click)="reportarContingencia()">Enviar Reporte a Hacienda</button>
+        </div>
+    </div>
+
+    <div class="dtes-section" *ngIf="dtesPendientes.length > 0">
+        <h3>DTEs Emitidos en Contingencia</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Número Control</th>
+                    <th>Tipo</th>
+                    <th>Receptor</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let dte of dtesPendientes">
+                    <td>{{ dte.fechaEmision | date:'shortTime' }}</td>
+                    <td>{{ dte.numeroControl }}</td>
+                    <td>{{ dte.tipo }}</td>
+                    <td>{{ dte.receptor }}</td>
+                    <td>{{ dte.total | currency }}</td>
+                    <td><span class="badge badge-warning">PENDIENTE</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal Inicio -->
+    <div class="modal-backdrop" *ngIf="mostrarModalInicio">
+        <div class="modal">
+            <h2>Iniciar Contingencia</h2>
+            <div class="form-group">
+                <label>Motivo de la Contingencia</label>
+                <select [(ngModel)]="motivoSeleccionado" class="form-control">
+                    <option value="1">No disponibilidad de red de Internet del emisor</option>
+                    <option value="2">Falla en el Suministro de Energía Eléctrica del emisor</option>
+                    <option value="3">No disponibilidad de red de Internet de la Admin. Tributaria</option>
+                    <option value="4">Falla en el Suministro de Energía Eléctrica de la Admin. Tributaria</option>
+                    <option value="5">Catástrofe Natural u otras causas de fuerza mayor</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Descripción Adicional (Opcional)</label>
+                <textarea [(ngModel)]="descripcionMotivo" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" (click)="mostrarModalInicio = false">Cancelar</button>
+                <button class="btn btn-primary" (click)="iniciarContingencia()">Activar Modo Contingencia</button>
+            </div>
+        </div>
+    </div>
+</div>
