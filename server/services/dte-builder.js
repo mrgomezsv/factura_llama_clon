@@ -3,6 +3,7 @@ const CreditoFiscalGenerator = require('./dte-generators/CreditoFiscalGenerator'
 const NotaCreditoGenerator = require('./dte-generators/NotaCreditoGenerator');
 const NotaDebitoGenerator = require('./dte-generators/NotaDebitoGenerator');
 const FSEGenerator = require('./dte-generators/FSEGenerator');
+const ContingencyGenerator = require('./dte-generators/ContingencyGenerator');
 
 class DteBuilder {
   constructor() {
@@ -11,6 +12,7 @@ class DteBuilder {
     this.notaCreditoGenerator = new NotaCreditoGenerator();
     this.notaDebitoGenerator = new NotaDebitoGenerator();
     this.fseGenerator = new FSEGenerator();
+    this.contingencyGenerator = new ContingencyGenerator();
   }
 
   /**
@@ -40,6 +42,10 @@ class DteBuilder {
 
     if (tipo === '14' || tipo === 'FSE') {
       return this.fseGenerator.generate(data);
+    }
+
+    if (tipo === 'EVENTO_CONTINGENCIA') {
+      return this.contingencyGenerator.generate(data);
     }
 
     // Futuras implementaciones
