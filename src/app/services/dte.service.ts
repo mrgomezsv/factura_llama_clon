@@ -1419,6 +1419,60 @@ export class DteService {
     const token = localStorage.getItem('auth_token');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token} `);
 
-    return this.http.post(`${this.API_URL} /empresas/${empresaId}/certificado`, formData, { headers });
+    return this.http.post(`${this.API_URL}/empresas/${empresaId}/certificado`, formData, { headers });
+  }
+
+  /**
+   * Obtener contingencia activa
+   */
+  getContingenciaActiva(): Observable<any> {
+    const token = localStorage.getItem('auth_token');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.get(`${this.API_URL}/contingencias/activa`, { headers });
+  }
+
+  /**
+   * Obtener contingencias pendientes de reporte
+   */
+  getContingenciasPendientes(): Observable<any[]> {
+    const token = localStorage.getItem('auth_token');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.get<any[]>(`${this.API_URL}/contingencias/pendientes`, { headers });
+  }
+
+  /**
+   * Iniciar contingencia
+   */
+  iniciarContingencia(datos: { codigoMotivo: string, descripcionMotivo: string, fechaInicio?: Date }): Observable<any> {
+    const token = localStorage.getItem('auth_token');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.post(`${this.API_URL}/contingencias/iniciar`, datos, { headers });
+  }
+
+  /**
+   * Finalizar contingencia
+   */
+  finalizarContingencia(id: number, fechaFin?: Date): Observable<any> {
+    const token = localStorage.getItem('auth_token');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.post(`${this.API_URL}/contingencias/finalizar`, { id, fechaFin }, { headers });
+  }
+
+  /**
+   * Obtener DTEs de una contingencia
+   */
+  getDtesContingencia(id: number): Observable<any[]> {
+    const token = localStorage.getItem('auth_token');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.get<any[]>(`${this.API_URL}/contingencias/${id}/dtes`, { headers });
+  }
+
+  /**
+   * Reportar contingencia a MH
+   */
+  reportarContingencia(id: number): Observable<any> {
+    const token = localStorage.getItem('auth_token');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.post(`${this.API_URL}/contingencias/${id}/reportar`, {}, { headers });
   }
 }

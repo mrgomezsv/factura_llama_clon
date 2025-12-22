@@ -71,7 +71,7 @@ export class AppComponent implements OnInit {
 
   private shouldShowDTEsContent(url: string): boolean {
     // Mostrar tabs y tabla de DTEs solo cuando NO estamos en rutas específicas
-    const hideRoutes = ['/clientes', '/sucursales', '/productos', '/reports', '/login', '/forgot-password', '/sign-up', '/terminos-y-condiciones'];
+    const hideRoutes = ['/clientes', '/sucursales', '/productos', '/reports', '/contingencia', '/login', '/forgot-password', '/sign-up', '/terminos-y-condiciones'];
     // También ocultar en rutas de creación de DTEs
     const hideDTEsRoutes = ['/factura', '/comprobante-credito-fiscal', '/nota-credito', '/nota-debito', '/factura-sujeto-excluido', '/factura-exportacion', '/nota-remision', '/comprobante-retencion'];
     // Si la URL es solo '/' o '/dtes' o '/home', mostrar el contenido de DTEs

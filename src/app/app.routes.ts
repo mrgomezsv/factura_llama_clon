@@ -92,6 +92,12 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'contingencia',
+    loadComponent: () =>
+      import('./pages/contingencia-dashboard/contingencia-dashboard.component').then(m => m.ContingenciaDashboardComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: 'login',
     loadComponent: () =>
       import('./components/login/login.component').then(m => m.LoginComponent),
