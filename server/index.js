@@ -49,6 +49,25 @@ function normalizeTipoDteCodigo(tipoDteCodigo) {
   return tipoDteCodigo;
 }
 
+/**
+ * Retorna una consulta SQL que une todas las tablas de documentos
+ */
+function getUnifiedDteQuery(columns = '*') {
+  const tables = [
+    'documento_factura',
+    'documento_credito_fiscal',
+    'documento_nota_credito',
+    'documento_nota_debito',
+    'documento_factura_sujeto_excluido',
+    'documento_factura_exportacion',
+    'documento_nota_remision',
+    'documento_comprobante_retencion',
+    'dtes'
+  ];
+
+  return tables.map(table => `SELECT ${columns} FROM ${table}`).join(' UNION ALL ');
+}
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -484,7 +503,252 @@ app.post('/api/empresas/:id/certificado', authMiddleware, upload.single('certifi
     client.release();
   }
 });
-// Endpoint para generar DTE completo
+// --- Rutas de Contingencia ---
+
+/**
+ * Obtener contingencia activa para la empresa
+ */
+app.get('/api/contingencias/activa', authMiddleware, async (req, res) => {
+  try {
+    const empresaId = req.user.empresaId;
+    const result = await pool.query(
+      'SELECT * FROM contingencias WHERE empresa_id = $1 AND estado = \'ACTIVO\' LIMIT 1',
+      [empresaId]
+    );
+    res.json(result.rows[0] || null);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Obtener contingencias pendientes de reporte para la empresa
+ */
+app.get('/api/contingencias/pendientes', authMiddleware, async (req, res) => {
+  try {
+    const empresaId = req.user.empresaId;
+    const result = await pool.query(
+      'SELECT * FROM contingencias WHERE empresa_id = $1 AND estado = \'PENDIENTE_REPORTE\' ORDER BY fecha_inicio DESC',
+      [empresaId]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Iniciar un evento de contingencia
+ */
+app.post('/api/contingencias/iniciar', authMiddleware, async (req, res) => {
+  try {
+    const { codigoMotivo, descripcionMotivo, fechaInicio } = req.body;
+    const empresaId = req.user.empresaId;
+
+    // Verificar si ya hay una activa
+    const activa = await pool.query(
+      'SELECT id FROM contingencias WHERE empresa_id = $1 AND estado = \'ACTIVO\'',
+      [empresaId]
+    );
+
+    if (activa.rows.length > 0) {
+      return res.status(400).json({ error: 'Ya existe una contingencia activa para esta empresa' });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO contingencias (empresa_id, fecha_inicio, codigo_motivo, descripcion_motivo, estado) 
+       VALUES ($1, COALESCE($2, CURRENT_TIMESTAMP), $3, $4, 'ACTIVO') RETURNING *`,
+      [empresaId, fechaInicio || null, codigoMotivo, descripcionMotivo]
+    );
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Finalizar contingencia y preparar para reporte
+ */
+app.post('/api/contingencias/finalizar', authMiddleware, async (req, res) => {
+  try {
+    const { id, fechaFin } = req.body;
+    const empresaId = req.user.empresaId;
+
+    const result = await pool.query(
+      `UPDATE contingencias 
+       SET fecha_fin = COALESCE($1, CURRENT_TIMESTAMP), estado = 'PENDIENTE_REPORTE', updated_at = CURRENT_TIMESTAMP 
+       WHERE id = $2 AND empresa_id = $3 AND estado = 'ACTIVO' RETURNING *`,
+      [fechaFin || null, id, empresaId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Contingencia no encontrada o ya finalizada' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Obtener DTEs emitidos durante una contingencia
+ */
+app.get('/api/contingencias/:id/dtes', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const empresaId = req.user.empresaId;
+
+    // Obtener datos de la contingencia
+    const contResult = await pool.query(
+      'SELECT * FROM contingencias WHERE id = $1 AND empresa_id = $2',
+      [id, empresaId]
+    );
+
+    if (contResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Contingencia no encontrada' });
+    }
+
+    const cont = contResult.rows[0];
+    const inicio = cont.fecha_inicio;
+    const fin = cont.fecha_fin || new Date();
+
+    // Buscar DTEs en todas las tablas usando el query unificado
+    const unifiedQuery = getUnifiedDteQuery('*');
+    const dtes = await pool.query(
+      `SELECT * FROM (${unifiedQuery}) AS dtes_unificados
+       WHERE empresa_id = $1 
+       AND created_at BETWEEN $2 AND $3
+       AND (estado = 'CONTINGENCIA' OR sello_recibido IS NULL)
+       ORDER BY created_at ASC`,
+      [empresaId, inicio, fin]
+    );
+
+    res.json(dtes.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Transmitir Evento de Contingencia a MH
+ */
+app.post('/api/contingencias/:id/reportar', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const empresaId = req.user.empresaId;
+
+    // 1. Obtener datos
+    const contResult = await pool.query('SELECT * FROM contingencias WHERE id = $1 AND empresa_id = $2', [id, empresaId]);
+    if (contResult.rows.length === 0) return res.status(404).json({ error: 'Contingencia no encontrada' });
+    const contingencia = contResult.rows[0];
+
+    // 2. Obtener DTEs del periodo usando query unificado
+    const fin = contingencia.fecha_fin || new Date();
+    const unifiedQuery = getUnifiedDteQuery('id, codigo_generacion, tipo_dte, dte_firmado, sello_recibido, empresa_id, created_at');
+    const dtesResult = await pool.query(
+      `SELECT * FROM (${unifiedQuery}) AS dtes_unificados
+       WHERE empresa_id = $1 AND created_at BETWEEN $2 AND $3 AND sello_recibido IS NULL`,
+      [empresaId, contingencia.fecha_inicio, fin]
+    );
+
+    if (dtesResult.rows.length === 0) {
+      return res.status(400).json({ error: 'No hay DTEs pendientes para reportar en este periodo' });
+    }
+
+    // 3. Obtener Config Empresa con Certificados
+    const empresaConfigResult = await pool.query(`
+      SELECT ec.*, 
+             crt.password_pri_prueba as cert_password_pri_prueba,
+             crt.password_pub_prueba as cert_password_pub_prueba,
+             crt.password_pri_produccion as cert_password_pri_produccion,
+             crt.password_pub_produccion as cert_password_pub_produccion
+      FROM empresa_config ec
+      LEFT JOIN empresa_certificados crt ON ec.empresa_id = crt.empresa_id
+      WHERE ec.empresa_id = $1
+    `, [empresaId]);
+    const empresaConfig = empresaConfigResult.rows[0];
+
+    // 4. Generar JSON del Evento
+    const { dteJson, codigoGeneracion } = dteBuilder.buildDteJson({
+      tipoDte: 'EVENTO_CONTINGENCIA',
+      empresaConfig,
+      contingencia,
+      dtes: dtesResult.rows,
+      ambiente: empresaConfig.ambiente_produccion_activo ? 'PRODUCCIÓN' : 'PRUEBAS'
+    });
+
+    // 5. Firmar Evento
+    const tokenFirmado = await dteSigner.signDte(dteJson, empresaConfig);
+
+    // 6. Enviar Evento a MH
+    const mhResponse = await dteApiService.enviarEvento(tokenFirmado, null, {
+      ambiente: empresaConfig.ambiente_produccion_activo ? 'PRODUCCIÓN' : 'PRUEBAS',
+      user: empresaConfig.nit,
+      pwd: empresaConfig.password_api_prueba // o produccion
+    });
+
+    if (mhResponse.estado === 'PROCESADO' || mhResponse.estado === 'RECIBIDO') {
+      // 6.a Actualizar Contingencia
+      await pool.query(
+        'UPDATE contingencias SET codigo_generacion = $1, sello_recibido = $2, estado = \'CERRADO\' WHERE id = $3',
+        [codigoGeneracion, mhResponse.selloRecibido, id]
+      );
+
+      // 6.b Retransmitir DTEs individuales
+      console.log(`🚀 Iniciando retransmisión de ${dtesResult.rows.length} DTEs diferidos...`);
+      let retransmitidos = 0;
+      let fallidos = 0;
+
+      for (const dte of dtesResult.rows) {
+        try {
+          // Parsear si es JSON string, o usar directo si es JWS string
+          let dtePayload = dte.dte_firmado;
+          if (typeof dte.dte_firmado === 'string' && dte.dte_firmado.trim().startsWith('{')) {
+            try { dtePayload = JSON.parse(dte.dte_firmado); } catch (e) { }
+          }
+
+          const respDte = await dteApiService.enviarDte(dtePayload, null, {
+            user: empresaConfig.nit,
+            pwd: empresaConfig.ambiente_produccion_activo ? empresaConfig.password_api_produccion : empresaConfig.password_api_prueba,
+            nit: empresaConfig.nit,
+            ambiente: empresaConfig.ambiente_produccion_activo ? 'PRODUCCIÓN' : 'PRUEBAS',
+            dteJson: null // No necesario para retransmisión simple
+          });
+
+          if (respDte.selloRecibido) {
+            const tableToUpdate = getTableNameByTipoDte(dte.tipo_dte) || 'dtes';
+            await pool.query(
+              `UPDATE ${tableToUpdate} SET sello_recibido = $1, estado = 'PROCESADO', fecha_autorizacion = NOW() WHERE id = $2`,
+              [respDte.selloRecibido, dte.id]
+            );
+            retransmitidos++;
+          } else {
+            fallidos++;
+          }
+        } catch (errRetrans) {
+          console.error(`❌ Error retransmitiendo DTE ${dte.codigo_generacion}:`, errRetrans.message);
+          fallidos++;
+        }
+      }
+
+      res.json({
+        success: true,
+        mhResponse,
+        retransmision: { total: dtesResult.rows.length, exitosos: retransmitidos, fallidos }
+      });
+
+    } else {
+      res.status(400).json({ success: false, error: 'MH rechazó el evento', detalles: mhResponse });
+    }
+
+  } catch (error) {
+    console.error('Error al reportar contingencia:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Endpoint para generar DTE completo (Protegido y Seguro)
 app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
   try {
@@ -512,6 +776,16 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
       itemsCount: items?.length || 0,
       totales: totales ? 'presente' : 'ausente'
     });
+
+    // --- Verificar Contingencia Activa ---
+    const activeContingencyRes = await pool.query(
+      'SELECT id FROM contingencias WHERE empresa_id = $1 AND estado = \'ACTIVO\' LIMIT 1',
+      [empresaId]
+    );
+    const contingenciaActiva = activeContingencyRes.rows[0] || null;
+    if (contingenciaActiva) {
+      console.log('⚠️ Detectada CONTINGENCIA ACTIVA. El DTE se generará en modo Diferido.');
+    }
 
     // Validar datos requeridos
     if (!empresaId) {
@@ -629,7 +903,9 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
       incoterms: req.body.incoterms,
       modoTransporte: req.body.modoTransporte,
       recintoFiscal: req.body.recintoFiscal,
-      regimenAduanero: req.body.regimenAduanero
+      regimenAduanero: req.body.regimenAduanero,
+      // Soporte para contingencia
+      tipoModelo: contingenciaActiva ? 2 : 1 // 2: Diferido (Contingencia), 1: Normal
     });
     console.log('✅ JSON del DTE construido');
 
@@ -679,13 +955,23 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
           dteJson: dteJson // Pasar el JSON original para extraer metadatos
         };
 
-        // Enviar a MH usando las credenciales de la empresa
-        mhResponse = await dteApiService.enviarDte(dteFirmado, null, mhConfig);
-        require('fs').appendFileSync('debug_mh.log', `[${new Date().toISOString()}] MH Response: ${JSON.stringify(mhResponse)}\n`);
+        if (contingenciaActiva) {
+          console.log('⏩ Saltando transmisión MH por contingencia activa');
+          mhResponse = { success: false, estado: 'CONTINGENCIA', observaciones: ['Documento generado en modo diferido por contingencia activa'] };
+        } else {
+          // Enviar a MH usando las credenciales de la empresa
+          mhResponse = await dteApiService.enviarDte(dteFirmado, null, mhConfig);
+          require('fs').appendFileSync('debug_mh.log', `[${new Date().toISOString()}] MH Response: ${JSON.stringify(mhResponse)}\n`);
+        }
       } catch (apiError) {
         console.error('⚠️ Error crítico al comunicar con MH:', apiError.message);
         require('fs').appendFileSync('debug_mh.log', `[${new Date().toISOString()}] MH Error: ${apiError.message}\n${apiError.stack}\n`);
-        // Mantenemos el estado de error
+
+        // Detección automática de falla de red para entrar en contingencia
+        const isNetworkError = apiError.code === 'ECONNREFUSED' || apiError.code === 'ETIMEDOUT' || apiError.code === 'ENOTFOUND' || apiError.message.includes('timeout');
+        if (isNetworkError) {
+          mhResponse = { success: false, estado: 'CONTINGENCIA', observaciones: ['Falla de conexión con MH. Se recomienda activar evento de contingencia.'] };
+        }
       }
     } else {
       console.warn('⚠️ No se envía a MH porque no hay DTE firmado');
@@ -773,9 +1059,12 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
       ['GENERADO', dteId]
     );
 
-    // Retornar PDF
+    // Retornar PDF con metadata en headers para facilitar integración
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="DTE-${tipoDte}-${numeroControl}.pdf"`);
+    res.setHeader('x-dte-id', dteId.toString());
+    res.setHeader('x-codigo-generacion', codigoGeneracion);
+    res.setHeader('x-numero-control', numeroControl);
     res.send(pdfBuffer);
 
   } catch (error) {
