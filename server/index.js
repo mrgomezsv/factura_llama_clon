@@ -31,7 +31,11 @@ function getTableNameByTipoDte(tipoDte) {
     'REM': 'documento_nota_remision',
     'CRT': 'documento_comprobante_retencion',
     '05': 'documento_nota_credito',
-    '06': 'documento_nota_debito'
+    '06': 'documento_nota_debito',
+    '11': 'documento_factura_exportacion',
+    '14': 'documento_factura_sujeto_excluido',
+    '15': 'documento_nota_remision',
+    '16': 'documento_comprobante_retencion'
   };
 
   return tipoToTable[tipoDte] || null;
