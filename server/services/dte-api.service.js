@@ -12,10 +12,12 @@ class DteApiService {
         // URLs Ambiente PRUEBAS (API V3)
         this.testAuthUrl = process.env.MH_AUTH_URL || 'https://apitest.dtes.mh.gob.sv/seguridad/auth';
         this.testApiUrl = process.env.MH_API_URL || 'https://apitest.dtes.mh.gob.sv/fesv/recepciondte';
+        this.testEventUrl = 'https://apitest.dtes.mh.gob.sv/fesv/contingencia';
 
         // URLs Ambiente PRODUCCIÓN
         this.prodAuthUrl = process.env.MH_AUTH_URL_PROD || 'https://api.dtes.mh.gob.sv/seguridad/auth';
         this.prodApiUrl = process.env.MH_API_URL_PROD || 'https://api.dtes.mh.gob.sv/fesv/recepciondte';
+        this.prodEventUrl = 'https://api.dtes.mh.gob.sv/fesv/contingencia';
 
         // Credenciales por defecto (Deberían venir en config)
         this.user = process.env.MH_USER;
@@ -32,6 +34,7 @@ class DteApiService {
         const isProd = ambiente === 'PRODUCCIÓN' || ambiente === '01';
         if (type === 'AUTH') return isProd ? this.prodAuthUrl : this.testAuthUrl;
         if (type === 'API') return isProd ? this.prodApiUrl : this.testApiUrl;
+        if (type === 'EVENT') return isProd ? this.prodEventUrl : this.testEventUrl;
         return this.testApiUrl;
     }
 
@@ -40,6 +43,10 @@ class DteApiService {
      * @returns {Promise<string>} Token de acceso (Bearer)
      */
     async login(config = {}) {
+        if (process.env.DTE_SKIP_MH === 'true') {
+            console.log('🧪 Simulación MH activa: Saltando Login');
+            return 'simulation-token-123';
+        }
         try {
             const ambiente = config.ambiente || 'PRUEBAS';
             const authUrl = this.getUrl(ambiente, 'AUTH');
@@ -97,22 +104,34 @@ class DteApiService {
 
     /**
      * Enviar DTE firmado al MH
-     * @param {Object} dteSignedJson - JSON del DTE ya firmado
+     * @param {Object} dteSigned - JSON del DTE ya firmado
      * @param {string} token - Token de autenticación (opcional, si no se pasa se intenta login)
+     * @param {Object} config - Configuración (ambiente, nit, pwd)
      */
-    async enviarDte(dteSignedJson, token = null, config = {}) {
+    async enviarDte(dteSigned, token = null, config = {}) {
+        if (process.env.DTE_SKIP_MH === 'true') {
+            console.log('🧪 Simulación MH activa: Saltando Envío DTE');
+            return {
+                success: true,
+                estado: 'PROCESADO',
+                selloRecibido: 'SIM-' + Date.now(),
+                codigoMensaje: 'SIM_001',
+                descripcionMensaje: 'Simulado exitosamente',
+                observaciones: ['Simulación activa']
+            };
+        }
         try {
             if (!token) {
                 token = await this.login(config);
             }
 
-            // Extract metadata (Priority: config.dteJson > dteSignedJson)
+            // Extract metadata (Priority: config.dteJson > dteSigned if it's an object)
             let ambiente, tipoDte, version, identificacion, numeroControl;
 
             if (config.dteJson && config.dteJson.identificacion) {
                 identificacion = config.dteJson.identificacion;
-            } else if (dteSignedJson && dteSignedJson.identificacion) {
-                identificacion = dteSignedJson.identificacion;
+            } else if (dteSigned && typeof dteSigned === 'object' && dteSigned.identificacion) {
+                identificacion = dteSigned.identificacion;
             }
 
             if (identificacion) {
@@ -134,7 +153,7 @@ class DteApiService {
                 idEnvio: 1, // Puede ser autoincremental
                 version: version || 1, // Fallback to 1
                 tipoDte: tipoDte || config.tipoDte || '',
-                documento: dteSignedJson // El JSON firmado completo (JWS)
+                documento: dteSigned // El JSON firmado completo (JWS)
             };
 
             console.log(`📤 Enviando DTE ${numeroControl || 'S/N'} a MH (Ambiente: ${ambiente})... URL: ${apiUrl}`);
@@ -180,6 +199,95 @@ class DteApiService {
                 };
             }
 
+            throw error;
+        }
+    }
+
+    /**
+     * Enviar Evento al MH (Contingencia o Invalidación)
+     * @param {Object} eventSignedJson - JSON del evento ya firmado
+     * @param {string} token - Token de autenticación
+     */
+    async enviarEvento(eventSignedJson, token = null, config = {}) {
+        if (process.env.DTE_SKIP_MH === 'true') {
+            console.log('🧪 Simulación MH activa: Saltando Envío Evento');
+            return {
+                success: true,
+                estado: 'PROCESADO',
+                selloRecibido: 'SIM-EVENT-' + Date.now(),
+                observaciones: ['Simulación activa']
+            };
+        }
+        try {
+            if (!token) {
+                token = await this.login(config);
+            }
+
+            // Extract environment and version from config or eventSignedJson if it's an object
+            // If it's JWS (string), we MUST rely on config or default
+            let ambienteRaw = config.ambiente || (eventSignedJson?.identificacion?.ambiente) || '00';
+            let ambiente = (ambienteRaw === 'PRODUCCIÓN' || ambienteRaw === '01') ? '01' : '00';
+
+            // For contingency events, it's usually version 3 now
+            let version = config.version || (eventSignedJson?.identificacion?.version) || 3;
+
+            const eventUrl = this.getUrl(ambiente, 'EVENT');
+            const nit = config.user || config.nit || (eventSignedJson?.emisor?.nit);
+
+            const payload = {
+                ambiente: ambiente,
+                idEnvio: config.idEnvio || 1,
+                version: version,
+                documento: eventSignedJson // El JWS del evento
+            };
+
+            console.log(`📤 Enviando Evento ${config.codigoGeneracion || 'EVENT'} a MH... URL: ${eventUrl}`);
+
+            const response = await axios.post(
+                eventUrl,
+                payload,
+                {
+                    headers: {
+                        'Authorization': token.startsWith('Bearer ') ? token : `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            console.log(`✅ Respuesta MH Evento:`, response.data.estado);
+
+            return {
+                success: true,
+                estado: response.data.estado,
+                selloRecibido: response.data.selloRecibido || null,
+                observaciones: response.data.observaciones || []
+            };
+
+        } catch (error) {
+            console.error(`❌ Error enviando Evento a MH:`, error.message);
+
+            // Log detallado del error
+            if (error.response) {
+                console.error('📋 Status Code:', error.response.status);
+                console.error('📋 Status Text:', error.response.statusText);
+                console.error('📋 Response Headers:', JSON.stringify(error.response.headers, null, 2));
+                console.error('📋 Response Data:', JSON.stringify(error.response.data, null, 2));
+                console.error('📋 Request URL:', error.config?.url);
+                console.error('📋 Request Method:', error.config?.method);
+                console.error('📋 Request Headers:', JSON.stringify(error.config?.headers, null, 2));
+
+                require('fs').appendFileSync('debug_mh.log', `[${new Date().toISOString()}] MH Event ERROR Response:\n`);
+                require('fs').appendFileSync('debug_mh.log', `Status: ${error.response.status}\n`);
+                require('fs').appendFileSync('debug_mh.log', `Data: ${JSON.stringify(error.response.data, null, 2)}\n`);
+                require('fs').appendFileSync('debug_mh.log', `URL: ${error.config?.url}\n\n`);
+
+                return {
+                    success: false,
+                    estado: 'RECHAZADO',
+                    descripcionMensaje: error.response.data?.descripcionMsg || error.response.data?.descripcionMensaje || error.message,
+                    observaciones: error.response.data?.observaciones || []
+                };
+            }
             throw error;
         }
     }
