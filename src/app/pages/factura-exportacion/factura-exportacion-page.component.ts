@@ -5,9 +5,6 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { FacturaExportacionClienteComponent } from '../../components/factura-exportacion/cliente/cliente.component';
 import { FacturaExportacionSucursalComponent } from '../../components/factura-exportacion/sucursal/sucursal.component';
-import { FacturaExportacionRetencionesComponent } from '../../components/factura-exportacion/retenciones/retenciones.component';
-import { FacturaExportacionDescuentosComponent } from '../../components/factura-exportacion/descuentos/descuentos.component';
-import { FacturaExportacionResponsablesComponent } from '../../components/factura-exportacion/responsables/responsables.component';
 import { FacturaExportacionOtrosComponent } from '../../components/factura-exportacion/otros/otros.component';
 import { FacturaExportacionAppendicesComponent } from '../../components/factura-exportacion/appendices/appendices.component';
 import { FacturaExportacionItemsComponent } from '../../components/factura-exportacion/items/items.component';
@@ -24,10 +21,7 @@ import { ItemFactura, Retenciones, ResultadosCalculoFacturacion } from '../../mo
     FormsModule,
     FacturaExportacionClienteComponent,
     FacturaExportacionSucursalComponent,
-    FacturaExportacionLogisticaComponent, // Nuevo componente
-    FacturaExportacionRetencionesComponent,
-    FacturaExportacionDescuentosComponent,
-    FacturaExportacionResponsablesComponent,
+    FacturaExportacionLogisticaComponent,
     FacturaExportacionOtrosComponent,
     FacturaExportacionAppendicesComponent,
     FacturaExportacionItemsComponent
@@ -203,7 +197,17 @@ export class FacturaExportacionPageComponent {
       regimenAduanero: this.logisticaData.regimenAduanero
     };
 
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      alert('Error: No hay sesión activa (token no encontrado)');
+      this.generandoDTE = false;
+      return;
+    }
+
     this.http.post('http://localhost:3000/api/dtes/generar', datosDTE, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
       responseType: 'blob'
     }).subscribe({
       next: (pdfBlob: Blob) => {
