@@ -10,7 +10,9 @@ class NotaDebitoGenerator extends BaseGenerator {
             retenciones = { renta: 0, iva: 0 },
             descuentoGlobal = 0,
             ambiente = 'PRUEBAS',
-            numeroDocumento = 1
+            numeroDocumento = 1,
+            tipoModelo = 1,
+            tipoOperacion = 1
         } = data;
 
         console.log('LOG: NotaDebitoGenerator received documentoRelacionado:', JSON.stringify(documentoRelacionado));
@@ -52,10 +54,11 @@ class NotaDebitoGenerator extends BaseGenerator {
         const totalsFromItems = this.calculateTotalsStandard(itemsBuilt);
         const subTotalVentas = this.round(totalsFromItems.totalVentaGravada + totalsFromItems.totalVentaExenta + totalsFromItems.totalVentaNoSujeta);
         const iva = this.round(totalsFromItems.totalImpuestos);
-        const montoTotalOperacion = this.round(subTotalVentas + iva - (retenciones.iva || 0) - (retenciones.renta || 0));
+        // Si es contingencia, tipoOperacion mide 2 (Contingencia)
+        const finalTipoOperacion = (tipoModelo === 2) ? 2 : tipoOperacion;
 
         const dteJson = {
-            identificacion: this.buildIdentificacion('06', numeroControl, codigoGeneracion, fechaEmision, ambiente, 3),
+            identificacion: this.buildIdentificacion('06', numeroControl, codigoGeneracion, fechaEmision, ambiente, 3, tipoModelo, finalTipoOperacion),
             documentoRelacionado: docsRel,
             emisor: this.buildEmisor(empresaConfig, codigoEstablecimiento, puntoEmision),
             receptor: this.buildReceptor(cliente),
@@ -126,8 +129,8 @@ class NotaDebitoGenerator extends BaseGenerator {
         return `DTE-06-${codigoEstablecimiento}${puntoEmision}-${numDocPadded}`;
     }
 
-    buildIdentificacion(tipoDte, numeroControl, codigoGeneracion, fechaEmision, ambiente, version = 3) {
-        return super.buildIdentificacion('NDB', numeroControl, codigoGeneracion, fechaEmision, ambiente, version);
+    buildIdentificacion(tipoDte, numeroControl, codigoGeneracion, fechaEmision, ambiente, version = 3, tipoModelo = 1, tipoOperacion = 1) {
+        return super.buildIdentificacion('NDB', numeroControl, codigoGeneracion, fechaEmision, ambiente, version, tipoModelo, tipoOperacion);
     }
 
     buildReceptor(cliente) {

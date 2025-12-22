@@ -10,7 +10,9 @@ class FacturaGenerator extends BaseGenerator {
             retenciones = { renta: 0, iva: 0 },
             descuentoGlobal = 0,
             ambiente = 'PRUEBAS',
-            numeroDocumento = 1
+            numeroDocumento = 1,
+            tipoModelo = 1,
+            tipoOperacion = 1
         } = data;
 
         const codigoGeneracion = this.generateUUID();
@@ -34,8 +36,11 @@ class FacturaGenerator extends BaseGenerator {
         const montoTotalOperacion = this.round(subTotal - (retenciones.iva || 0) - (retenciones.renta || 0));
         const totalPagar = montoTotalOperacion;
 
+        // Si es contingencia, tipoOperacion suele ser 2 (Contingencia)
+        const finalTipoOperacion = (tipoModelo === 2) ? 2 : tipoOperacion;
+
         const dteJson = {
-            identificacion: this.buildIdentificacion('FAC', numeroControl, codigoGeneracion, fechaEmision, ambiente),
+            identificacion: this.buildIdentificacion('FAC', numeroControl, codigoGeneracion, fechaEmision, ambiente, 1, tipoModelo, finalTipoOperacion),
             documentoRelacionado: null,
             emisor: this.buildEmisor(empresaConfig, codigoEstablecimiento, puntoEmision),
             receptor: this.buildReceptor(cliente),

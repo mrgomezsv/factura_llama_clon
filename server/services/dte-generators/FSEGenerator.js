@@ -10,7 +10,9 @@ class FSEGenerator extends BaseGenerator {
             totales,
             retenciones = { renta: 0, iva: 0 },
             ambiente = 'PRUEBAS',
-            numeroDocumento = 1
+            numeroDocumento = 1,
+            tipoModelo = 1,
+            tipoOperacion = 1
         } = data;
 
         // Log input for debugging FSE
@@ -31,8 +33,11 @@ class FSEGenerator extends BaseGenerator {
 
         const cuerpoDocumento = this.buildItemsFSE(items);
 
+        // Si es contingencia, tipoOperacion suele ser 2 (Contingencia)
+        const finalTipoOperacion = (tipoModelo === 2) ? 2 : tipoOperacion;
+
         const dteJson = {
-            identificacion: this.buildIdentificacion('FSE', numeroControl, codigoGeneracion, fechaEmision, ambiente),
+            identificacion: this.buildIdentificacion('FSE', numeroControl, codigoGeneracion, fechaEmision, ambiente, 1, tipoModelo, finalTipoOperacion),
             emisor: this.buildEmisorFSE(empresaConfig, codigoEstablecimiento, puntoEmision),
             sujetoExcluido: this.buildSujetoExcluido(receptorData),
             cuerpoDocumento: cuerpoDocumento,
