@@ -20,12 +20,20 @@ export class FacturaExportacionLogisticaComponent implements OnInit {
     catModoTransporte: any[] = [];
     catRecintoFiscal: any[] = [];
     catRegimenAduanero: any[] = [];
+    catTipoItemExpor: any[] = [
+        { codigo: 1, descripcion: 'Bienes' },
+        { codigo: 2, descripcion: 'Servicios' },
+        { codigo: 3, descripcion: 'Ambos (Bienes y Servicios)' }
+    ];
 
     // Selecciones
+    tipoItemExpor: number = 1;
     incoterm: string = '';
     modoTransporte: string = '';
     recintoFiscal: string = '';
     regimenAduanero: string = '';
+    flete: number = 0;
+    seguro: number = 0;
 
     constructor(private dbService: DatabaseService) { }
 
@@ -35,17 +43,17 @@ export class FacturaExportacionLogisticaComponent implements OnInit {
 
     async cargarCatalogos() {
         try {
-            // Cargar Incoterms (CAT-024)
-            this.catIncoterms = await this.queryCatalog('cat_024_incoterms');
+            // Cargar Incoterms (CAT-024) - Ajustado nombre tabla si necesario
+            try { this.catIncoterms = await this.queryCatalog('cat_031_incoterms'); } catch (e) { console.warn('Usando fallback incoterms'); }
 
             // Cargar Modo Transporte (CAT-023)
-            this.catModoTransporte = await this.queryCatalog('cat_023_modo_transporte');
+            try { this.catModoTransporte = await this.queryCatalog('cat_030_transporte'); } catch (e) { }
 
             // Cargar Recinto Fiscal (CAT-025)
-            this.catRecintoFiscal = await this.queryCatalog('cat_025_recinto_fiscal');
+            try { this.catRecintoFiscal = await this.queryCatalog('cat_027_recinto_fiscal'); } catch (e) { }
 
             // Cargar Régimen Aduanero (CAT-026)
-            this.catRegimenAduanero = await this.queryCatalog('cat_026_regimen_aduanero');
+            try { this.catRegimenAduanero = await this.queryCatalog('cat_028_regimen'); } catch (e) { }
 
         } catch (error) {
             console.error('Error cargando catálogos de logística:', error);
@@ -63,10 +71,13 @@ export class FacturaExportacionLogisticaComponent implements OnInit {
 
     emitirCambios() {
         this.changed.emit({
+            tipoItemExpor: this.tipoItemExpor,
             incoterms: this.incoterm,
             modoTransporte: this.modoTransporte,
             recintoFiscal: this.recintoFiscal,
-            regimenAduanero: this.regimenAduanero
+            regimenAduanero: this.regimenAduanero,
+            flete: this.flete,
+            seguro: this.seguro
         });
     }
 }

@@ -2,21 +2,20 @@
     <button class="card-header" type="button" (click)="collapsed = !collapsed" [class.active]="!collapsed">
         <span class="icon" aria-hidden="true">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
         </span>
-        <span class="title">Datos de Logística (Exportación)</span>
+        <span class="title">Exportación</span>
         <span class="chevron" [class.open]="!collapsed">▾</span>
     </button>
     <div class="card-body grid-layout" *ngIf="!collapsed">
-        
+
         <div class="form-group">
-            <label class="label">Incoterms (CAT-024)</label>
+            <label class="label">Tipo de Ítem</label>
             <div class="select-wrapper">
-                <select class="input select" [(ngModel)]="incoterm" (change)="emitirCambios()">
-                    <option value="" disabled>Seleccionar Incoterm</option>
-                    <option *ngFor="let item of catIncoterms" [value]="item.codigo">
-                        {{ item.codigo }} - {{ item.descripcion }}
+                <select class="input select" [(ngModel)]="tipoItemExpor" (change)="emitirCambios()">
+                    <option *ngFor="let item of catTipoItemExpor" [value]="item.codigo">
+                        {{ item.descripcion }}
                     </option>
                 </select>
                 <span class="select-arrow">▾</span>
@@ -24,23 +23,10 @@
         </div>
 
         <div class="form-group">
-            <label class="label">Modo de Transporte (CAT-023)</label>
-            <div class="select-wrapper">
-                <select class="input select" [(ngModel)]="modoTransporte" (change)="emitirCambios()">
-                    <option value="" disabled>Seleccionar Transporte</option>
-                    <option *ngFor="let item of catModoTransporte" [value]="item.codigo">
-                        {{ item.codigo }} - {{ item.descripcion }}
-                    </option>
-                </select>
-                <span class="select-arrow">▾</span>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="label">Recinto Fiscal (CAT-025)</label>
+            <label class="label">Recinto Fiscal (opcional)</label>
             <div class="select-wrapper">
                 <select class="input select" [(ngModel)]="recintoFiscal" (change)="emitirCambios()">
-                    <option value="" disabled>Seleccionar Recinto</option>
+                    <option value="" disabled>Selecciona un recinto fiscal</option>
                     <option *ngFor="let item of catRecintoFiscal" [value]="item.codigo">
                         {{ item.codigo }} - {{ item.descripcion }}
                     </option>
@@ -50,11 +36,55 @@
         </div>
 
         <div class="form-group">
-            <label class="label">Régimen Aduanero (CAT-026)</label>
+            <label class="label">Régimen de Exportación (opcional)</label>
             <div class="select-wrapper">
                 <select class="input select" [(ngModel)]="regimenAduanero" (change)="emitirCambios()">
-                    <option value="" disabled>Seleccionar Régimen</option>
+                    <option value="" disabled>Selecciona un régimen de exportación</option>
                     <option *ngFor="let item of catRegimenAduanero" [value]="item.codigo">
+                        {{ item.codigo }} - {{ item.descripcion }}
+                    </option>
+                </select>
+                <span class="select-arrow">▾</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="label">Flete</label>
+            <div class="input-group">
+                <span class="input-prefix">$</span>
+                <input type="number" class="input" [(ngModel)]="flete" (change)="emitirCambios()"
+                    placeholder="Ingresa el monto (opcional)" min="0">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="label">Seguro</label>
+            <div class="input-group">
+                <span class="input-prefix">$</span>
+                <input type="number" class="input" [(ngModel)]="seguro" (change)="emitirCambios()"
+                    placeholder="Ingresa el monto (opcional)" min="0">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="label">Incoterms (opcional)</label>
+            <div class="select-wrapper">
+                <select class="input select" [(ngModel)]="incoterm" (change)="emitirCambios()">
+                    <option value="" disabled>Selecciona el incoterms</option>
+                    <option *ngFor="let item of catIncoterms" [value]="item.codigo">
+                        {{ item.codigo }} - {{ item.descripcion }}
+                    </option>
+                </select>
+                <span class="select-arrow">▾</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="label">Modo de Transporte (opcional)</label>
+            <div class="select-wrapper">
+                <select class="input select" [(ngModel)]="modoTransporte" (change)="emitirCambios()">
+                    <option value="" disabled>Selecciona el transporte</option>
+                    <option *ngFor="let item of catModoTransporte" [value]="item.codigo">
                         {{ item.codigo }} - {{ item.descripcion }}
                     </option>
                 </select>
