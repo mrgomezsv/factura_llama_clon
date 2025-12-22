@@ -54,7 +54,7 @@ class BaseGenerator {
         return `${tipo}-${codigoEstablecimiento}${puntoEmision}-${numDocPadded}`;
     }
 
-    buildIdentificacion(tipoDte, numeroControl, codigoGeneracion, fechaEmision, ambiente, version = 1) {
+    buildIdentificacion(tipoDte, numeroControl, codigoGeneracion, fechaEmision, ambiente, version = 1, tipoModelo = 1, tipoOperacion = 1) {
         // Determine TipoDte code (01, 03, etc.)
         const tipos = {
             'FAC': '01', '01': '01',
@@ -71,15 +71,13 @@ class BaseGenerator {
         const horaStr = fechaEmision.toTimeString().split(' ')[0];
 
         return {
-            version: version, // V1 generally, V3 for schema but content version is often 1 or 3 depending on doc. 
-            // FAC is V1 in JSON. CCF is V3?
-            // Let's assume 1 for FAC. Generators can override.
+            version: version,
             ambiente: ambiente === 'PRODUCCIÓN' ? '01' : '00',
             tipoDte: tipoCodigo,
             numeroControl: numeroControl,
             codigoGeneracion: codigoGeneracion,
-            tipoModelo: 1, // 1: Normal, 2: Previo
-            tipoOperacion: 1, // 1: Normal
+            tipoModelo: tipoModelo, // 1: Previo (Online), 2: Diferido (Contingencia)
+            tipoOperacion: tipoOperacion, // 1: Normal, 2: Contingencia
             tipoContingencia: null,
             motivoContin: null,
             fecEmi: fechaStr,
