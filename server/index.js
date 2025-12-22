@@ -1092,16 +1092,20 @@ app.get('/api/dtes/:id/pdf', async (req, res) => {
 
     // Obtener tipoDte de los query params para evitar colisiones de ID
     const tipoDteParam = req.query.tipoDte;
+    console.log(`📥 [PDF Request] ID: ${dteId}, Param tipoDte: ${tipoDteParam}`);
+
     let tablesToSearch = [];
 
     if (tipoDteParam) {
       const specificTable = getTableNameByTipoDte(tipoDteParam);
+      console.log(`🔍 [PDF Request] Specific Table map result: ${specificTable}`);
       if (specificTable) {
         tablesToSearch = [specificTable];
       }
     }
 
     if (tablesToSearch.length === 0) {
+      console.log('⚠️ [PDF Request] No specific table found, searching all...');
       tablesToSearch = [
         'documento_factura',
         'documento_credito_fiscal',
