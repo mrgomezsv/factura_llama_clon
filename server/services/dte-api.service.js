@@ -58,7 +58,7 @@ class DteApiService {
             const nit = config.nit || this.nit || (user ? user.substr(0, 14) : null);
 
             if (!user || !pwd) {
-                throw new Error('Credenciales MH no configuradas (MH_USER, MH_PWD)');
+                throw new Error('Credenciales MH no configuradas para esta empresa (NIT y Contraseña API required)');
             }
 
             const data = querystring.stringify({
