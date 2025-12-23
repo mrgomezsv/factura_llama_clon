@@ -5,6 +5,7 @@ const NotaDebitoGenerator = require('./dte-generators/NotaDebitoGenerator');
 const FSEGenerator = require('./dte-generators/FSEGenerator');
 const ContingencyGenerator = require('./dte-generators/ContingencyGenerator');
 const FacturaExportacionGenerator = require('./dte-generators/FacturaExportacionGenerator');
+const NotaRemisionGenerator = require('./dte-generators/NotaRemisionGenerator');
 
 class DteBuilder {
   constructor() {
@@ -15,6 +16,7 @@ class DteBuilder {
     this.fseGenerator = new FSEGenerator();
     this.contingencyGenerator = new ContingencyGenerator();
     this.fexGenerator = new FacturaExportacionGenerator();
+    this.notaRemisionGenerator = new NotaRemisionGenerator();
   }
 
   /**
@@ -54,6 +56,10 @@ class DteBuilder {
       return this.contingencyGenerator.generate(data);
     }
 
+    if (tipo === '04' || tipo === 'REM' || tipo === 'NR') {
+      return this.notaRemisionGenerator.generate(data);
+    }
+
     // Futuras implementaciones
     // if (tipo === '03' || tipo === 'CCF') { ... }
 
@@ -74,7 +80,8 @@ class DteBuilder {
     const map = {
       'FAC': '01',
       'CCF': '03',
-      'NR': '01',
+      'NR': '04',
+      'REM': '04',
       'FEX': '11',
       'FSE': '14',
       'ND': '06',
@@ -83,6 +90,7 @@ class DteBuilder {
       'NCR': '05',
       '01': '01',
       '03': '03',
+      '04': '04',
       '11': '11',
       '14': '14',
       '05': '05',
