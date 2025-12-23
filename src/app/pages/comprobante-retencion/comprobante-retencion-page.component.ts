@@ -55,7 +55,7 @@ export class ComprobanteRetencionPageComponent {
   @ViewChild(ComprobanteRetencionItemsComponent) itemsComponent!: ComprobanteRetencionItemsComponent;
 
   cliente: any = {};
-  items: ItemFactura[] = [];
+  items: any[] = []; // Changed to any[] to support CR fields
   itemsRaw: any[] = [];
   descuentoGlobal = 0;
   retenciones: Retenciones = { renta: 0, iva: 0 };
@@ -65,6 +65,10 @@ export class ComprobanteRetencionPageComponent {
   vistaPrevia = true;
   empresaSeleccionada: any = null;
   generandoDTE = false;
+
+  // CR Totals
+  totalSujetoRetencion = 0;
+  totalIVAretenido = 0;
 
   constructor(
     private router: Router,
@@ -93,16 +97,23 @@ export class ComprobanteRetencionPageComponent {
   }
   onDescuento(v: number) { this.descuentoGlobal = v || 0; }
   onRetenciones(v: Retenciones) { this.retenciones = v; }
+
   onItems(items: any[]) {
     this.itemsRaw = items || [];
-    this.items = (items || []).map(item => ({
-      cantidad: Number(item.cantidad || 0),
-      precio: Number(item.precio || 0),
-      descuento: Number(item.descuento || 0),
-      tipoVenta: item.tipoVenta || 'Gravada',
-      descripcion: item.descripcion || item.producto || '',
-      unidad: item.unidad || 'Unidad'
-    }));
+    this.items = this.itemsRaw;
+    this.calcularTotalesCR();
+  }
+
+  calcularTotalesCR() {
+    this.totalSujetoRetencion = 0;
+    this.totalIVAretenido = 0;
+
+    this.items.forEach(item => {
+      const sujeto = parseFloat(item.montoSujetoGrav || item.montoSujeto || 0);
+      const retenido = parseFloat(item.ivaRetenido || item.retencion || 0);
+      this.totalSujetoRetencion += sujeto;
+      this.totalIVAretenido += retenido;
+    });
   }
 
   /**
@@ -146,45 +157,40 @@ export class ComprobanteRetencionPageComponent {
       return;
     }
     if (this.itemsRaw.length === 0) {
-      alert('Error: Debe agregar al menos un item');
+      alert('Error: Debe agregar al menos un documento');
       return;
     }
     if (!this.cliente || !this.cliente.nombre) {
-      alert('Error: Debe seleccionar un cliente');
+      alert('Error: Debe seleccionar un cliente (Agente de Retención)');
       return;
     }
 
     this.generandoDTE = true;
+
+    // Construct CR (07) Payload
     const datosDTE = {
-      tipoDte: 'CRT',
+      tipoDte: '07', // Code for Comprobante de Retención
       empresaId: this.empresaSeleccionada.id,
       clienteId: this.cliente.id || null,
+      emisor: this.empresaSeleccionada, // Ensure emisor info is passed if needed generally, but usually backend fetches it
+      cliente: this.cliente, // Pass full client object
+      secuencial: null, // Backend handles current control number
+      fechaEmision: new Date(),
       items: this.itemsRaw.map(item => ({
-        cantidad: Number(item.cantidad || 0),
-        precio: Number(item.precio || 0),
-        descuento: Number(item.descuento || 0),
-        tipoVenta: item.tipoVenta || 'Gravada',
-        descripcion: item.descripcion || item.producto || '',
-        unidad: item.unidad || 'Unidad',
-        codigo: item.codigo || null
+        tipoDteRelacionado: item.tipoDteRelacionado || '03',
+        tipoGeneracion: item.tipoGeneracion || 1,
+        numDocumento: item.numeroDocumento || item.numDocumento,
+        fechaEmision: item.fechaEmision || new Date().toISOString().split('T')[0],
+        montoSujetoGrav: parseFloat(item.montoSujetoGrav || item.montoSujeto || 0),
+        codigoRetencionMH: item.codigoRetencion || '22',
+        ivaRetenido: parseFloat(item.ivaRetenido || item.retencion || 0),
+        descripcion: item.descripcion || 'Retención IVA'
       })),
       totales: {
-        sumaVentasGravadas: this.sumaVentasGravadas,
-        sumaVentasExentas: this.sumaVentasExentas,
-        sumaVentasNoSujetas: this.sumaVentasNoSujetas,
-        sumatoriaVentas: this.sumatoriaVentas,
-        descuentoGlobalVentasGravadas: this.descuentoGlobalVentasGravadas,
-        subTotal: this.subTotal,
-        iva: this.iva,
-        ivaRetenido: this.ivaRetenido,
-        retencionRenta: this.retencionRenta,
-        montoTotalOperacion: this.montoTotalOperacion,
-        totalOtrosMontosNoAfectos: this.totalOtrosMontosNoAfectos,
-        totalPagar: this.totalPagar
+        totalSujetoRetencion: this.totalSujetoRetencion,
+        totalIVAretenido: this.totalIVAretenido
       },
-      retenciones: this.retenciones,
-      descuentoGlobal: this.descuentoGlobal,
-      otrosMontosNoAfectos: this.otrosMontosNoAfectos,
+      observaciones: null,
       ambiente: this.ambienteProduccion ? 'PRODUCCIÓN' : 'PRUEBAS'
     };
 
@@ -195,7 +201,7 @@ export class ComprobanteRetencionPageComponent {
         const url = window.URL.createObjectURL(pdfBlob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `DTE - CRT - ${new Date().getTime()}.pdf`;
+        link.download = `DTE-CR-${new Date().getTime()}.pdf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -205,7 +211,21 @@ export class ComprobanteRetencionPageComponent {
       },
       error: (error) => {
         console.error('Error al generar DTE:', error);
-        alert('Error al generar el DTE: ' + (error.error?.error || error.message || 'Error desconocido'));
+        // Try to parse blob error if json
+        if (error.error instanceof Blob) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const errObj = JSON.parse(reader.result as string);
+              alert('Error: ' + (errObj.error || errObj.message || 'Error desconocido'));
+            } catch (e) {
+              alert('Error desconocido al generar DTE');
+            }
+          };
+          reader.readAsText(error.error);
+        } else {
+          alert('Error al generar el DTE: ' + (error.error?.error || error.message || 'Error desconocido'));
+        }
         this.generandoDTE = false;
       }
     });

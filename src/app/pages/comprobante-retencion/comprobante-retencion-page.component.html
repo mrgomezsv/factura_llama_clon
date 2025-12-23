@@ -48,47 +48,64 @@
         </div>
       </div>
       <div class="panel-derecho">
-        <div class="placeholder-totales" *ngIf="items.length === 0">
-          <img class="box-illustration" src="images/empty-state-4bf0c4a3.png" alt="Sin ítems" />
-          <p class="empty-title">No se han agregado ítems</p>
-          <p class="empty-sub">No es posible registrar ventas sin añadir productos o servicios.</p>
-        </div>
-        <div class="card-body" *ngIf="items.length > 0">
-          <table class="items-table">
-            <thead>
-              <tr>
-                <th style="width: 80px;">CANT.</th>
-                <th>DESCRIPCIÓN</th>
-                <th>P. UNITARIO</th>
-                <th>DESCUENTO</th>
-                <th>TOTAL</th>
-                <th style="width: 40px;"></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let item of itemsRaw; let i = index">
-                <td>{{ item.cantidad }}</td>
-                <td>{{ item.descripcion || item.producto || 'Sin descripción' }}</td>
-                <td>${{ item.precio | number:'1.2-2' }}</td>
-                <td>${{ item.descuento | number:'1.2-2' }}</td>
-                <td>${{ (item.precio - (item.descuento || 0)) * item.cantidad | number:'1.2-2' }}</td>
-                <td style="position: relative;">
-                  <button class="btn-dots" type="button" (click)="toggleMenu(i, $event)">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                      <path
-                        d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0-6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0 12a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                  </button>
-                  <div class="menu-dropdown" *ngIf="activeMenuIndex === i">
-                    <button class="menu-item delete" (click)="eliminarItem(i)">
-                      <span class="icon">🗑️</span> Eliminar
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <!-- Contenedor fijo para items/placeholder que mantiene el espacio -->
+        <div class="items-container">
+          <div class="placeholder-totales" *ngIf="itemsRaw.length === 0">
+            <img class="box-illustration" src="images/empty-state-4bf0c4a3.png" alt="Sin ítems" />
+            <p class="empty-title">No se han agregado documentos relacionados</p>
+            <p class="empty-sub">Agregue los documentos sobre los cuales se aplicará la retención.</p>
+          </div>
+
+          <!-- Tabla de items agregados -->
+          <div class="card items-table-card" *ngIf="itemsRaw.length > 0">
+            <div class="card-header">
+              <div class="dashed-line-left"></div>
+              <span class="icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.5" />
+                </svg>
+              </span>
+              <span class="title">Documentos Relacionados</span>
+              <div class="dashed-line-right"></div>
+            </div>
+            <div class="card-body">
+              <table class="items-table">
+                <thead>
+                  <tr>
+                    <th>FECHA</th>
+                    <th>TIPO DOC</th>
+                    <th>NUM DOCUMENTO</th>
+                    <th>BASE IMP.</th>
+                    <th>RETENCIÓN</th>
+                    <th style="width: 40px;"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of itemsRaw; let i = index">
+                    <td>{{ item.fechaEmision || 'N/A' }}</td>
+                    <td>{{ item.tipoDteRelacionado || '03' }}</td>
+                    <td>{{ item.numeroDocumento || item.numDocumento || 'N/A' }}</td>
+                    <td>${{ (item.montoSujetoGrav || item.montoSujeto || 0) | number:'1.2-2' }}</td>
+                    <td>${{ (item.ivaRetenido || item.retencion || 0) | number:'1.2-2' }}</td>
+                    <td style="position: relative;">
+                      <button class="btn-dots" type="button" (click)="toggleMenu(i, $event)">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                          <path
+                            d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0-6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0 12a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                      </button>
+                      <div class="menu-dropdown" *ngIf="activeMenuIndex === i">
+                        <button class="menu-item delete" (click)="eliminarItem(i)">
+                          <span class="icon">🗑️</span> Eliminar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
         <div class="card totales-card">
           <div class="card-header">
@@ -105,30 +122,10 @@
           </div>
           <div class="card-body">
             <div class="tabla-totales">
-              <div class="tot-row"><span>Suma de Ventas Gravadas</span><span>{{ sumaVentasGravadas |
+              <div class="tot-row"><span>Total Sujeto a Retención</span><span>{{ totalSujetoRetencion |
                   currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row"><span>Suma de Ventas Exentas</span><span>{{ sumaVentasExentas |
+              <div class="tot-row total"><span>Total IVA Retenido</span><span>{{ totalIVAretenido |
                   currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row"><span>Suma de Ventas No Sujetas</span><span>{{ sumaVentasNoSujetas |
-                  currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row"><span>Sumatoria de Ventas</span><span>{{ sumatoriaVentas |
-                  currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row"><span>Descuento Global Ventas Gravadas</span><span>{{ descuentoGlobalVentasGravadas |
-                  currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row subtotal"><span>Sub Total</span><span>{{ subTotal | currency:'USD':'symbol':'1.2-2'
-                  }}</span></div>
-              <div class="tot-row"><span>(+)IVA (13%)</span><span>{{ iva | currency:'USD':'symbol':'1.2-2' }}</span>
-              </div>
-              <div class="tot-row"><span>(-)IVA Retenido</span><span>{{ ivaRetenido | currency:'USD':'symbol':'1.2-2'
-                  }}</span></div>
-              <div class="tot-row"><span>(-)Retención Renta</span><span>{{ retencionRenta |
-                  currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row"><span>Monto Total de Operación</span><span>{{ montoTotalOperacion |
-                  currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row"><span>Total de Otros Montos No Afectos</span><span>{{ totalOtrosMontosNoAfectos |
-                  currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row total"><span>Total a Pagar</span><span>{{ totalPagar | currency:'USD':'symbol':'1.2-2'
-                  }}</span></div>
             </div>
           </div>
         </div>
