@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, OnInit, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -13,7 +13,9 @@ import { NotaRemisionAppendicesComponent } from '../../components/nota-remision/
 import { NotaRemisionItemsComponent } from '../../components/nota-remision/items/items.component';
 import { FacturacionCalculationsService } from '../../services/facturacion-calculations.service';
 import { DteService } from '../../services/dte.service';
+import { AuthService } from '../../services/auth.service';
 import { ItemFactura, Retenciones, ResultadosCalculoFacturacion } from '../../models/facturacion.model';
+import { HttpHeaders } from '@angular/common/http';
 
 @Component({
   selector: 'app-nota-remision-page',
@@ -35,7 +37,7 @@ import { ItemFactura, Retenciones, ResultadosCalculoFacturacion } from '../../mo
 })
 export class NotaRemisionPageComponent {
   @ViewChild(NotaRemisionItemsComponent) itemsComponent!: NotaRemisionItemsComponent;
-  
+
   cliente: any = {};
   items: ItemFactura[] = [];
   itemsRaw: any[] = [];
@@ -47,12 +49,16 @@ export class NotaRemisionPageComponent {
   vistaPrevia = true;
   empresaSeleccionada: any = null;
   generandoDTE = false;
-  
+  codigoGeneracion: string = '';
+  emisor: any = {};
+  usuario: any = {};
+
   constructor(
     private router: Router,
     private facturacionService: FacturacionCalculationsService,
     private dteService: DteService,
-    private http: HttpClient
+    private http: HttpClient,
+    private authService: AuthService
   ) {
     this.dteService.getEmpresas().subscribe(empresas => {
       if (empresas.length > 0) {
@@ -61,7 +67,43 @@ export class NotaRemisionPageComponent {
     });
   }
 
-  onCliente(v: any) { 
+  ngOnInit(): void {
+    this.codigoGeneracion = this.generateUUID();
+
+    this.authService.user$.subscribe(usuario => {
+      this.usuario = usuario;
+      if (usuario && usuario.empresaId) {
+        this.dteService.getEmpresas().subscribe(empresas => {
+          const empresa = empresas.find(e => e.id === usuario.empresaId);
+          if (empresa) {
+            this.emisor = empresa;
+            if (!this.empresaSeleccionada) {
+              this.empresaSeleccionada = empresa;
+            }
+          }
+        });
+
+        this.dteService.getEmpresaConfig(usuario.empresaId).subscribe(config => {
+          if (config) {
+            if (config.ambientePruebasActivo) {
+              this.ambienteProduccion = false;
+            } else if (config.ambienteProduccionActivo) {
+              this.ambienteProduccion = true;
+            }
+          }
+        });
+      }
+    });
+  }
+
+  generateUUID(): string {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+  onCliente(v: any) {
     this.cliente = {
       id: v.id,
       nombre: v.nombre,
@@ -75,7 +117,7 @@ export class NotaRemisionPageComponent {
   }
   onDescuento(v: number) { this.descuentoGlobal = v || 0; }
   onRetenciones(v: Retenciones) { this.retenciones = v; }
-  onItems(items: any[]) { 
+  onItems(items: any[]) {
     this.itemsRaw = items || [];
     this.items = (items || []).map(item => ({
       cantidad: Number(item.cantidad || 0),
@@ -98,6 +140,25 @@ export class NotaRemisionPageComponent {
       otrosMontosNoAfectos: this.otrosMontosNoAfectos,
       tipoDte: 'REM' // Nota de Remisión - gravada
     });
+  }
+
+  activeMenuIndex: number | null = null;
+
+  eliminarItem(index: number): void {
+    if (this.itemsComponent) {
+      this.itemsComponent.eliminarItem(index);
+      this.activeMenuIndex = null; // Cerrar menu al eliminar
+    }
+  }
+
+  toggleMenu(index: number, event: Event): void {
+    event.stopPropagation();
+    this.activeMenuIndex = this.activeMenuIndex === index ? null : index;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    this.activeMenuIndex = null;
   }
 
   // Getters que exponen los valores calculados
@@ -170,14 +231,28 @@ export class NotaRemisionPageComponent {
       ambiente: this.ambienteProduccion ? 'PRODUCCIÓN' : 'PRUEBAS'
     };
 
+    const token = localStorage.getItem('auth_token');
+
+    if (!token) {
+      console.error('No hay token de autenticación');
+      alert('Error: No ha iniciado sesión o la sesión ha expirado');
+      this.generandoDTE = false;
+      return;
+    }
+
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token} `
+    });
+
     this.http.post('http://localhost:3000/api/dtes/generar', datosDTE, {
+      headers: headers,
       responseType: 'blob'
     }).subscribe({
       next: (pdfBlob: Blob) => {
         const url = window.URL.createObjectURL(pdfBlob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `DTE-REM-${new Date().getTime()}.pdf`;
+        link.download = `DTE - REM - ${new Date().getTime()}.pdf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
