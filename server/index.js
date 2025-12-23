@@ -35,7 +35,9 @@ function getTableNameByTipoDte(tipoDte) {
     '11': 'documento_factura_exportacion',
     '14': 'documento_factura_sujeto_excluido',
     '15': 'documento_nota_remision',
-    '16': 'documento_comprobante_retencion'
+    '16': 'documento_comprobante_retencion',
+    '07': 'documento_comprobante_retencion',
+    'CR': 'documento_comprobante_retencion'
   };
 
   return tipoToTable[tipoDte] || null;
