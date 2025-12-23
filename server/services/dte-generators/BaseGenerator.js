@@ -49,11 +49,22 @@ class BaseGenerator {
             'FSE': 'DTE-14',
             '14': 'DTE-14',
             'FEX': 'DTE-11',
-            '11': 'DTE-11'
+            '11': 'DTE-11',
+            'CRE': 'DTE-07',
+            '07': 'DTE-07'
         };
         const tipo = tipoMap[tipoDte] || 'DTE-00';
 
         const numDocPadded = String(numeroDocumento).padStart(15, '0');
+
+        // CR (07) requires a different format: DTE-07-[A-Z0-9]{8}-[0-9]{15}
+        // The 8-char segment should be establishment code (alphanumeric), not establishment+point
+        if (tipoDte === '07' || tipoDte === 'CRE') {
+            const establishmentCode = String(codigoEstablecimiento + puntoEmision).toUpperCase().padStart(8, '0');
+            return `${tipo}-${establishmentCode}-${numDocPadded}`;
+        }
+
+        // Standard format for all other DTEs
         return `${tipo}-${codigoEstablecimiento}${puntoEmision}-${numDocPadded}`;
     }
 
@@ -66,12 +77,19 @@ class BaseGenerator {
             'NDB': '06', '06': '06',
             'NR': '04', '04': '04', 'REM': '04',
             'FSE': '14', '14': '14',
-            'FEX': '11', '11': '11'
+            'FEX': '11', '11': '11',
+            'CRE': '07', '07': '07'
         };
         const tipoCodigo = tipos[tipoDte] || '01';
 
-        const fechaStr = fechaEmision.toISOString().split('T')[0];
-        const horaStr = fechaEmision.toTimeString().split(' ')[0];
+        // Usar siempre la fecha y hora actual del momento de generación
+        // Usar fecha local (no UTC) para evitar diferencias de zona horaria
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const fechaStr = `${year}-${month}-${day}`;
+        const horaStr = now.toTimeString().split(' ')[0];
 
         return {
             version: version,
