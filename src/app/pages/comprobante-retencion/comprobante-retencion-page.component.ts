@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, OnInit, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -34,8 +34,26 @@ import { ItemFactura, Retenciones, ResultadosCalculoFacturacion } from '../../mo
   styleUrl: './comprobante-retencion-page.component.scss'
 })
 export class ComprobanteRetencionPageComponent {
+  activeMenuIndex: number | null = null;
+
+  eliminarItem(index: number): void {
+    if (this.itemsComponent && this.itemsComponent.items) {
+      this.itemsComponent.eliminarItem(index);
+      this.activeMenuIndex = null;
+    }
+  }
+
+  toggleMenu(index: number, event: Event): void {
+    event.stopPropagation();
+    this.activeMenuIndex = this.activeMenuIndex === index ? null : index;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    this.activeMenuIndex = null;
+  }
   @ViewChild(ComprobanteRetencionItemsComponent) itemsComponent!: ComprobanteRetencionItemsComponent;
-  
+
   cliente: any = {};
   items: ItemFactura[] = [];
   itemsRaw: any[] = [];
@@ -47,7 +65,7 @@ export class ComprobanteRetencionPageComponent {
   vistaPrevia = true;
   empresaSeleccionada: any = null;
   generandoDTE = false;
-  
+
   constructor(
     private router: Router,
     private facturacionService: FacturacionCalculationsService,
@@ -61,7 +79,7 @@ export class ComprobanteRetencionPageComponent {
     });
   }
 
-  onCliente(v: any) { 
+  onCliente(v: any) {
     this.cliente = {
       id: v.id,
       nombre: v.nombre,
@@ -75,7 +93,7 @@ export class ComprobanteRetencionPageComponent {
   }
   onDescuento(v: number) { this.descuentoGlobal = v || 0; }
   onRetenciones(v: Retenciones) { this.retenciones = v; }
-  onItems(items: any[]) { 
+  onItems(items: any[]) {
     this.itemsRaw = items || [];
     this.items = (items || []).map(item => ({
       cantidad: Number(item.cantidad || 0),
@@ -177,7 +195,7 @@ export class ComprobanteRetencionPageComponent {
         const url = window.URL.createObjectURL(pdfBlob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `DTE-CRT-${new Date().getTime()}.pdf`;
+        link.download = `DTE - CRT - ${new Date().getTime()}.pdf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

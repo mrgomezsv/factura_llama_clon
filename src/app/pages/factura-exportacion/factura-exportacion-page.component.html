@@ -70,42 +70,40 @@
               <table class="items-table">
                 <thead>
                   <tr>
-                    <th>Cant.</th>
-                    <th>Descripción</th>
-                    <th>P. Unitario</th>
-                    <th>Descuento</th>
-                    <th>Total</th>
-                    <th></th>
+                    <th style="width: 80px;">CANT.</th>
+                    <th>DESCRIPCIÓN</th>
+                    <th>P. UNITARIO</th>
+                    <th>DESCUENTO</th>
+                    <th>TOTAL</th>
+                    <th style="width: 40px;"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let item of items; let i = index">
+                  <tr *ngFor="let item of itemsRaw; let i = index">
                     <td>{{ item.cantidad }}</td>
-                    <td>{{ item.descripcion || 'Sin descripción' }}</td>
-                    <td>{{ item.precio | currency:'USD':'symbol':'1.2-2' }}</td>
-                    <td>{{ (item.descuento || 0) | currency:'USD':'symbol':'1.2-2' }}</td>
-                    <td>{{ (item.precio - (item.descuento || 0)) * item.cantidad | currency:'USD':'symbol':'1.2-2' }}
-                    </td>
-                    <td>
-                      <div class="action-menu-container">
-                        <button class="btn-action-menu" type="button" (click)="toggleActionMenu(i)">
-                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <path
-                              d="M8 4a1 1 0 100-2 1 1 0 000 2zm0 5a1 1 0 100-2 1 1 0 000 2zm0 5a1 1 0 100-2 1 1 0 000 2z"
-                              fill="currentColor" />
+                    <td>{{ item.descripcion || item.producto || 'Sin descripción' }}</td>
+                    <td>${{ item.precio | number:'1.2-2' }}</td>
+                    <td>${{ item.descuento | number:'1.2-2' }}</td>
+                    <!-- FEX: Total = (Precio - Descuento) * Cantidad (Venta Gravada por defecto en visualización) -->
+                    <td>${{ (item.precio - (item.descuento || 0)) * item.cantidad | number:'1.2-2' }}</td>
+                    <td style="position: relative;">
+                      <button class="btn-dots" type="button" (click)="toggleMenu(i, $event)">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                          <path
+                            d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0-6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0 12a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                      </button>
+                      <div class="action-menu-dropdown" *ngIf="activeMenuIndex === i">
+                        <button class="action-menu-item delete" type="button" (click)="eliminarItem(i)">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                            <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
+                              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                              stroke-linejoin="round" />
                           </svg>
+                          Eliminar
                         </button>
-                        <div class="action-menu-dropdown" *ngIf="activeMenuIndex === i">
-                          <button class="action-menu-item delete" type="button" (click)="eliminarItem(i)">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                              <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                              <path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" />
-                            </svg>
-                            Eliminar
-                          </button>
-                        </div>
                       </div>
                     </td>
                   </tr>

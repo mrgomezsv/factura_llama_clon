@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -136,10 +136,23 @@ export class NotaDebitoPageComponent {
   get montoTotalOperacion(): number { return this.calculos.montoTotalOperacion; }
   get totalOtrosMontosNoAfectos(): number { return this.calculos.totalOtrosMontosNoAfectos; }
   get totalPagar(): number { return this.calculos.totalPagar; }
-  quitarItem(index: number): void {
+  activeMenuIndex: number | null = null;
+
+  eliminarItem(index: number): void {
     if (this.itemsComponent && this.itemsComponent.items) {
       this.itemsComponent.eliminarItem(index);
+      this.activeMenuIndex = null;
     }
+  }
+
+  toggleMenu(index: number, event: Event): void {
+    event.stopPropagation();
+    this.activeMenuIndex = this.activeMenuIndex === index ? null : index;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    this.activeMenuIndex = null;
   }
 
   cerrar(): void {
@@ -211,7 +224,7 @@ export class NotaDebitoPageComponent {
       return;
     }
 
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token} `);
 
     this.http.post('http://localhost:3000/api/dtes/generar', datosDTE, {
       headers: headers,
@@ -221,7 +234,7 @@ export class NotaDebitoPageComponent {
         const url = window.URL.createObjectURL(pdfBlob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `DTE-NDB-${new Date().getTime()}.pdf`;
+        link.download = `DTE - NDB - ${new Date().getTime()}.pdf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

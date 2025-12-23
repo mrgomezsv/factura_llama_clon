@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, OnInit, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -81,7 +81,7 @@ export class ComprobanteCreditoFiscalPageComponent {
       const precio = Number(item.precio || 0);
       const cantidad = Number(item.cantidad || 1);
       const descuento = Number(item.descuento || 0);
-      
+
       // Para CCF, el precio ingresado es NETO (sin IVA)
       // El servicio de cálculos espera precio neto
       // El descuento del item se aplica al subtotal (cantidad * precio)
@@ -94,7 +94,7 @@ export class ComprobanteCreditoFiscalPageComponent {
         unidad: item.unidad || 'Unidad'
       };
     });
-    
+
     // Debug: verificar que los items se estén mapeando correctamente
     if (this.items.length > 0) {
       console.log('Items mapeados para cálculos:', this.items);
@@ -102,10 +102,23 @@ export class ComprobanteCreditoFiscalPageComponent {
     }
   }
 
+  activeMenuIndex: number | null = null;
+
   eliminarItem(index: number): void {
     if (this.itemsComponent && this.itemsComponent.items) {
       this.itemsComponent.eliminarItem(index);
+      this.activeMenuIndex = null;
     }
+  }
+
+  toggleMenu(index: number, event: Event): void {
+    event.stopPropagation();
+    this.activeMenuIndex = this.activeMenuIndex === index ? null : index;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    this.activeMenuIndex = null;
   }
 
   /**
@@ -120,7 +133,7 @@ export class ComprobanteCreditoFiscalPageComponent {
       tipoVenta: item.tipoVenta || 'Gravada',
       descripcion: item.descripcion || ''
     }));
-    
+
     const resultado = this.facturacionService.calcularFacturacion({
       items: itemsParaCalculo,
       descuentoGlobal: this.descuentoGlobal,
@@ -128,7 +141,7 @@ export class ComprobanteCreditoFiscalPageComponent {
       otrosMontosNoAfectos: this.otrosMontosNoAfectos,
       tipoDte: 'CCF' // Comprobante Crédito Fiscal - gravada
     });
-    
+
     // Debug: verificar que los cálculos se estén ejecutando
     if (itemsParaCalculo.length > 0 && resultado.sumaVentasGravadas === 0) {
       console.warn('⚠️ Items presentes pero sumaVentasGravadas es 0', {
@@ -138,7 +151,7 @@ export class ComprobanteCreditoFiscalPageComponent {
         resultado
       });
     }
-    
+
     return resultado;
   }
 

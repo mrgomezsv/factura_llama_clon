@@ -1,4 +1,5 @@
-import { Component, ViewChild, OnInit } from '@angular/core';
+import { Component, ViewChild, OnInit, HostListener } from '@angular/core';
+
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -139,10 +140,23 @@ export class FacturaPageComponent implements OnInit {
     }));
   }
 
+  activeMenuIndex: number | null = null;
+
   eliminarItem(index: number): void {
     if (this.itemsComponent && this.itemsComponent.items) {
       this.itemsComponent.eliminarItem(index);
+      this.activeMenuIndex = null;
     }
+  }
+
+  toggleMenu(index: number, event: Event): void {
+    event.stopPropagation();
+    this.activeMenuIndex = this.activeMenuIndex === index ? null : index;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    this.activeMenuIndex = null;
   }
 
   /**

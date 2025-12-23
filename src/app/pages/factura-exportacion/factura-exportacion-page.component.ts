@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, OnInit, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -125,18 +125,20 @@ export class FacturaExportacionPageComponent {
   get sumaGravadas(): number { return this.calculos.sumaGravadas; }
 
   eliminarItem(index: number): void {
-    if (this.itemsComponent) {
+    if (this.itemsComponent && this.itemsComponent.items) {
       this.itemsComponent.eliminarItem(index);
+      this.activeMenuIndex = null;
     }
-    this.activeMenuIndex = null;
   }
 
-  toggleActionMenu(index: number): void {
-    if (this.activeMenuIndex === index) {
-      this.activeMenuIndex = null;
-    } else {
-      this.activeMenuIndex = index;
-    }
+  toggleMenu(index: number, event: Event): void {
+    event.stopPropagation();
+    this.activeMenuIndex = this.activeMenuIndex === index ? null : index;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    this.activeMenuIndex = null;
   }
 
   cerrar(): void {
@@ -206,7 +208,7 @@ export class FacturaExportacionPageComponent {
 
     this.http.post('http://localhost:3000/api/dtes/generar', datosDTE, {
       headers: {
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${token} `
       },
       responseType: 'blob'
     }).subscribe({
@@ -214,7 +216,7 @@ export class FacturaExportacionPageComponent {
         const url = window.URL.createObjectURL(pdfBlob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `DTE-FEX-${new Date().getTime()}.pdf`;
+        link.download = `DTE - FEX - ${new Date().getTime()}.pdf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

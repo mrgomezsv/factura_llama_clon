@@ -19,7 +19,11 @@
           <div class="card-header">
             <div class="dashed-line-left"></div>
             <span class="icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" stroke="currentColor" stroke-width="1.5"/></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"
+                  stroke="currentColor" stroke-width="1.5" />
+              </svg>
             </span>
             <span class="title">Opciones</span>
             <div class="dashed-line-right"></div>
@@ -51,14 +55,14 @@
             <p class="empty-title">No se han agregado ítems</p>
             <p class="empty-sub">No es posible registrar ventas sin añadir productos o servicios.</p>
           </div>
-          
+
           <!-- Tabla de items agregados -->
           <div class="card items-table-card" *ngIf="itemsRaw.length > 0">
             <div class="card-header">
               <div class="dashed-line-left"></div>
               <span class="icon">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.5" />
                 </svg>
               </span>
               <span class="title">Items Agregados</span>
@@ -68,23 +72,34 @@
               <table class="items-table">
                 <thead>
                   <tr>
-                    <th>Nombre</th>
-                    <th>Precio con IVA</th>
-                    <th>Unidad de Medida</th>
-                    <th></th>
+                    <th style="width: 80px;">CANT.</th>
+                    <th>DESCRIPCIÓN</th>
+                    <th>P. UNITARIO</th>
+                    <th>DESCUENTO</th>
+                    <th>TOTAL</th>
+                    <th style="width: 40px;"></th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr *ngFor="let item of itemsRaw; let i = index">
+                    <td>{{ item.cantidad }}</td>
                     <td>{{ item.descripcion || item.producto || 'Sin descripción' }}</td>
-                    <td>${{ (item.precio - (item.descuento || 0)) | number:'1.2-2' }}</td>
-                    <td>{{ item.unidad || 'Unidad' }}</td>
-                    <td>
-                      <button class="btn-delete-item" type="button" (click)="eliminarItem(i)" title="Eliminar item">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                          <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <td>${{ item.precio | number:'1.2-2' }}</td>
+                    <td>${{ item.descuento | number:'1.2-2' }}</td>
+                    <td>${{ (item.precio - (item.descuento || 0)) * item.cantidad | number:'1.2-2' }}</td>
+                    <td style="position: relative;">
+                      <button class="btn-dots" type="button" (click)="toggleMenu(i, $event)">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                          <path
+                            d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0-6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0 12a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
                       </button>
+                      <div class="menu-dropdown" *ngIf="activeMenuIndex === i">
+                        <button class="menu-item delete" (click)="eliminarItem(i)">
+                          <span class="icon">🗑️</span> Eliminar
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 </tbody>
@@ -92,14 +107,15 @@
             </div>
           </div>
         </div>
-        
+
         <div class="card totales-card">
           <div class="card-header">
             <div class="dashed-line-left"></div>
             <span class="icon">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10Z" stroke="currentColor" stroke-width="1.5"/>
-                <path d="M12 7v1.5M12 15.5V17M10 10.5h2.5a1.5 1.5 0 0 1 1.5 1.5 1.5 1.5 0 0 1-1.5 1.5H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10Z" stroke="currentColor" stroke-width="1.5" />
+                <path d="M12 7v1.5M12 15.5V17M10 10.5h2.5a1.5 1.5 0 0 1 1.5 1.5 1.5 1.5 0 0 1-1.5 1.5H10"
+                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
             </span>
             <span class="title">Totales</span>
@@ -107,19 +123,31 @@
           </div>
           <div class="card-body">
             <div class="tabla-totales">
-              <div class="tot-row"><span>Suma de Ventas Gravadas</span><span>{{ sumaVentasGravadas | currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row"><span>Suma de Ventas Exentas</span><span>{{ sumaVentasExentas | currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row"><span>Suma de Ventas No Sujetas</span><span>{{ sumaVentasNoSujetas | currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row"><span>Sumatoria de Ventas</span><span>{{ sumatoriaVentas | currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row"><span>Descuento Global Ventas Gravadas</span><span>{{ descuentoGlobalVentasGravadas | currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row subtotal"><span>Sub Total</span><span>{{ subTotal | currency:'USD':'symbol':'1.2-2' }}</span></div>
+              <div class="tot-row"><span>Suma de Ventas Gravadas</span><span>{{ sumaVentasGravadas |
+                  currency:'USD':'symbol':'1.2-2' }}</span></div>
+              <div class="tot-row"><span>Suma de Ventas Exentas</span><span>{{ sumaVentasExentas |
+                  currency:'USD':'symbol':'1.2-2' }}</span></div>
+              <div class="tot-row"><span>Suma de Ventas No Sujetas</span><span>{{ sumaVentasNoSujetas |
+                  currency:'USD':'symbol':'1.2-2' }}</span></div>
+              <div class="tot-row"><span>Sumatoria de Ventas</span><span>{{ sumatoriaVentas |
+                  currency:'USD':'symbol':'1.2-2' }}</span></div>
+              <div class="tot-row"><span>Descuento Global Ventas Gravadas</span><span>{{ descuentoGlobalVentasGravadas |
+                  currency:'USD':'symbol':'1.2-2' }}</span></div>
+              <div class="tot-row subtotal"><span>Sub Total</span><span>{{ subTotal | currency:'USD':'symbol':'1.2-2'
+                  }}</span></div>
               <!-- No mostrar IVA en facturas a consumidor final (FAC) porque el precio ya lo incluye -->
-              <div class="tot-row" *ngIf="false"><span>(+)IVA (13%)</span><span>{{ iva | currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row"><span>(-)IVA Retenido</span><span>{{ ivaRetenido | currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row"><span>(-)Retención Renta</span><span>{{ retencionRenta | currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row"><span>Monto Total de Operación</span><span>{{ montoTotalOperacion | currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row"><span>Total de Otros Montos No Afectos</span><span>{{ totalOtrosMontosNoAfectos | currency:'USD':'symbol':'1.2-2' }}</span></div>
-              <div class="tot-row total"><span>Total a Pagar</span><span>{{ totalPagar | currency:'USD':'symbol':'1.2-2' }}</span></div>
+              <div class="tot-row" *ngIf="false"><span>(+)IVA (13%)</span><span>{{ iva | currency:'USD':'symbol':'1.2-2'
+                  }}</span></div>
+              <div class="tot-row"><span>(-)IVA Retenido</span><span>{{ ivaRetenido | currency:'USD':'symbol':'1.2-2'
+                  }}</span></div>
+              <div class="tot-row"><span>(-)Retención Renta</span><span>{{ retencionRenta |
+                  currency:'USD':'symbol':'1.2-2' }}</span></div>
+              <div class="tot-row"><span>Monto Total de Operación</span><span>{{ montoTotalOperacion |
+                  currency:'USD':'symbol':'1.2-2' }}</span></div>
+              <div class="tot-row"><span>Total de Otros Montos No Afectos</span><span>{{ totalOtrosMontosNoAfectos |
+                  currency:'USD':'symbol':'1.2-2' }}</span></div>
+              <div class="tot-row total"><span>Total a Pagar</span><span>{{ totalPagar | currency:'USD':'symbol':'1.2-2'
+                  }}</span></div>
             </div>
           </div>
         </div>
@@ -133,4 +161,3 @@
     </div>
   </div>
 </div>
-

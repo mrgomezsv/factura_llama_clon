@@ -87,24 +87,34 @@
               <table class="items-table">
                 <thead>
                   <tr>
-                    <th>Nombre</th>
-                    <th>Precio con IVA</th>
-                    <th>Unidad de Medida</th>
-                    <th></th>
+                    <th style="width: 80px;">CANT.</th>
+                    <th>DESCRIPCIÓN</th>
+                    <th>P. UNITARIO</th>
+                    <th>DESCUENTO</th>
+                    <th>TOTAL</th>
+                    <th style="width: 40px;"></th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr *ngFor="let item of itemsRaw; let i = index">
+                    <td>{{ item.cantidad }}</td>
                     <td>{{ item.descripcion || item.producto || 'Sin descripción' }}</td>
-                    <td>${{ ((item.precio || 0) * 1.13) | number:'1.2-2' }}</td>
-                    <td>{{ item.unidad || 'Unidad' }}</td>
-                    <td>
-                      <button class="btn-delete-item" type="button" (click)="eliminarItem(i)" title="Eliminar item">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                          <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-                            stroke-linejoin="round" />
+                    <td>${{ item.precio | number:'1.2-2' }}</td>
+                    <td>${{ item.descuento | number:'1.2-2' }}</td>
+                    <td>${{ (item.precio - (item.descuento || 0)) * item.cantidad | number:'1.2-2' }}</td>
+                    <td style="position: relative;">
+                      <button class="btn-dots" type="button" (click)="toggleMenu(i, $event)">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                          <path
+                            d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0-6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0 12a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
                       </button>
+                      <div class="menu-dropdown" *ngIf="activeMenuIndex === i">
+                        <button class="menu-item delete" (click)="eliminarItem(i)">
+                          <span class="icon">🗑️</span> Eliminar
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 </tbody>
