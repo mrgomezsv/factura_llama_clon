@@ -77,3 +77,8 @@ server/certs/
 
 # Salida de pruebas
 tests/output/
+
+# Archivos de debug y logs de test
+debug_*.json
+*_run_log.txt
+*.log.txt
