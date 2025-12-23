@@ -8,7 +8,7 @@ import { DteService } from '../../../services/dte.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './items.component.html',
-      styleUrl: './items.component.scss'
+  styleUrl: './items.component.scss'
 })
 export class ComprobanteRetencionItemsComponent {
   @Output() itemsChanged = new EventEmitter<any[]>();
@@ -16,58 +16,54 @@ export class ComprobanteRetencionItemsComponent {
   get items(): FormArray<FormGroup> { return this.form.get('items') as FormArray<FormGroup>; }
   collapsed = true;
 
-  productTypes = ['Bienes', 'Servicios', 'Bienes y Servicios'];
-  units = ['Unidad', 'Caja', 'Docena', 'Kg', 'Lt'];
-  taxes = [
-    'Impuesto al Valor Agregado (exportaciones) 0%',
-    'Turismo: por alojamiento (5%)',
-    'Turismo: salida del país por vía aérea $7.00',
-    'FOVIAL ($0.20 Ctvs. por galón)',
-    'COTRANS ($0.10 Ctvs. por galón)',
-    'Otras tasas casos especiales'
+  // CR Lists
+  tiposDocumento = ['03', '01', '11', '14', '05', '06', '04']; // CCF, FAC, FEX, FSE, NC, ND, NR
+  tiposGeneracion = [
+    { val: 1, label: 'Físico' },
+    { val: 2, label: 'Electrónico' }
   ];
-  saleTypes = ['Gravada', 'Exenta', 'No Sujeta', 'No Gravada'];
-  menus: Record<string, boolean> = { tipoProducto: false, unidad: false, tributos: false, tipoVenta: false };
-  selectedTaxes: string[] = [];
+  menus: Record<string, boolean> = { tipoDte: false, tipoGen: false };
 
   constructor(private fb: FormBuilder, private dteService: DteService) {
     this.form = this.fb.group({
-      producto: [''], tipoProducto: ['Bienes'], cantidad: [1, [Validators.required, Validators.min(0.0001)]], unidad: ['Unidad'],
-      codigo: [''], descripcion: [''], tributos: [''], precio: [0, [Validators.required, Validators.min(0)]], descuento: [0, [Validators.min(0)]], tipoVenta: ['Gravada'],
+      tipoDteRelacionado: ['03', Validators.required],
+      tipoGeneracion: [1, Validators.required],
+      numeroDocumento: ['', Validators.required],
+      fechaEmision: [new Date().toISOString().split('T')[0], Validators.required],
+      montoSujeto: [0, [Validators.required, Validators.min(0.01)]],
+      ivaRetenido: [0, [Validators.required, Validators.min(0)]],
       items: this.fb.array([])
     });
     this.items.valueChanges.subscribe(v => this.itemsChanged.emit(v));
-    // Cargar productos
-    this.dteService.getProductos().subscribe((p: any[]) => {
-      this.allProducts = p;
-      this.filteredProducts = p;
-    });
   }
 
   agregarItem(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      // Optional: alert('Complete los campos');
+      return;
+    }
     const v = this.form.value;
     const item = this.fb.group({
-      producto: [v.producto], descripcion: [v.descripcion], cantidad: [Number(v.cantidad)||1],
-      precio: [Number(v.precio)||0], descuento: [Number(v.descuento)||0], tipoVenta: [v.tipoVenta],
-      unidad: [v.unidad], codigo: [v.codigo]
+      tipoDteRelacionado: [v.tipoDteRelacionado],
+      tipoGeneracion: [v.tipoGeneracion],
+      numeroDocumento: [v.numeroDocumento],
+      fechaEmision: [v.fechaEmision],
+      montoSujetoGrav: [Number(v.montoSujeto)],
+      ivaRetenido: [Number(v.ivaRetenido)],
+      descripcion: [`Retención 1% sobre doc ${v.numeroDocumento}`]
     });
+
     this.items.push(item);
     this.itemsChanged.emit(this.items.value);
-    
-    // Limpiar el formulario después de agregar el item
+
+    // Reset form but keep some defaults
     this.form.patchValue({
-      producto: '',
-      codigo: '',
-      descripcion: '',
-      cantidad: 1,
-      precio: 0,
-      descuento: 0,
-      tipoProducto: 'Bienes',
-      unidad: 'Unidad',
-      tipoVenta: 'Gravada',
-      tributos: ''
+      numeroDocumento: '',
+      montoSujeto: 0,
+      ivaRetenido: 0,
+      fechaEmision: new Date().toISOString().split('T')[0]
     });
-    this.selectedTaxes = [];
   }
 
   eliminarItem(i: number): void {
@@ -78,34 +74,32 @@ export class ComprobanteRetencionItemsComponent {
   toggleMenu(key: string) {
     this.menus[key] = !this.menus[key];
   }
-  selectTipoProducto(val: string) { this.form.patchValue({ tipoProducto: val }); this.menus['tipoProducto'] = false; }
-  selectUnidad(val: string) { this.form.patchValue({ unidad: val }); this.menus['unidad'] = false; }
-  selectTributo(val: string) { this.form.patchValue({ tributos: val }); this.menus['tributos'] = false; }
-  toggleTax(val: string) {
-    const idx = this.selectedTaxes.indexOf(val);
-    if (idx >= 0) this.selectedTaxes.splice(idx, 1); else this.selectedTaxes.push(val);
-    this.form.patchValue({ tributos: this.selectedTaxes.join(', ') });
+
+  selectTipoDte(val: string) {
+    this.form.patchValue({ tipoDteRelacionado: val });
+    this.menus['tipoDte'] = false;
   }
-  selectTipoVenta(val: string) { this.form.patchValue({ tipoVenta: val }); this.menus['tipoVenta'] = false; }
+
+  selectTipoGen(val: number) {
+    this.form.patchValue({ tipoGeneracion: val });
+    this.menus['tipoGen'] = false;
+  }
 
   numberOnly(e: Event) {
     const input = e.target as HTMLInputElement;
     input.value = input.value.replace(/[^0-9.]/g, '');
   }
-  formatNumber(ctrl: 'cantidad'|'precio'|'descuento', decimals: number) {
+
+  calcRetencion() {
+    const sujeto = Number(this.form.value.montoSujeto || 0);
+    // Auto calc 1%
+    const ret = parseFloat((sujeto * 0.01).toFixed(2));
+    this.form.patchValue({ ivaRetenido: ret }, { emitEvent: false });
+  }
+
+  formatNumber(ctrl: 'montoSujeto' | 'ivaRetenido', decimals: number) {
     const val = Number(this.form.value[ctrl]);
     if (!isNaN(val)) this.form.patchValue({ [ctrl]: val.toFixed(decimals) }, { emitEvent: false });
   }
-
-  // Productos dropdown (búsqueda simple al tipear en campo producto)
-  productMenu = false;
-  allProducts: Array<{ id:string; nombre:string; codigo?: string }> = [];
-  filteredProducts: Array<{ id:string; nombre:string; codigo?: string }> = [];
-  openProducts(){ this.productMenu = true; this.filterProducts(); }
-  filterProducts(){
-    const q = (this.form.value.producto || '').toLowerCase();
-    this.filteredProducts = this.allProducts.filter(p => p.nombre.toLowerCase().includes(q) || (p.codigo||'').toLowerCase().includes(q));
-  }
-  chooseProduct(p: any){ this.form.patchValue({ producto: p.nombre, codigo: p.codigo||'' }); this.productMenu = false; }
 }
 

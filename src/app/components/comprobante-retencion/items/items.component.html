@@ -5,112 +5,61 @@
                 <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.5" />
             </svg>
         </span>
-        <span class="title">Items</span>
+        <span class="title">Documentos Sujetos a Retención</span>
         <span class="chevron" [class.open]="!collapsed">▾</span>
     </button>
     <div class="card-body" *ngIf="!collapsed">
         <form [formGroup]="form">
-            <label class="label">Producto</label>
-            <div class="input-group" style="position:relative">
-                <input class="input" placeholder="Buscar por nombre, código interno o descripción..."
-                    formControlName="producto" (focus)="openProducts()" (input)="filterProducts()" />
-                <button class="btn btn-icon" type="button" (click)="openProducts()">▾</button>
-                <div class="dropdown" *ngIf="productMenu">
-                    <button type="button" class="dropdown-item" *ngFor="let pr of filteredProducts"
-                        (click)="chooseProduct(pr)">
-                        {{ pr.nombre }} <span style="color:#868E96;font-size:12px" *ngIf="pr.codigo">({{ pr.codigo
-                            }})</span>
-                    </button>
-                    <div class="dropdown-vacio" *ngIf="filteredProducts.length===0">Sin resultados</div>
-                </div>
-            </div>
-
-            <label class="label">Tipo de Producto</label>
+            <label class="label">Tipo DTE Relacionado</label>
             <div class="input-group">
-                <button type="button" class="input select" (click)="toggleMenu('tipoProducto')">
-                    {{ form.value.tipoProducto }}
+                <button type="button" class="input select" (click)="toggleMenu('tipoDte')">
+                    {{ form.value.tipoDteRelacionado }}
                 </button>
-                <button class="btn btn-icon" type="button" (click)="toggleMenu('tipoProducto')">▾</button>
-                <div class="dropdown" *ngIf="menus['tipoProducto']">
-                    <button type="button" class="dropdown-item" *ngFor="let t of productTypes"
-                        (click)="selectTipoProducto(t)">{{ t }}</button>
+                <button class="btn btn-icon" type="button" (click)="toggleMenu('tipoDte')">▾</button>
+                <div class="dropdown" *ngIf="menus['tipoDte']">
+                    <button type="button" class="dropdown-item" *ngFor="let t of tiposDocumento"
+                        (click)="selectTipoDte(t)">{{ t }}</button>
                 </div>
             </div>
 
-            <label class="label">Cantidad</label>
-            <input class="input" formControlName="cantidad" (input)="numberOnly($event)"
-                (blur)="formatNumber('cantidad', 4)" />
-
-            <label class="label">Unidad de Medida</label>
+            <label class="label">Tipo Generación</label>
             <div class="input-group">
-                <button type="button" class="input select" (click)="toggleMenu('unidad')">
-                    {{ form.value.unidad }}
+                <button type="button" class="input select" (click)="toggleMenu('tipoGen')">
+                    {{ form.value.tipoGeneracion === 1 ? 'Físico' : 'Electrónico' }}
                 </button>
-                <button class="btn btn-icon" type="button" (click)="toggleMenu('unidad')">▾</button>
-                <div class="dropdown" *ngIf="menus['unidad']">
-                    <button type="button" class="dropdown-item" *ngFor="let u of units" (click)="selectUnidad(u)">{{ u
-                        }}</button>
+                <button class="btn btn-icon" type="button" (click)="toggleMenu('tipoGen')">▾</button>
+                <div class="dropdown" *ngIf="menus['tipoGen']">
+                    <button type="button" class="dropdown-item" *ngFor="let g of tiposGeneracion"
+                        (click)="selectTipoGen(g.val)">{{ g.label }}</button>
                 </div>
             </div>
 
-            <label class="label">Código</label>
-            <input class="input" placeholder="Código" formControlName="codigo" />
+            <label class="label">Fecha de Emisión</label>
+            <input class="input" type="date" formControlName="fechaEmision" />
 
-            <label class="label">Descripción</label>
-            <div class="input-group">
-                <input class="input" placeholder="Añade una descripción" formControlName="descripcion" />
-                <button class="btn btn-icon" type="button">✎</button>
-            </div>
+            <label class="label">Número de Documento</label>
+            <input class="input" placeholder="Ej. 12345" formControlName="numeroDocumento" />
 
-            <label class="label">Tributos</label>
-            <div class="input-group" style="position:relative">
-                <button type="button" class="input select" (click)="toggleMenu('tributos')">
-                    {{ selectedTaxes.length ? selectedTaxes.join(', ') : 'Seleccione los tributos' }}
-                </button>
-                <button class="btn btn-icon" type="button" (click)="toggleMenu('tributos')">▾</button>
-                <div class="dropdown" *ngIf="menus['tributos']">
-                    <button type="button" class="dropdown-item" *ngFor="let tx of taxes" (click)="toggleTax(tx)">
-                        <input type="checkbox" [checked]="selectedTaxes.includes(tx)" /> {{ tx }}
-                    </button>
-                </div>
-            </div>
-
-            <label class="label">Precio Unitario (con IVA)</label>
+            <label class="label">Monto Sujeto a Retención (Sin IVA)</label>
             <div class="input-group">
                 <span class="prefix">$</span>
-                <input class="input" formControlName="precio" (input)="numberOnly($event)"
-                    (blur)="formatNumber('precio', 4)" />
+                <input class="input" formControlName="montoSujeto" (input)="numberOnly($event); calcRetencion()"
+                    (blur)="formatNumber('montoSujeto', 2)" />
             </div>
 
-            <label class="label">Descuento</label>
+            <label class="label">Retención (1%)</label>
             <div class="input-group">
                 <span class="prefix">$</span>
-                <input class="input" formControlName="descuento" (input)="numberOnly($event)"
-                    (blur)="formatNumber('descuento', 4)" />
+                <input class="input" formControlName="ivaRetenido" (input)="numberOnly($event)"
+                    (blur)="formatNumber('ivaRetenido', 2)" />
             </div>
 
-            <label class="label">Tipo de Venta</label>
-            <div class="input-group">
-                <button type="button" class="input select" (click)="toggleMenu('tipoVenta')">
-                    {{ form.value.tipoVenta }}
-                </button>
-                <button class="btn btn-icon" type="button" (click)="toggleMenu('tipoVenta')">▾</button>
-                <div class="dropdown" *ngIf="menus['tipoVenta']">
-                    <button type="button" class="dropdown-item" *ngFor="let v of saleTypes"
-                        (click)="selectTipoVenta(v)">{{ v }}</button>
-                </div>
-            </div>
-
-            <button class="btn btn-primary mt-md" type="button" (click)="agregarItem()">Agregar ítem</button>
+            <button class="btn btn-primary mt-md" type="button" (click)="agregarItem()">Agregar Documento</button>
         </form>
 
-        <div class="items-list" *ngIf="items.controls.length > 0">
-            <div class="item-row" *ngFor="let it of items.controls; let i = index" [formGroup]="it">
-                <span>{{ it.value.descripcion || it.value.producto }}</span>
-                <span>x{{ it.value.cantidad }}</span>
-                <span>{{ (it.value.precio - (it.value.descuento||0)) * it.value.cantidad | number:'1.2-2' }}</span>
-                <button class="btn btn-icon" type="button" (click)="eliminarItem(i)">✕</button>
-            </div>
+        <!-- List is shown in the Right Panel in the Page Component as per User Request -->
+        <div class="items-list" *ngIf="false">
+            <!-- Hidden here because it's in the side panel now -->
         </div>
     </div>
 </div>
