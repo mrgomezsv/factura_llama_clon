@@ -28,27 +28,31 @@ export class AuthService {
   public user$ = this.userSubject.asObservable();
   private readonly SESSION_KEY = 'factura_llama_session';
 
+  private inactivityTimer: any;
+  private readonly INACTIVITY_TIME = 5 * 60 * 1000; // 5 minutos
+
   constructor(
     private database: DatabaseService,
     private router: Router,
     private http: HttpClient
   ) {
-    // Restaurar sesión desde localStorage si existe
+    // Restaurar sesión desde sessionStorage si existe
     this.restoreSession();
   }
 
   /**
-   * Restaura la sesión desde localStorage
+   * Restaura la sesión desde sessionStorage
    */
   private restoreSession(): void {
-    const sessionData = localStorage.getItem(this.SESSION_KEY);
+    const sessionData = sessionStorage.getItem(this.SESSION_KEY);
     if (sessionData) {
       try {
         const user = JSON.parse(sessionData);
         this.userSubject.next(user);
+        this.initInactivityTimer();
       } catch (error) {
         console.error('Error al restaurar sesión:', error);
-        localStorage.removeItem(this.SESSION_KEY);
+        sessionStorage.removeItem(this.SESSION_KEY);
       }
     }
   }
@@ -103,16 +107,17 @@ export class AuthService {
         };
 
         // Guardar sesión y token (idealmente el token debería guardarse en un servicio o interceptor, 
-        // pero por simplicidad actualizamos el localStorage con el usuario y manejamos el token globalmente si se necesita)
+        // pero por simplicidad actualizamos el sessionStorage con el usuario y manejamos el token globalmente si se necesita)
         // NOTA: Para que las peticiones subsiguientes funcionen, necesitamos que el token se envíe en los headers.
         // Asumiendo que DatabaseService o un Interceptor manejará esto si guardamos el token.
         // Por ahora guardamos el usuario. Si el backend requiere token, necesitamos un mecanismo para guardarlo.
-        localStorage.setItem(this.SESSION_KEY, JSON.stringify(user));
+        sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(user));
 
         // También guardamos el token bajo la clave que espera el interceptor (si existe) o DatabaseService
-        localStorage.setItem('auth_token', response.token);
+        sessionStorage.setItem('auth_token', response.token);
 
         this.userSubject.next(user);
+        this.initInactivityTimer();
         return user;
       }),
       catchError((error) => {
@@ -154,12 +159,13 @@ export class AuthService {
         };
 
         // Guardar sesión y token automáticamente
-        localStorage.setItem(this.SESSION_KEY, JSON.stringify(newUser));
+        sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(newUser));
         if (response.token) {
-          localStorage.setItem('auth_token', response.token);
+          sessionStorage.setItem('auth_token', response.token);
         }
 
         this.userSubject.next(newUser);
+        this.initInactivityTimer();
         return newUser;
       }),
       catchError((error) => {
@@ -173,7 +179,9 @@ export class AuthService {
    * Cierra sesión del usuario
    */
   logout(): Observable<void> {
-    localStorage.removeItem(this.SESSION_KEY);
+    this.clearInactivityTimer();
+    sessionStorage.removeItem(this.SESSION_KEY);
+    sessionStorage.removeItem('auth_token');
     this.userSubject.next(null);
     this.router.navigate(['/login']);
     return of(undefined);
@@ -298,7 +306,7 @@ export class AuthService {
                 ...currentUser,
                 displayName: data.displayName !== undefined ? data.displayName : currentUser.displayName
               };
-              localStorage.setItem(this.SESSION_KEY, JSON.stringify(updatedUser));
+              sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(updatedUser));
               this.userSubject.next(updatedUser);
             }
             return undefined;
@@ -381,5 +389,47 @@ export class AuthService {
     }
 
     return new Error(errorMessage);
+  }
+
+  /**
+   * Inicializa el temporizador de inactividad
+   */
+  private initInactivityTimer(): void {
+    this.clearInactivityTimer();
+
+    // Configurar eventos para resetear el timer
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    events.forEach(event => {
+      window.addEventListener(event, () => this.resetInactivityTimer());
+    });
+
+    this.resetInactivityTimer();
+  }
+
+  /**
+   * Resetea el temporizador de inactividad
+   */
+  private resetInactivityTimer(): void {
+    if (this.inactivityTimer) {
+      clearTimeout(this.inactivityTimer);
+    }
+
+    this.inactivityTimer = setTimeout(() => {
+      console.log('Sesión cerrada por inactividad');
+      this.logout();
+    }, this.INACTIVITY_TIME);
+  }
+
+  /**
+   * Limpia el temporizador y remueve los event listeners
+   */
+  private clearInactivityTimer(): void {
+    if (this.inactivityTimer) {
+      clearTimeout(this.inactivityTimer);
+    }
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    events.forEach(event => {
+      window.removeEventListener(event, () => this.resetInactivityTimer());
+    });
   }
 }

@@ -19,7 +19,7 @@ export class DatabaseService {
   }
 
   private getHeaders(): { [header: string]: string } {
-    const token = localStorage.getItem('auth_token');
+    const token = sessionStorage.getItem('auth_token');
     if (token) {
       return { 'Authorization': `Bearer ${token}` };
     }

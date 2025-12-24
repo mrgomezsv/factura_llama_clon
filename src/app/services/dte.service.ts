@@ -1416,7 +1416,7 @@ export class DteService {
       formData.append(key, passwords[key]);
     });
 
-    const token = localStorage.getItem('auth_token');
+    const token = sessionStorage.getItem('auth_token');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token} `);
 
     return this.http.post(`${this.API_URL}/empresas/${empresaId}/certificado`, formData, { headers });
@@ -1426,7 +1426,7 @@ export class DteService {
    * Obtener contingencia activa
    */
   getContingenciaActiva(): Observable<any> {
-    const token = localStorage.getItem('auth_token');
+    const token = sessionStorage.getItem('auth_token');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
     return this.http.get(`${this.API_URL}/contingencias/activa`, { headers });
   }
@@ -1435,7 +1435,7 @@ export class DteService {
    * Obtener contingencias pendientes de reporte
    */
   getContingenciasPendientes(): Observable<any[]> {
-    const token = localStorage.getItem('auth_token');
+    const token = sessionStorage.getItem('auth_token');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
     return this.http.get<any[]>(`${this.API_URL}/contingencias/pendientes`, { headers });
   }
@@ -1444,7 +1444,7 @@ export class DteService {
    * Iniciar contingencia
    */
   iniciarContingencia(datos: { codigoMotivo: string, descripcionMotivo: string, fechaInicio?: Date }): Observable<any> {
-    const token = localStorage.getItem('auth_token');
+    const token = sessionStorage.getItem('auth_token');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
     return this.http.post(`${this.API_URL}/contingencias/iniciar`, datos, { headers });
   }
@@ -1453,7 +1453,7 @@ export class DteService {
    * Finalizar contingencia
    */
   finalizarContingencia(id: number, fechaFin?: Date): Observable<any> {
-    const token = localStorage.getItem('auth_token');
+    const token = sessionStorage.getItem('auth_token');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
     return this.http.post(`${this.API_URL}/contingencias/finalizar`, { id, fechaFin }, { headers });
   }
@@ -1462,7 +1462,7 @@ export class DteService {
    * Obtener DTEs de una contingencia
    */
   getDtesContingencia(id: number): Observable<any[]> {
-    const token = localStorage.getItem('auth_token');
+    const token = sessionStorage.getItem('auth_token');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
     return this.http.get<any[]>(`${this.API_URL}/contingencias/${id}/dtes`, { headers });
   }
@@ -1471,7 +1471,7 @@ export class DteService {
    * Reportar contingencia a MH
    */
   reportarContingencia(id: number): Observable<any> {
-    const token = localStorage.getItem('auth_token');
+    const token = sessionStorage.getItem('auth_token');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
     return this.http.post(`${this.API_URL}/contingencias/${id}/reportar`, {}, { headers });
   }
