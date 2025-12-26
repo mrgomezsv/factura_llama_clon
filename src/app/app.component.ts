@@ -111,17 +111,17 @@ export class AppComponent implements OnInit {
         // Recargar DTEs si estamos en la vista principal y no en login/auth
         if (!this.isLoginRoute && this.showDTEsContent) {
           this.cargarDTEs();
+          this.cargarTiposDTE(); // Asegurar que los tipos se carguen al navegar
         }
       }
     });
   }
 
   cargarTiposDTE(): void {
-    // Evitar cargar si estamos en login
-    if (this.isLoginRoute) return;
+    // Solo cargar si el usuario está autenticado
+    if (!this.authService.getCurrentUser()) return;
 
     this.dteService.getTiposDTE().subscribe(tipos => {
-      this.dtes = []; // Limpiar si es necesario, aunque mejor no
       this.tiposDTE = tipos;
     });
   }

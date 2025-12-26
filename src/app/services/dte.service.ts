@@ -100,7 +100,7 @@ export class DteService {
             WHEN tipo_dte = '06' THEN 'Nota de Débito'
             WHEN tipo_dte = '11' THEN 'Factura de Exportación'
             WHEN tipo_dte = '14' THEN 'Factura de Sujeto Excluido'
-            WHEN tipo_dte = '15' THEN 'Nota de Remisión'
+            WHEN tipo_dte = '15' THEN 'Comprobante de Donación'
             WHEN tipo_dte = '16' THEN 'Comprobante de Retención'
             ELSE 'Documento'
           END) as tipo,
