@@ -192,9 +192,12 @@ function convertInsertOrIgnore(sql) {
 
 // Endpoint de Login
 app.post('/api/auth/login', async (req, res) => {
-  const { email, password } = req.body;
+  let { email, password } = req.body;
 
   try {
+    // Normalizar email (trim y minúsculas)
+    email = (email || '').toLowerCase().trim();
+
     // 1. Buscar usuario
     const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (result.rows.length === 0) {

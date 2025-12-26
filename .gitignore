@@ -82,3 +82,4 @@ tests/output/
 debug_*.json
 *_run_log.txt
 *.log.txt
+basura
