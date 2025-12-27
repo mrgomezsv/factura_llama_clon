@@ -83,3 +83,11 @@ debug_*.json
 *_run_log.txt
 *.log.txt
 basura
+docs
+API_EXTERNAL_SPEC.md
+Guia de Integracion API Externa - WavePos DTE-v2.md
+pos_api_test.postman_collection.json
+server/middleware/api-key.middleware.js
+server/test-hyphens.js
+server/test-repro.js
+
