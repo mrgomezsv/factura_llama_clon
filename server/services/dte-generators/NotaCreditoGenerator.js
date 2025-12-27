@@ -54,6 +54,9 @@ class NotaCreditoGenerator extends BaseGenerator {
         const totalsFromItems = this.calculateTotalsStandard(itemsBuilt);
         const subTotalVentas = this.round(totalsFromItems.totalVentaGravada + totalsFromItems.totalVentaExenta + totalsFromItems.totalVentaNoSujeta);
         const iva = this.round(totalsFromItems.totalImpuestos);
+        const subTotal = this.round(subTotalVentas - (totalsFromItems.totalDescuentos + descuentoGlobal));
+        const montoTotalOperacion = this.round(subTotal + iva - (retenciones.iva || 0) - (retenciones.renta || 0));
+        const totalPagar = montoTotalOperacion;
         // Si es contingencia, tipoOperacion mide 2 (Contingencia)
         const finalTipoOperacion = (tipoModelo === 2) ? 2 : tipoOperacion;
 
