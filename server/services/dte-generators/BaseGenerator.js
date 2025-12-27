@@ -108,9 +108,13 @@ class BaseGenerator {
     }
 
     buildEmisor(empresaConfig, codigoEstablecimiento, puntoEmision) {
+        // Strip hyphens for MH compliance
+        const cleanNit = String(empresaConfig.nit).replace(/-/g, '');
+        const cleanNrc = String(empresaConfig.nrc || '').replace(/-/g, '');
+
         return {
-            nit: empresaConfig.nit,
-            nrc: empresaConfig.nrc,
+            nit: cleanNit,
+            nrc: cleanNrc,
             nombre: empresaConfig.nombreLegal,
             codActividad: /^\d{5}$/.test(empresaConfig.actividadEconomicaPrimaria) ? empresaConfig.actividadEconomicaPrimaria : '56101',
             descActividad: empresaConfig.descActividad || 'VENTA DE COMIDAS Y BEBIDAS', // Fallback or from DB if added
@@ -292,9 +296,14 @@ class BaseGenerator {
         if (tipoDte === 'CCF' || (tipoDte === 'NCR' && isTaxpayer)) {
             // Strict Taxpayer Structure
             if (!hasNit) return null; // CCF MUST have NIT
+
+            // MH requires these fields WITHOUT hyphens in CCF/Taxpayer context
+            const cleanNit = String(cliente.nit).replace(/-/g, '');
+            const cleanNrc = String(cliente.nrc || '').replace(/-/g, '');
+
             return {
-                nit: cliente.nit,
-                nrc: cliente.nrc,
+                nit: cleanNit,
+                nrc: cleanNrc,
                 nombre: cliente.nombre,
                 nombreComercial: cliente.nombreComercial || cliente.nombre,
                 codActividad: cliente.codActividad || '10005',
