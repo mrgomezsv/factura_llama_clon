@@ -67,6 +67,17 @@ async function createTables(client) {
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
+    -- Tabla de API Keys para sistemas externos
+    CREATE TABLE IF NOT EXISTS api_keys (
+      id SERIAL PRIMARY KEY,
+      key TEXT UNIQUE NOT NULL,
+      empresa_id TEXT NOT NULL,
+      nombre TEXT, -- Nombre identificador (ej: "POS Sucursal 1")
+      active INTEGER DEFAULT 1,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (empresa_id) REFERENCES empresas(id)
+    );
+
     -- Tabla de clientes
     CREATE TABLE IF NOT EXISTS clientes (
       id TEXT PRIMARY KEY,
