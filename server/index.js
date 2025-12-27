@@ -12,6 +12,7 @@ const authMiddleware = require('./middleware/auth.middleware');
 // require('dotenv').config(); // Moved to top
 const { setupCatalogs } = require('./setup-catalogs');
 const { initializeDatabase } = require('./verify-db');
+const validateApiKey = require('./middleware/api-key.middleware');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_para_desarrollo_123';
 
@@ -754,6 +755,161 @@ app.post('/api/contingencias/:id/reportar', authMiddleware, async (req, res) => 
 
   } catch (error) {
     console.error('Error al reportar contingencia:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- API EXTERNA PARA POS (V1) ---
+
+/**
+ * Endpoint para que sistemas externos generen DTE
+ * Requiere x-api-key en los headers
+ * Devuelve JSON con el estado y sello de recepción
+ */
+app.post('/api/v1/external/generar', validateApiKey, async (req, res) => {
+  try {
+    console.log(`📥 [API EXTERNA] Petición de ${req.user.apiKeyName}`);
+    const {
+      tipoDte = 'FAC',
+      clienteId,
+      items,
+      totales,
+      retenciones = { renta: 0, iva: 0 },
+      descuentoGlobal = 0,
+      otrosMontosNoAfectos = 0,
+      ambiente = 'PRUEBAS',
+      documentoRelacionado = null
+    } = req.body;
+
+    const empresaId = req.user.empresaId;
+
+    // --- REUTILIZAR LÓGICA DE GENERACIÓN ---
+    // (Buscamos la lógica principal del endpoint /api/dtes/generar)
+
+    // --- Lógica de Empresa y Configuración ---
+    const empresaResult = await pool.query(`
+      SELECT ec.*, 
+             crt.password_pri_prueba as cert_password_pri_prueba,
+             crt.password_pub_prueba as cert_password_pub_prueba,
+             crt.password_pri_produccion as cert_password_pri_produccion,
+             crt.password_pub_produccion as cert_password_pub_produccion
+      FROM empresa_config ec
+      LEFT JOIN empresa_certificados crt ON ec.empresa_id = crt.empresa_id
+      WHERE ec.empresa_id = $1
+      `, [empresaId]
+    );
+
+    if (empresaResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Configuración de empresa no encontrada' });
+    }
+    const empresaConfig = empresaResult.rows[0];
+
+    // --- Lógica de Cliente ---
+    let cliente = null;
+    if (clienteId) {
+      const clienteResult = await pool.query('SELECT * FROM clientes WHERE id = $1', [clienteId]);
+      if (clienteResult.rows.length > 0) cliente = clienteResult.rows[0];
+    } else if (req.body.cliente) {
+      cliente = req.body.cliente;
+    }
+
+    // --- Lógica de Correlativos ---
+    const tableName = getTableNameByTipoDte(tipoDte);
+    const tipoDteCodigo = dteBuilder.mapTipoDte(tipoDte);
+
+    if (!tableName) return res.status(400).json({ error: `Tipo de documento no válido: ${tipoDte}` });
+
+    const lastDteResult = await pool.query(
+      `SELECT numero_documento FROM ${tableName} WHERE empresa_id = $1 AND tipo_dte = $2 ORDER BY numero_documento DESC LIMIT 1`,
+      [empresaId, tipoDteCodigo]
+    );
+    const nextNumero = lastDteResult.rows.length > 0 ? parseInt(lastDteResult.rows[0].numero_documento) + 1 : 1;
+
+    // --- Construir DTE ---
+    const { dteJson, codigoGeneracion, numeroControl } = dteBuilder.buildDteJson({
+      tipoDte,
+      empresaConfig: {
+        nombreLegal: empresaConfig.nombre_legal,
+        nombreComercial: empresaConfig.nombre_comercial,
+        nit: empresaConfig.nit,
+        nrc: empresaConfig.nrc,
+        direccion: empresaConfig.direccion,
+        telefono: empresaConfig.telefono,
+        correo: empresaConfig.correo,
+        actividadEconomicaPrimaria: empresaConfig.actividad_economica_primaria,
+        codigoMH: empresaConfig.codigo_mh
+      },
+      cliente: {
+        nombre: cliente?.nombre || 'Consumidor Final',
+        nit: cliente?.nit,
+        nrc: cliente?.nrc,
+        direccion: cliente?.direccion,
+        numeroDocumento: cliente?.nit || cliente?.numDocumento,
+      },
+      items,
+      totales,
+      retenciones,
+      documentoRelacionado,
+      ambiente,
+      descuentoGlobal,
+      numeroDocumento: nextNumero
+    });
+
+    // --- Firmar ---
+    const dteFirmadoStr = await dteSigner.signDte(dteJson, empresaConfig);
+    if (!dteFirmadoStr) throw new Error('Error al firmar el documento');
+
+    let dteFirmado = dteFirmadoStr;
+    try { dteFirmado = JSON.parse(dteFirmadoStr); } catch (e) { }
+
+    // --- Transmitir ---
+    const mhConfig = {
+      user: empresaConfig.nit,
+      pwd: ambiente === 'PRODUCCION' ? empresaConfig.password_api_produccion : empresaConfig.password_api_prueba,
+      nit: empresaConfig.nit,
+      ambiente,
+      dteJson
+    };
+
+    const mhResponse = await dteApiService.enviarDte(dteFirmado, null, mhConfig);
+    const estadoFinal = mhResponse.success ? 'PROCESADO' : (mhResponse.estado || 'RECHAZADO');
+
+    // --- Guardar en DB ---
+    const values = [
+      numeroControl, tipoDteCodigo, codigoGeneracion, numeroControl, nextNumero,
+      cliente?.nombre || 'Consumidor Final', (totales?.totalPagar || 0), ambiente, new Date(), new Date(),
+      empresaId, clienteId || null, estadoFinal, JSON.stringify(dteJson), JSON.stringify(dteFirmado),
+      mhResponse.selloRecibido || null, mhResponse.codigoMensaje || null, mhResponse.descripcionMensaje || null, JSON.stringify(mhResponse.observaciones || [])
+    ];
+
+    const insertQuery = `
+      INSERT INTO ${tableName} (
+        control_number, tipo_dte, codigo_generacion, numero_control, numero_documento,
+        receptor, total, ambiente, fecha_creacion, fecha_emision,
+        empresa_id, cliente_id, estado, dte_json, dte_firmado,
+        sello_recibido, codigo_mensaje, descripcion_mensaje, observaciones
+      ) VALUES (${values.map((_, i) => `$${i + 1}`).join(', ')}) RETURNING id
+    `;
+
+    const insertResult = await pool.query(insertQuery, values);
+    const dteId = insertResult.rows[0].id;
+
+    // --- Responder JSON ---
+    res.json({
+      success: mhResponse.success,
+      id: dteId,
+      codigoGeneracion,
+      numeroControl,
+      selloRecibido: mhResponse.selloRecibido,
+      estado: estadoFinal,
+      fhProcesamiento: mhResponse.fhProcesamiento,
+      descripcionMensaje: mhResponse.descripcionMensaje,
+      observaciones: mhResponse.observaciones,
+      pdfUrl: `http://localhost:3000/api/dtes/${dteId}/pdf?tipoDte=${tipoDte}`
+    });
+
+  } catch (error) {
+    console.error('❌ [API EXTERNA] Error:', error);
     res.status(500).json({ error: error.message });
   }
 });
