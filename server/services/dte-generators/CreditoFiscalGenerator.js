@@ -36,6 +36,7 @@ class CreditoFiscalGenerator extends BaseGenerator {
         const subTotal = this.round(subTotalVentas - (totalsFromItems.totalDescuentos + descuentoGlobal));
         const iva = this.round(totalsFromItems.totalImpuestos);
         const montoTotalOperacion = this.round(subTotal + iva - (retenciones.iva || 0) - (retenciones.renta || 0));
+        const totalPagar = montoTotalOperacion;
         // In Example:
         // subTotalVentas: 66.37
         // tributos (IVA): 8.63
