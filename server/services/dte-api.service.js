@@ -177,8 +177,8 @@ class DteApiService {
                 success: true,
                 estado: response.data.estado, // PROCESADO, RECHAZADO, RECIBIDO
                 selloRecibido: response.data.selloRecibido || null,
-                codigoMensaje: response.data.codigoMensaje || null,
-                descripcionMensaje: response.data.descripcionMensaje || null,
+                codigoMensaje: response.data.codigoMensaje || response.data.codigoMsg || null,
+                descripcionMensaje: response.data.descripcionMensaje || response.data.descripcionMsg || null,
                 clasificacionMsg: response.data.clasificacionMsg || null,
                 observaciones: response.data.observaciones || []
             };
@@ -193,8 +193,8 @@ class DteApiService {
                 return {
                     success: false,
                     estado: 'RECHAZADO',
-                    codigoMensaje: error.response.data.codigoMensaje || 'ERR_HTTP',
-                    descripcionMensaje: error.response.data.descripcionMensaje || error.message,
+                    codigoMensaje: error.response.data.codigoMensaje || error.response.data.codigoMsg || 'ERR_HTTP',
+                    descripcionMensaje: error.response.data.descripcionMensaje || error.response.data.descripcionMsg || error.message,
                     observaciones: error.response.data.observaciones || []
                 };
             }
