@@ -475,7 +475,7 @@
                       <span *ngIf="!certPruebasFile">Seleccionar Archivo .crt</span>
                       <span *ngIf="certPruebasFile">{{ certPruebasFile.name }}</span>
                     </button>
-                    <input #fileInputPruebas type="file" style="display: none" accept=".crt,.json,.txt"
+                    <input #fileInputPruebas type="file" style="display: none" accept=".crt,.json,.txt,.p12,.pfx"
                       (change)="onCertificadoPruebasSelected($event)">
                     <p class="form-hint" *ngIf="!certPruebasFile && empresaForm.get('certificadoPrueba')?.value">
                       Archivo actual: {{ empresaForm.get('certificadoPrueba')?.value }}
@@ -526,7 +526,7 @@
                       <span *ngIf="!certProduccionFile">Seleccionar Archivo .crt</span>
                       <span *ngIf="certProduccionFile">{{ certProduccionFile.name }}</span>
                     </button>
-                    <input #fileInputProduccion type="file" style="display: none" accept=".crt,.json,.txt"
+                    <input #fileInputProduccion type="file" style="display: none" accept=".crt,.json,.txt,.p12,.pfx"
                       (change)="onCertificadoProduccionSelected($event)">
                     <p class="form-hint" *ngIf="!certProduccionFile && empresaForm.get('certificadoProduccion')?.value">
                       Archivo actual: {{ empresaForm.get('certificadoProduccion')?.value }}

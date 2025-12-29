@@ -9,10 +9,11 @@ const dteApiService = require('./services/dte-api.service');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const authMiddleware = require('./middleware/auth.middleware');
-// require('dotenv').config(); // Moved to top
 const { setupCatalogs } = require('./setup-catalogs');
 const { initializeDatabase } = require('./verify-db');
 const validateApiKey = require('./middleware/api-key.middleware');
+const path = require('path');
+const fs = require('fs');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_para_desarrollo_123';
 
@@ -81,6 +82,13 @@ const port = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
+
+// Servir archivos estáticos del frontend (Angular)
+const distPath = path.join(__dirname, '../dist/wavepos-dte-v2/browser');
+if (fs.existsSync(distPath)) {
+  console.log(`📂 Sirviendo archivos estáticos desde: ${distPath}`);
+  app.use(express.static(distPath));
+}
 
 // Configuración de PostgreSQL
 const pool = new Pool({
@@ -437,10 +445,11 @@ app.post('/api/empresas/:id/certificado', authMiddleware, upload.single('certifi
     // 2. Procesar archivo si se subió uno
     let certPath = null;
     if (uploadedFile) {
-      const finalPath = path.join(__dirname, 'certs', `${nit}.crt`);
+      const extension = path.extname(uploadedFile.originalname).toLowerCase();
+      const finalPath = path.join(__dirname, 'certs', `${nit}${extension}`);
       fs.renameSync(uploadedFile.path, finalPath);
       fs.chmodSync(finalPath, 0o644);
-      certPath = `${nit}.crt`; // Guardamos solo el nombre relativo
+      certPath = `${nit}${extension}`; // Guardamos solo el nombre relativo
       console.log(`✅ Certificado guardado en: ${finalPath}`);
     }
 
@@ -1381,8 +1390,17 @@ app.get('/api/dtes/:id/pdf', async (req, res) => {
   }
 });
 
-// Iniciar servidor
-// Iniciar servidor y verificar catálogos
+// Manejar todas las demás rutas para que Angular se encargue (SPA)
+app.get('*', (req, res) => {
+  const indexPath = path.join(__dirname, '../dist/wavepos-dte-v2/browser/index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    // Si no existe, es que el build no se ha hecho o el path es incorrecto
+    res.status(404).send('Frontend not built yet. Run npm run build first.');
+  }
+});
+
 // Iniciar servidor
 const startServer = async () => {
   try {
