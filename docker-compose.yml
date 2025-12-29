@@ -1,0 +1,57 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: wavepos-db
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME:-wavepos_dte_v2}
+      POSTGRES_USER: ${DB_USER:-mrgomez}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-Karin2100}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - wavepos-net
+
+  app:
+    build: .
+    container_name: wavepos-app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-wavepos_dte_v2}
+      - DB_USER=${DB_USER:-mrgomez}
+      - DB_PASSWORD=${DB_PASSWORD:-Karin2100}
+      - JWT_SECRET=${JWT_SECRET:-secret_prod_change_me}
+      - PORT=3000
+      - DTE_SIGNER_URL=http://firmador:8113
+    depends_on:
+      - db
+      - firmador
+    volumes:
+      - ./server/certs:/app/server/certs
+    networks:
+      - wavepos-net
+
+  firmador:
+    image: svfe/svfe-api-firmador:v20230109
+    container_name: wavepos-firmador
+    restart: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SVFE_ARCHIVO=certs/certificado.p12  # Este es un valor por defecto, se sobreescribe con el NIT real
+      - SVFE_PASSWORD=hacienda
+    volumes:
+      - ./server/certs:/app/certs
+    networks:
+      - wavepos-net
+
+networks:
+  wavepos-net:
+    driver: bridge
+
+volumes:
+  postgres_data:

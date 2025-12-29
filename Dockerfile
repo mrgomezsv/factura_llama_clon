@@ -1,0 +1,37 @@
+# Build stage
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+# Install dependencies
+COPY package*.json ./
+RUN npm install
+
+# Copy source code
+COPY . .
+
+# Build the Angular app
+RUN npm run build
+
+# Production stage
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install production dependencies
+COPY package*.json ./
+RUN npm install --omit=dev
+
+# Copy only the necessary files
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/server ./server
+COPY --from=build /app/.env.example ./.env
+
+# Create certs directory
+RUN mkdir -p server/certs
+
+# Expose port
+EXPOSE 3000
+
+# Start the application
+CMD ["node", "server/index.js"]
