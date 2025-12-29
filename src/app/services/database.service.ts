@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, of, throwError, firstValueFrom } from 'rxjs';
 import { first, catchError, map, switchMap } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 /**
  * Servicio para manejar la base de datos PostgreSQL
@@ -12,7 +13,7 @@ import { first, catchError, map, switchMap } from 'rxjs/operators';
 })
 export class DatabaseService {
   private dbReady$ = new BehaviorSubject<boolean>(false);
-  private readonly API_URL = 'http://localhost:3000/api';
+  private readonly API_URL = environment.apiUrl;
 
   constructor(private http: HttpClient) {
     this.initializeDatabase();

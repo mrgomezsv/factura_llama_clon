@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, of, throwError, from } from 'rxjs';
 import { map, catchError, switchMap, first } from 'rxjs/operators';
 import { DatabaseService } from './database.service';
+import { environment } from '../../environments/environment';
 
 /**
  * Interfaz para el usuario autenticado
@@ -95,7 +96,7 @@ export class AuthService {
    */
   login(email: string, password: string): Observable<User> {
     return this.http.post<{ token: string, user: { id: string, email: string, displayName: string, empresaId: string } }>(
-      'http://localhost:3000/api/auth/login',
+      `${environment.apiUrl}/auth/login`,
       { email, password }
     ).pipe(
       map(response => {
@@ -147,7 +148,7 @@ export class AuthService {
 
     // Usar el nuevo endpoint específico de registro que no requiere token
     return this.http.post<{ message: string, token: string, user: { id: string, email: string, displayName: string, empresaId: string } }>(
-      'http://localhost:3000/api/auth/register', // URL hardcoded por ahora, idealmente usar environment o base URL config
+      `${environment.apiUrl}/auth/register`, // URL hardcoded por ahora, idealmente usar environment o base URL config
       { email, password, displayName }
     ).pipe(
       map(response => {

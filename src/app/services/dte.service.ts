@@ -7,12 +7,13 @@ import { Empresa } from '../models/empresa.model';
 import { PeriodoTributario } from '../models/periodo-tributario.model';
 import { TipoDTE } from '../models/tipo-dte.model';
 import { DatabaseService } from './database.service';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DteService {
-  private readonly API_URL = 'http://localhost:3000/api';
+  private readonly API_URL = environment.apiUrl;
   private companyUpdated = new Subject<void>();
 
   get onCompanyUpdated$() {
