@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: ${DB_NAME:-wavepos_dte_v2}
       POSTGRES_USER: ${DB_USER:-mrgomez}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-Karin2100}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-tecwave}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -24,7 +24,7 @@ services:
       - DB_PORT=5432
       - DB_NAME=${DB_NAME:-wavepos_dte_v2}
       - DB_USER=${DB_USER:-mrgomez}
-      - DB_PASSWORD=${DB_PASSWORD:-Karin2100}
+      - DB_PASSWORD=${DB_PASSWORD:-tecwave}
       - JWT_SECRET=${JWT_SECRET:-secret_prod_change_me}
       - PORT=3000
       - DTE_SIGNER_URL=http://firmador:8113
