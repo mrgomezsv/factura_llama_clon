@@ -25,7 +25,7 @@ RUN npm install --omit=dev
 # Copy only the necessary files
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/server ./server
-COPY --from=build /app/.env.example ./.env
+# COPY --from=build /app/.env.example ./.env  # Comentado por no existir
 
 # Create certs directory
 RUN mkdir -p server/certs

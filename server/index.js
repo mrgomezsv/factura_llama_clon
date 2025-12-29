@@ -390,8 +390,6 @@ app.post('/api/auth/refresh-token', authMiddleware, async (req, res) => {
 });
 // Endpoint para subir certificado
 const multer = require('multer');
-const fs = require('fs');
-const path = require('path');
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -1391,7 +1389,7 @@ app.get('/api/dtes/:id/pdf', async (req, res) => {
 });
 
 // Manejar todas las demás rutas para que Angular se encargue (SPA)
-app.get('*', (req, res) => {
+app.get(/.*/, (req, res) => {
   const indexPath = path.join(__dirname, '../dist/wavepos-dte-v2/browser/index.html');
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
