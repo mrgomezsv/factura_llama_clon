@@ -4,13 +4,13 @@ require('dotenv').config();
 const { createDatabase, createTables } = require('./create-database');
 const { setupCatalogs } = require('./setup-catalogs');
 
-const dbName = process.env.DB_NAME || 'wavepos_dte_v2';
+const dbName = process.env.DB_NAME || 'thetecwa1_fe_dba_prod';
 const dbConfig = {
-    host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || 3306,
+    host: process.env.DB_HOST || '45.10.160.29',
+    port: process.env.DB_PORT || 5432,
     database: dbName,
-    user: process.env.DB_USER || 'mrgomez',
-    password: process.env.DB_PASSWORD || 'Karin2100',
+    user: process.env.DB_USER || 'thetecwa1_fe_dba_prod',
+    password: process.env.DB_PASSWORD || 'ml%BHX$C//Z$f6uL',
 };
 
 async function initializeDatabase() {

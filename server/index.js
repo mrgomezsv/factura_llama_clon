@@ -92,11 +92,11 @@ if (fs.existsSync(distPath)) {
 
 // Configuración de MySQL
 const pool = mysql.createPool({
-  host: process.env.DB_HOST || '66.45.252.124',
-  port: process.env.DB_PORT || 3306,
-  database: process.env.DB_NAME || 'tecwave_fe_dba',
-  user: process.env.DB_USER || 'tecwave_fe_dba',
-  password: process.env.DB_PASSWORD || 'vpt6fBX5bnm3vaf@jnh',
+  host: process.env.DB_HOST || '45.10.160.29',
+  port: process.env.DB_PORT || 5432,
+  database: process.env.DB_NAME || 'thetecwa1_fe_dba_prod',
+  user: process.env.DB_USER || 'thetecwa1_fe_dba_prod',
+  password: process.env.DB_PASSWORD || 'ml%BHX$C//Z$f6uL',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0

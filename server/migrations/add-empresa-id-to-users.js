@@ -2,11 +2,11 @@ const { Pool } = require('pg');
 require('dotenv').config();
 
 const pool = new Pool({
-    host: process.env.DB_HOST || 'localhost',
+    host: process.env.DB_HOST || '45.10.160.29',
     port: process.env.DB_PORT || 5432,
-    database: process.env.DB_NAME || 'wavepos_dte_v2',
-    user: process.env.DB_USER || 'mrgomez',
-    password: process.env.DB_PASSWORD || 'Karin2100',
+    database: process.env.DB_NAME || 'thetecwa1_fe_dba_prod',
+    user: process.env.DB_USER || 'thetecwa1_fe_dba_prod',
+    password: process.env.DB_PASSWORD || 'ml%BHX$C//Z$f6uL',
 });
 
 async function runMigration() {
