@@ -1,61 +1,41 @@
 services:
-#  db:
-#    image: mysql:8.0
-#    container_name: waveposapidte-mysql
-#    restart: always
-#    environment:
-#      MYSQL_DATABASE: ${DB_NAME:-tecwave_fe_dba}
-#      MYSQL_USER: ${DB_USER:-tecwave_fe_dba}
-#      MYSQL_PASSWORD: ${DB_PASSWORD:-vpt6fBX5bnm3vaf@jnh}
-#      MYSQL_ROOT_PASSWORD: root
-#    ports:
-#      - "3306:3306"
-#    volumes:
-#      - mysql_data:/var/lib/mysql
-#    networks:
-#      - waveposapidte-net
-
   app:
     build: .
-    image: waveposapidte:latest
-    container_name: waveposapidte-app
+    container_name: wavepos-app
     restart: always
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - DB_HOST=premier-orion-pa.cloudservices.tech
-      - DB_PORT=3306
-      - DB_NAME=${DB_NAME:-tecwave_fe_dba}
-      - DB_USER=${DB_USER:-tecwave_fe_dba}
-      - DB_PASSWORD=${DB_PASSWORD:-vpt6fBX5bnm3vaf@jnh}
+      - DB_HOST=45.10.160.29
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-thetecwa1_fe_dba_prod}
+      - DB_USER=${DB_USER:-thetecwa1_fe_dba_prod}
+      # La contraseña contiene caracteres especiales que deben escaparse con doble $$ si se usan directamente aquí
+      - DB_PASSWORD=${DB_PASSWORD:-ml%BHX$$C//Z$$f6uL}
       - JWT_SECRET=${JWT_SECRET:-secret_prod_change_me}
       - PORT=3000
       - DTE_SIGNER_URL=http://firmador:8113
     depends_on:
-      #- db
       - firmador
     volumes:
       - ./server/certs:/app/server/certs
     networks:
-      - waveposapidte-net
+      - wavepos-net
 
   firmador:
     image: svfe/svfe-api-firmador:v20230109
-    container_name: waveposapidte-firmador
+    container_name: wavepos-firmador
     restart: always
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SVFE_ARCHIVO=certs/certificado.p12  # Este es un valor por defecto, se sobreescribe con el NIT real
+      - SVFE_ARCHIVO=certs/certificado.p12
       - SVFE_PASSWORD=hacienda
     volumes:
       - ./server/certs:/app/certs
     networks:
-      - waveposapidte-net
+      - wavepos-net
 
 networks:
-  waveposapidte-net:
+  wavepos-net:
     driver: bridge
-
-volumes:
-  postgres_data:
