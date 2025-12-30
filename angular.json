@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "wavepos-dte-v2": {
+    "waveposapidte": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -21,7 +21,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/wavepos-dte-v2",
+            "outputPath": "dist/waveposapidte",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
@@ -68,10 +68,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "wavepos-dte-v2:build:production"
+              "buildTarget": "waveposapidte:build:production"
             },
             "development": {
-              "buildTarget": "wavepos-dte-v2:build:development"
+              "buildTarget": "waveposapidte:build:development"
             }
           },
           "defaultConfiguration": "development"

@@ -1,20 +1,20 @@
 services:
   db:
     image: postgres:15-alpine
-    container_name: wavepos-db
+    container_name: waveposapidte-db
     restart: always
     environment:
-      POSTGRES_DB: ${DB_NAME:-wavepos_dte_v2}
+      POSTGRES_DB: ${DB_NAME:-waveposapidte}
       POSTGRES_USER: ${DB_USER:-mrgomez}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-tecwave}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - wavepos-net
+      - waveposapidte-net
 
   app:
     build: .
-    container_name: wavepos-app
+    container_name: waveposapidte-app
     restart: always
     ports:
       - "3000:3000"
@@ -22,7 +22,7 @@ services:
       - NODE_ENV=production
       - DB_HOST=db
       - DB_PORT=5432
-      - DB_NAME=${DB_NAME:-wavepos_dte_v2}
+      - DB_NAME=${DB_NAME:-waveposapidte}
       - DB_USER=${DB_USER:-mrgomez}
       - DB_PASSWORD=${DB_PASSWORD:-tecwave}
       - JWT_SECRET=${JWT_SECRET:-secret_prod_change_me}
@@ -34,11 +34,11 @@ services:
     volumes:
       - ./server/certs:/app/server/certs
     networks:
-      - wavepos-net
+      - waveposapidte-net
 
   firmador:
     image: svfe/svfe-api-firmador:v20230109
-    container_name: wavepos-firmador
+    container_name: waveposapidte-firmador
     restart: always
     environment:
       - SPRING_PROFILES_ACTIVE=prod
@@ -47,10 +47,10 @@ services:
     volumes:
       - ./server/certs:/app/certs
     networks:
-      - wavepos-net
+      - waveposapidte-net
 
 networks:
-  wavepos-net:
+  waveposapidte-net:
     driver: bridge
 
 volumes:

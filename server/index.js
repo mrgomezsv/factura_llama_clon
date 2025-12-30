@@ -1390,7 +1390,7 @@ app.get('/api/dtes/:id/pdf', async (req, res) => {
 
 // Manejar todas las demás rutas para que Angular se encargue (SPA)
 app.get(/.*/, (req, res) => {
-  const indexPath = path.join(__dirname, '../dist/wavepos-dte-v2/browser/index.html');
+  const indexPath = path.join(__dirname, '../dist/waveposapidte/browser/index.html');
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
   } else {
