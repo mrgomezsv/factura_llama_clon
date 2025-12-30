@@ -22,6 +22,20 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install --omit=dev
 
+# Install Chromium and dependencies for Puppeteer
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    font-noto-emoji
+
+# Tell Puppeteer to skip installing Chrome v. we will use the installed package.
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
 # Copy only the necessary files
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/server ./server
