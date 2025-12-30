@@ -1,12 +1,15 @@
-const { Pool } = require('pg');
+const mysql = require('mysql2/promise');
 require('dotenv').config();
 
-const pool = new Pool({
+const pool = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || 5432,
+    port: process.env.DB_PORT || 3306,
     database: process.env.DB_NAME || 'wavepos_dte_v2',
     user: process.env.DB_USER || 'mrgomez',
     password: process.env.DB_PASSWORD || 'Karin2100',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
 });
 
 /**
@@ -26,18 +29,18 @@ async function validateApiKey(req, res, next) {
     }
 
     try {
-        const result = await pool.query(
-            'SELECT empresa_id, nombre, active FROM api_keys WHERE key = $1 AND active = 1',
+        const [rows] = await pool.query(
+            'SELECT empresa_id, nombre, active FROM api_keys WHERE `key` = ? AND active = 1',
             [apiKey]
         );
 
-        if (result.rows.length === 0) {
+        if (rows.length === 0) {
             return res.status(403).json({
                 error: 'API Key inválida o desactivada.'
             });
         }
 
-        const { empresa_id, nombre } = result.rows[0];
+        const { empresa_id, nombre } = rows[0];
 
         // Simular el objeto req.user para compatibilidad con la lógica existente
         req.user = {

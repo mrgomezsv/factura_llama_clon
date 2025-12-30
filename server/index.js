@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { Pool } = require('pg');
+const mysql = require('mysql2/promise');
 const dteBuilder = require('./services/dte-builder');
 const dteSigner = require('./services/dte-signer');
 const dtePdfGenerator = require('./services/dte-pdf-generator');
@@ -84,29 +84,33 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
 // Servir archivos estáticos del frontend (Angular)
-const distPath = path.join(__dirname, '../dist/wavepos-dte-v2/browser');
+const distPath = path.join(__dirname, '../dist/waveposapidte/browser');
 if (fs.existsSync(distPath)) {
   console.log(`📂 Sirviendo archivos estáticos desde: ${distPath}`);
   app.use(express.static(distPath));
 }
 
-// Configuración de PostgreSQL
-const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'wavepos_dte_v2',
-  user: process.env.DB_USER || 'mrgomez',
-  password: process.env.DB_PASSWORD || 'Karin2100',
+// Configuración de MySQL
+const pool = mysql.createPool({
+  host: process.env.DB_HOST || '66.45.252.124',
+  port: process.env.DB_PORT || 3306,
+  database: process.env.DB_NAME || 'tecwave_fe_dba',
+  user: process.env.DB_USER || 'tecwave_fe_dba',
+  password: process.env.DB_PASSWORD || 'vpt6fBX5bnm3vaf@jnh',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
 // Verificar conexión
-pool.on('connect', () => {
-  console.log('✅ Conectado a PostgreSQL');
-});
-
-pool.on('error', (err) => {
-  console.error('❌ Error inesperado en PostgreSQL:', err);
-});
+pool.getConnection()
+  .then(connection => {
+    console.log('✅ Conectado a MySQL');
+    connection.release();
+  })
+  .catch(err => {
+    console.error('❌ Error al conectar a MySQL:', err);
+  });
 
 // Endpoint de salud
 app.get('/api/health', async (req, res) => {
@@ -208,7 +212,8 @@ app.post('/api/auth/login', async (req, res) => {
     email = (email || '').toLowerCase().trim();
 
     // 1. Buscar usuario
-    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+    const result = { rows };
     if (result.rows.length === 0) {
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
@@ -274,7 +279,8 @@ app.post('/api/auth/register', async (req, res) => {
     await client.query('BEGIN');
 
     // 1. Verificar si el usuario ya existe
-    const existingUser = await client.query('SELECT id FROM users WHERE email = $1', [email.toLowerCase().trim()]);
+    const [userRows] = await connection.query('SELECT id FROM users WHERE email = ?', [email.toLowerCase().trim()]);
+    const existingUser = { rows: userRows };
     if (existingUser.rows.length > 0) {
       await client.query('ROLLBACK');
       return res.status(400).json({ error: 'Este correo electrónico ya está registrado' });
@@ -291,25 +297,25 @@ app.post('/api/auth/register', async (req, res) => {
     // a) Empresa (Usar displayName como nombre)
     // NOTA: La tabla empresas usa 'nombre', NO 'nombre_comercial'
     await client.query(
-      'INSERT INTO empresas (id, nombre) VALUES ($1, $2)',
+      'INSERT INTO empresas (id, nombre) VALUES (?, ?)',
       [empresaId, displayName || 'Mi Empresa']
     );
 
     // b) Configuración de empresa
     await client.query(
-      'INSERT INTO empresa_config (id, empresa_id, nombre_comercial) VALUES ($1, $2, $3)',
+      'INSERT INTO empresa_config (id, empresa_id, nombre_comercial) VALUES (?, ?, ?)',
       [configId, empresaId, displayName || 'Mi Empresa']
     );
 
     // c) Usuario
     await client.query(
-      'INSERT INTO users (id, email, password_hash, display_name, empresa_id) VALUES ($1, $2, $3, $4, $5)',
+      'INSERT INTO users (id, email, password_hash, display_name, empresa_id) VALUES (?, ?, ?, ?, ?)',
       [userId, email.toLowerCase().trim(), hashedPassword, displayName, empresaId]
     );
 
     // d) Configuración de usuario
     await client.query(
-      'INSERT INTO user_config (id, user_id, rol) VALUES ($1, $2, $3)',
+      'INSERT INTO user_config (id, user_id, rol) VALUES (?, ?, ?)',
       ['uc_' + Date.now(), userId, 'PROPIETARIO']
     );
 
@@ -353,7 +359,8 @@ app.post('/api/auth/refresh-token', authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
     // Buscar información actualizada del usuario
-    const result = await pool.query('SELECT * FROM users WHERE id = $1', [userId]);
+    const [rows] = await pool.query('SELECT * FROM users WHERE id = ?', [userId]);
+    const result = { rows };
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
@@ -427,7 +434,8 @@ app.post('/api/empresas/:id/certificado', authMiddleware, upload.single('certifi
     await client.query('BEGIN');
 
     // 1. Obtener NIT de la empresa para nombrar el archivo
-    const empresaRes = await client.query('SELECT nit FROM empresa_config WHERE empresa_id = $1', [empresaId]);
+    const [rows] = await client.query('SELECT nit FROM empresa_config WHERE empresa_id = ?', [empresaId]);
+    const empresaRes = { rows };
 
     if (empresaRes.rows.length === 0) {
       if (uploadedFile) fs.unlinkSync(uploadedFile.path); // Limpiar temp
@@ -455,23 +463,24 @@ app.post('/api/empresas/:id/certificado', authMiddleware, upload.single('certifi
     // Usamos UPSERT (Insert or Update)
 
     // Primero verificar si existe registro
-    const certRow = await client.query('SELECT id FROM empresa_certificados WHERE empresa_id = $1', [empresaId]);
+    const [certRows] = await client.query('SELECT id FROM empresa_certificados WHERE empresa_id = ?', [empresaId]);
+    const certRow = { rows: certRows };
 
     if (certRow.rows.length === 0) {
       // Insertar
       await client.query(`
             INSERT INTO empresa_certificados 
             (empresa_id, password_pri_prueba, password_pub_prueba, password_pri_produccion, password_pub_produccion, cert_path_prueba, cert_path_produccion)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
-        `, [
-        empresaId,
-        passwordPriPrueba || null,
-        passwordPubPrueba || null,
-        passwordPriProduccion || null,
-        passwordPubProduccion || null,
-        ambiente === 'PRUEBAS' && certPath ? certPath : null,
-        ambiente === 'PRODUCCION' && certPath ? certPath : null
-      ]);
+            VALUES (?, ?, ?, ?, ?, ?, ?); SELECT * FROM empresa_certificados WHERE id = LAST_INSERT_ID()`,
+        [
+          empresaId,
+          passwordPriPrueba || null,
+          passwordPubPrueba || null,
+          passwordPriProduccion || null,
+          passwordPubProduccion || null,
+          ambiente === 'PRUEBAS' && certPath ? certPath : null,
+          ambiente === 'PRODUCCION' && certPath ? certPath : null
+        ]);
     } else {
       // Actualizar dinámicamente
       let updateFields = [];
@@ -529,7 +538,7 @@ app.get('/api/contingencias/activa', authMiddleware, async (req, res) => {
   try {
     const empresaId = req.user.empresaId;
     const result = await pool.query(
-      'SELECT * FROM contingencias WHERE empresa_id = $1 AND estado = \'ACTIVO\' LIMIT 1',
+      'SELECT * FROM contingencias WHERE empresa_id = ? AND estado = \'ACTIVO\' LIMIT 1',
       [empresaId]
     );
     res.json(result.rows[0] || null);
@@ -545,7 +554,7 @@ app.get('/api/contingencias/pendientes', authMiddleware, async (req, res) => {
   try {
     const empresaId = req.user.empresaId;
     const result = await pool.query(
-      'SELECT * FROM contingencias WHERE empresa_id = $1 AND estado = \'PENDIENTE_REPORTE\' ORDER BY fecha_inicio DESC',
+      'SELECT * FROM contingencias WHERE empresa_id = ? AND estado = \'PENDIENTE_REPORTE\' ORDER BY fecha_inicio DESC',
       [empresaId]
     );
     res.json(result.rows);
@@ -564,7 +573,7 @@ app.post('/api/contingencias/iniciar', authMiddleware, async (req, res) => {
 
     // Verificar si ya hay una activa
     const activa = await pool.query(
-      'SELECT id FROM contingencias WHERE empresa_id = $1 AND estado = \'ACTIVO\'',
+      'SELECT id FROM contingencias WHERE empresa_id = ? AND estado = \'ACTIVO\'',
       [empresaId]
     );
 
@@ -574,7 +583,7 @@ app.post('/api/contingencias/iniciar', authMiddleware, async (req, res) => {
 
     const result = await pool.query(
       `INSERT INTO contingencias (empresa_id, fecha_inicio, codigo_motivo, descripcion_motivo, estado) 
-       VALUES ($1, COALESCE($2, CURRENT_TIMESTAMP), $3, $4, 'ACTIVO') RETURNING *`,
+       VALUES (?, COALESCE(?, CURRENT_TIMESTAMP), ?, ?, 'ACTIVO')`, // Removed RETURNING
       [empresaId, fechaInicio || null, codigoMotivo, descripcionMotivo]
     );
 
@@ -594,8 +603,8 @@ app.post('/api/contingencias/finalizar', authMiddleware, async (req, res) => {
 
     const result = await pool.query(
       `UPDATE contingencias 
-       SET fecha_fin = COALESCE($1, CURRENT_TIMESTAMP), estado = 'PENDIENTE_REPORTE', updated_at = CURRENT_TIMESTAMP 
-       WHERE id = $2 AND empresa_id = $3 AND estado = 'ACTIVO' RETURNING *`,
+       SET fecha_fin = COALESCE(?, CURRENT_TIMESTAMP), estado = 'PENDIENTE_REPORTE', updated_at = CURRENT_TIMESTAMP 
+       WHERE id = ? AND empresa_id = ? AND estado = 'ACTIVO'`, // Removed RETURNING
       [fechaFin || null, id, empresaId]
     );
 
@@ -619,7 +628,7 @@ app.get('/api/contingencias/:id/dtes', authMiddleware, async (req, res) => {
 
     // Obtener datos de la contingencia
     const contResult = await pool.query(
-      'SELECT * FROM contingencias WHERE id = $1 AND empresa_id = $2',
+      'SELECT * FROM contingencias WHERE id = ? AND empresa_id = ?',
       [id, empresaId]
     );
 
@@ -635,8 +644,8 @@ app.get('/api/contingencias/:id/dtes', authMiddleware, async (req, res) => {
     const unifiedQuery = getUnifiedDteQuery('*');
     const dtes = await pool.query(
       `SELECT * FROM (${unifiedQuery}) AS dtes_unificados
-       WHERE empresa_id = $1 
-       AND created_at BETWEEN $2 AND $3
+       WHERE empresa_id = ? 
+       AND created_at BETWEEN ? AND ?
        AND (estado = 'CONTINGENCIA' OR sello_recibido IS NULL)
        ORDER BY created_at ASC`,
       [empresaId, inicio, fin]
@@ -657,7 +666,8 @@ app.post('/api/contingencias/:id/reportar', authMiddleware, async (req, res) => 
     const empresaId = req.user.empresaId;
 
     // 1. Obtener datos
-    const contResult = await pool.query('SELECT * FROM contingencias WHERE id = $1 AND empresa_id = $2', [id, empresaId]);
+    const [rows] = await pool.query('SELECT * FROM contingencias WHERE id = ? AND empresa_id = ?', [id, empresaId]);
+    const contResult = { rows };
     if (contResult.rows.length === 0) return res.status(404).json({ error: 'Contingencia no encontrada' });
     const contingencia = contResult.rows[0];
 
@@ -666,7 +676,7 @@ app.post('/api/contingencias/:id/reportar', authMiddleware, async (req, res) => 
     const unifiedQuery = getUnifiedDteQuery('id, codigo_generacion, tipo_dte, dte_firmado, sello_recibido, empresa_id, created_at');
     const dtesResult = await pool.query(
       `SELECT * FROM (${unifiedQuery}) AS dtes_unificados
-       WHERE empresa_id = $1 AND created_at BETWEEN $2 AND $3 AND sello_recibido IS NULL`,
+       WHERE empresa_id = ? AND created_at BETWEEN ? AND ? AND sello_recibido IS NULL`,
       [empresaId, contingencia.fecha_inicio, fin]
     );
 
@@ -683,7 +693,7 @@ app.post('/api/contingencias/:id/reportar', authMiddleware, async (req, res) => 
              crt.password_pub_produccion as cert_password_pub_produccion
       FROM empresa_config ec
       LEFT JOIN empresa_certificados crt ON ec.empresa_id = crt.empresa_id
-      WHERE ec.empresa_id = $1
+      WHERE ec.empresa_id = ?
     `, [empresaId]);
     const empresaConfig = empresaConfigResult.rows[0];
 
@@ -709,7 +719,7 @@ app.post('/api/contingencias/:id/reportar', authMiddleware, async (req, res) => 
     if (mhResponse.estado === 'PROCESADO' || mhResponse.estado === 'RECIBIDO') {
       // 6.a Actualizar Contingencia
       await pool.query(
-        'UPDATE contingencias SET codigo_generacion = $1, sello_recibido = $2, estado = \'CERRADO\' WHERE id = $3',
+        'UPDATE contingencias SET codigo_generacion = ?, sello_recibido = ?, estado = \'CERRADO\' WHERE id = ?',
         [codigoGeneracion, mhResponse.selloRecibido, id]
       );
 
@@ -737,7 +747,7 @@ app.post('/api/contingencias/:id/reportar', authMiddleware, async (req, res) => 
           if (respDte.selloRecibido) {
             const tableToUpdate = getTableNameByTipoDte(dte.tipo_dte) || 'dtes';
             await pool.query(
-              `UPDATE ${tableToUpdate} SET sello_recibido = $1, estado = 'PROCESADO', fecha_autorizacion = NOW() WHERE id = $2`,
+              `UPDATE ${tableToUpdate} SET sello_recibido = ?, estado = 'PROCESADO', fecha_autorizacion = NOW() WHERE id = ?`,
               [respDte.selloRecibido, dte.id]
             );
             retransmitidos++;
@@ -802,7 +812,7 @@ app.post('/api/v1/external/generar', validateApiKey, async (req, res) => {
              crt.password_pub_produccion as cert_password_pub_produccion
       FROM empresa_config ec
       LEFT JOIN empresa_certificados crt ON ec.empresa_id = crt.empresa_id
-      WHERE ec.empresa_id = $1
+      WHERE ec.empresa_id = ?
       `, [empresaId]
     );
 
@@ -814,7 +824,8 @@ app.post('/api/v1/external/generar', validateApiKey, async (req, res) => {
     // --- Lógica de Cliente ---
     let cliente = null;
     if (clienteId) {
-      const clienteResult = await pool.query('SELECT * FROM clientes WHERE id = $1', [clienteId]);
+      const [clientRows] = await pool.query('SELECT * FROM clientes WHERE id = ?', [clienteId]);
+      const clienteResult = { rows: clientRows };
       if (clienteResult.rows.length > 0) cliente = clienteResult.rows[0];
     } else if (req.body.cliente) {
       cliente = req.body.cliente;
@@ -998,7 +1009,7 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
     let cliente = null;
     if (clienteId) {
       const clienteResult = await pool.query(
-        'SELECT * FROM clientes WHERE id = $1',
+        'SELECT * FROM clientes WHERE id = ?', // $1 -> ?
         [clienteId]
       );
       if (clienteResult.rows.length > 0) {
@@ -1227,7 +1238,7 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
 
     // Actualizar estado del DTE a GENERADO
     await pool.query(
-      `UPDATE ${tableName} SET estado = $1 WHERE id = $2`,
+      `UPDATE ${tableName} SET estado = ? WHERE id = ?`, // $1, $2 -> ?, ?
       ['GENERADO', dteId]
     );
 

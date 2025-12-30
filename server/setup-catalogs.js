@@ -1,34 +1,31 @@
-const { Client } = require('pg');
+const mysql = require('mysql2/promise');
 require('dotenv').config();
 
 const dbConfig = {
     host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || 5432,
+    port: process.env.DB_PORT || 3306,
     database: process.env.DB_NAME || 'wavepos_dte_v2',
     user: process.env.DB_USER || 'mrgomez',
     password: process.env.DB_PASSWORD || 'Karin2100',
 };
 
 async function setupCatalogs() {
-    const client = new Client(dbConfig);
-
+    let connection; // Declare connection outside try block for finally access
     try {
-        await client.connect();
+        connection = await mysql.createConnection(dbConfig);
 
         // Verificar si ya existen datos (usando cat_001_ambiente y cat_019_actividad_economica como referencia)
-        const checkTableQuery = "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'cat_001_ambiente')";
-        const tableExists = await client.query(checkTableQuery);
+        const [tables] = await connection.query("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_NAME IN ('cat_001_ambiente', 'cat_019_actividad_economica')", [dbConfig.database]);
 
-        const checkCat019Query = "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'cat_019_actividad_economica')";
-        const cat019Exists = await client.query(checkCat019Query);
+        const tableExists = tables.some(t => t.TABLE_NAME === 'cat_001_ambiente');
+        const cat019Exists = tables.some(t => t.TABLE_NAME === 'cat_019_actividad_economica');
 
-        if (tableExists.rows[0].exists && cat019Exists.rows[0].exists) {
-            const countQuery = "SELECT COUNT(*) FROM cat_001_ambiente";
-            const countResult = await client.query(countQuery);
+        if (tableExists && cat019Exists) {
+            const [rows] = await connection.query("SELECT COUNT(*) as count FROM cat_001_ambiente");
 
-            if (parseInt(countResult.rows[0].count) > 0) {
+            if (rows[0].count > 0) {
                 console.log('✅ Los catálogos ya están cargados en la base de datos. Omitiendo configuración.');
-                await client.end();
+                await connection.end();
                 return;
             }
         }
@@ -856,7 +853,7 @@ async function setupCatalogs() {
                     ['46594', 'Venta al por mayor de maquinaria, equipo, accesorios y materiales para la industria metálica y de sus productos'],
                     ['46595', 'Venta al por mayor de equipamiento para uso médico, odontológico, veterinario y servicios conexos'],
                     ['46596', 'Venta al por mayor de maquinaria, equipo, accesorios y partes para la industria de la alimentación'],
-                    ['46597', 'Venta al por mayor de maquinaria, equipo, accesorios y partes para la industria textil, confecciones y cuero'],
+                    ['46597', 'Venta al por mayor de maquinaria, equipo y accesorios para la industria textil, confecciones y cuero'],
                     ['46598', 'Venta al por mayor de maquinaria, equipo y accesorios para la construcción y explotación de minas y canteras'],
                     ['46599', 'Venta al por mayor de otro tipo de maquinaria y equipo con sus accesorios y partes'],
                     ['46610', 'Venta al por mayor de otros combustibles sólidos, líquidos, gaseosos y de productos conexos'],
@@ -1745,26 +1742,6 @@ async function setupCatalogs() {
                     ['EX-3.3071.000', 'Reexp. Prov. de Deposito.'],
                     ['EX-3.3052.000', 'Reexp. Prov. de Adm Temp. para Perfeccionamiento Activo'],
                     ['EX-3.3054.000', 'Reexp. Prov. de Regimen de Zona Franca'],
-                    ['EX-3.3055.000', 'Re-Exportación, Reexportación Proveniente de Admisión Temporal para Perfeccionamiento Activo con Garantía, Régimen Común'],
-                    ['EX-3.3056.000', 'Re-Exportación, Reexportación Proveniente de Admisión Temporal Distribución Internacional Parque de Servicios, Régimen Común'],
-                    ['EX-3.3056.057', 'Re-Exportación, Reexportación Proveniente de Admisión Temporal Distribución Internacional Parque de Servicios, Remisión entre Usuarios Directos del Mismo Parque de Servicios'],
-                    ['EX-3.3056.058', 'Re-Exportación, Reexportación Proveniente de Admisión Temporal Distribución Internacional Parque de Servicios, Remisión entre Usuarios Directos de Diferente Parque de Servicios'],
-                    ['EX-3.3056.072', 'Re-Exportación, Reexportación Proveniente de Admisión Temporal Distribución Internacional Parque de Servicios, Decreto 738 Eléctricos e Híbridos'],
-                    ['EX-3.3057.000', 'Re-Exportación, Reexportación Proveniente de Admisión Temporal Operaciones Internacional de Logística Parque de Servicios, Régimen Común'],
-                    ['EX-3.3057.057', 'Re-Exportación, Reexportación Proveniente de Admisión Temporal Operaciones Internacional de Logística Parque de Servicios, Remisión entre Usuarios Directos del Mismo Parque de Servicios'],
-                    ['EX-3.3057.058', 'Re-Exportación, Reexportación Proveniente de Admisión Temporal Operaciones Internacional de Logística Parque de Servicios, Remisión entre Usuarios Directos de Diferente Parque de Servicios'],
-                    ['EX-3.3058.033', 'Re-Exportación, Reexportación Proveniente de Admisión Temporal Centro Servicio LSI, Centro Internacional de llamadas (Call Center)'],
-                    ['EX-3.3058.036', 'Re-Exportación, Reexportación Proveniente de Admisión Temporal Centro Servicio LSI, Reparación y Mantenimiento de Embarcaciones Marítimas LSI'],
-                    ['EX-3.3058.037', 'Re-Exportación, Reexportación Proveniente de Admisión Temporal Centro Servicio LSI, Reparación y Mantenimiento de Aeronaves LSI'],
-                    ['EX-3.3058.043', 'Re-Exportación, Reexportación Proveniente de Admisión Temporal Centro Servicio LSI, Reparación y Mantenimiento de Contenedores LSI'],
-                    ['EX-3.3059.000', 'Re-Exportación, Reexportación Proveniente de Admisión Temporal Reparación de Equipo Tecnológico Parque de Servicios, Régimen Común'],
-                    ['EX-3.3059.057', 'Re-Exportación, Reexportación Proveniente de Admisión Temporal Reparación de Equipo Tecnológico Parque de Servicios, Remisión entre Usuarios Directos del Mismo Parque de Servicios'],
-                    ['EX-3.3059.058', 'Re-Exportación, Reexportación Proveniente de Admisión Temporal Reparación de Equipo Tecnológico Parque de Servicios, Remisión entre Usuarios Directos de Diferente Parque de Servicios'],
-                    ['EX-3.3070.000', 'Re-Exportación, Reexportación Proveniente de Depósito., Régimen Común'],
-                    ['EX-3.3070.072', 'Re-Exportación, Reexportación Proveniente de Depósito., Decreto 738 Eléctricos e Híbridos'],
-                    ['EX-3.3071.000', 'Reexp. Prov. de Deposito.'],
-                    ['EX-3.3052.000', 'Reexp. Prov. de Adm Temp. para Perfeccionamiento Activo'],
-                    ['EX-3.3054.000', 'Reexp. Prov. de Regimen de Zona Franca'],
                     ['EX-3.3055.000', 'Reexp. Prov.de Adm.Temporal para Perfeccionamiento Activo con Garantía'],
                     ['EX-3.3056.000', 'Re-Exp. Prov.de Adm.Temporal Ley de Servi. Internacionales'],
                     ['EX-3.3057.000', 'Reexportación Prov. de Centro de Servicio LSI']
@@ -1820,58 +1797,33 @@ async function setupCatalogs() {
         // --- Creación de Tablas e Inserción ---
         for (const catalog of catalogs) {
             console.log(`🔨 Procesando ${catalog.description}...`);
+            // Crear tabla si no existe
+            const createTableQuery = `
+                CREATE TABLE IF NOT EXISTS ${catalog.tableName} (
+    codigo VARCHAR(255) PRIMARY KEY,
+        valor TEXT NOT NULL,
+            is_active BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+`;
+            await connection.query(createTableQuery);
 
-            // 1. Crear Tabla
-            // Campos extra para jerarquía si aplica
-            const hierarchyColumn = catalog.hierarchical ? ', parent_code VARCHAR(20)' : '';
+            console.log(`🔹 Insertando datos en ${catalog.tableName} (${catalog.description})...`);
 
-            const createQuery = `
-        CREATE TABLE IF NOT EXISTS ${catalog.tableName} (
-          id SERIAL PRIMARY KEY,
-          codigo VARCHAR(20) NOT NULL UNIQUE,
-          descripcion TEXT NOT NULL,
-          is_active BOOLEAN DEFAULT TRUE,
-          created_at TIMESTAMP DEFAULT NOW()
-          ${hierarchyColumn}
-        );
-      `;
-
-            await client.query(createQuery);
-
-            // 2. Insertar Datos
-            for (const row of catalog.data) {
-                // row[0] = codigo, row[1] = descripcion, row[2] = parent_code (si existe)
-                const codigo = row[0];
-                const description = row[1];
-                const parentCode = row[2] || null;
-
-                if (catalog.hierarchical) {
-                    const insertQuery = `
-                INSERT INTO ${catalog.tableName} (codigo, descripcion, parent_code)
-                VALUES ($1, $2, $3)
-                ON CONFLICT (codigo) DO UPDATE SET 
-                  descripcion = EXCLUDED.descripcion,
-                  parent_code = EXCLUDED.parent_code;
-            `;
-                    await client.query(insertQuery, [codigo, description, parentCode]);
-                } else {
-                    const insertQuery = `
-                INSERT INTO ${catalog.tableName} (codigo, descripcion)
-                VALUES ($1, $2)
-                ON CONFLICT (codigo) DO UPDATE SET 
-                  descripcion = EXCLUDED.descripcion;
-            `;
-                    await client.query(insertQuery, [codigo, description]);
-                }
+            // Insertar datos
+            for (const item of catalog.data) {
+                // MySQL usa INSERT IGNORE en lugar de ON CONFLICT DO NOTHING
+                const insertQuery = `INSERT IGNORE INTO ${catalog.tableName} (codigo, valor) VALUES(?, ?)`;
+                await connection.query(insertQuery, [item[0], item[1]]);
             }
         }
 
-        console.log('✅ Todos los catálogos han sido configurados exitosamente.');
-
+        console.log('🎉 Carga de catálogos completada exitosamente.');
+        await connection.end();
     } catch (error) {
         console.error('❌ Error configurando catálogos:', error);
-    } finally {
-        await client.end();
+        if (connection) await connection.end().catch(() => { }); // Asegurar cierre
+        process.exit(1);
     }
 }
 

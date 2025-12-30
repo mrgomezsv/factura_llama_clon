@@ -1,16 +1,19 @@
 services:
-  db:
-    image: postgres:15-alpine
-    container_name: waveposapidte-db
-    restart: always
-    environment:
-      POSTGRES_DB: ${DB_NAME:-waveposapidte}
-      POSTGRES_USER: ${DB_USER:-mrgomez}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-tecwave}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - waveposapidte-net
+#  db:
+#    image: mysql:8.0
+#    container_name: waveposapidte-mysql
+#    restart: always
+#    environment:
+#      MYSQL_DATABASE: ${DB_NAME:-tecwave_fe_dba}
+#      MYSQL_USER: ${DB_USER:-tecwave_fe_dba}
+#      MYSQL_PASSWORD: ${DB_PASSWORD:-vpt6fBX5bnm3vaf@jnh}
+#      MYSQL_ROOT_PASSWORD: root
+#    ports:
+#      - "3306:3306"
+#    volumes:
+#      - mysql_data:/var/lib/mysql
+#    networks:
+#      - waveposapidte-net
 
   app:
     build: .
@@ -21,16 +24,16 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_NAME=${DB_NAME:-waveposapidte}
-      - DB_USER=${DB_USER:-mrgomez}
-      - DB_PASSWORD=${DB_PASSWORD:-tecwave}
+      - DB_HOST=premier-orion-pa.cloudservices.tech
+      - DB_PORT=3306
+      - DB_NAME=${DB_NAME:-tecwave_fe_dba}
+      - DB_USER=${DB_USER:-tecwave_fe_dba}
+      - DB_PASSWORD=${DB_PASSWORD:-vpt6fBX5bnm3vaf@jnh}
       - JWT_SECRET=${JWT_SECRET:-secret_prod_change_me}
       - PORT=3000
       - DTE_SIGNER_URL=http://firmador:8113
     depends_on:
-      - db
+      #- db
       - firmador
     volumes:
       - ./server/certs:/app/server/certs
