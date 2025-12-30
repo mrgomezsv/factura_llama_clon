@@ -14,6 +14,7 @@ import { ComprobanteRetencionItemsComponent } from '../../components/comprobante
 import { FacturacionCalculationsService } from '../../services/facturacion-calculations.service';
 import { DteService } from '../../services/dte.service';
 import { ItemFactura, Retenciones, ResultadosCalculoFacturacion } from '../../models/facturacion.model';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-comprobante-retencion-page',
@@ -194,7 +195,7 @@ export class ComprobanteRetencionPageComponent {
       ambiente: this.ambienteProduccion ? 'PRODUCCIÓN' : 'PRUEBAS'
     };
 
-    this.http.post('http://localhost:3000/api/dtes/generar', datosDTE, {
+    this.http.post(`${environment.apiUrl}/dtes/generar`, datosDTE, {
       responseType: 'blob'
     }).subscribe({
       next: (pdfBlob: Blob) => {

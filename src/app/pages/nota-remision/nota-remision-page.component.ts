@@ -16,6 +16,7 @@ import { DteService } from '../../services/dte.service';
 import { AuthService } from '../../services/auth.service';
 import { ItemFactura, Retenciones, ResultadosCalculoFacturacion } from '../../models/facturacion.model';
 import { HttpHeaders } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-nota-remision-page',
@@ -244,7 +245,7 @@ export class NotaRemisionPageComponent {
       'Authorization': `Bearer ${token} `
     });
 
-    this.http.post('http://localhost:3000/api/dtes/generar', datosDTE, {
+    this.http.post(`${environment.apiUrl}/dtes/generar`, datosDTE, {
       headers: headers,
       responseType: 'blob'
     }).subscribe({

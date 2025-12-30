@@ -38,7 +38,7 @@ export class DatabaseService {
       this.dbReady$.next(true);
     } catch (error) {
       console.error('❌ Error al conectar con el backend:', error);
-      console.error('⚠️  Asegúrate de que el servidor backend esté corriendo en http://localhost:3000');
+      console.error(`⚠️  Asegúrate de que el servidor backend esté corriendo en ${this.API_URL}`);
       // Intentar nuevamente después de un delay
       setTimeout(() => this.initializeDatabase(), 2000);
     }

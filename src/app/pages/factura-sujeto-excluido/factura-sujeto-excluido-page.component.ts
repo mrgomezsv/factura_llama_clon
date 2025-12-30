@@ -15,6 +15,7 @@ import { FacturacionCalculationsService } from '../../services/facturacion-calcu
 import { DteService } from '../../services/dte.service';
 import { AuthService } from '../../services/auth.service';
 import { ItemFactura, Retenciones, ResultadosCalculoFacturacion, Pago } from '../../models/facturacion.model';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-factura-sujeto-excluido-page',
@@ -254,7 +255,7 @@ export class FacturaSujetoExcluidoPageComponent implements OnInit {
       'Authorization': `Bearer ${token}`
     });
 
-    this.http.post('http://localhost:3000/api/dtes/generar', datosDTE, {
+    this.http.post(`${environment.apiUrl}/dtes/generar`, datosDTE, {
       headers: headers,
       responseType: 'blob'
     }).subscribe({

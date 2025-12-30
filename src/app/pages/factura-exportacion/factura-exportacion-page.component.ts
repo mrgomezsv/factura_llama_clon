@@ -12,6 +12,7 @@ import { FacturaExportacionLogisticaComponent } from '../../components/factura-e
 import { FacturacionCalculationsService } from '../../services/facturacion-calculations.service';
 import { DteService } from '../../services/dte.service';
 import { ItemFactura, Retenciones, ResultadosCalculoFacturacion } from '../../models/facturacion.model';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-factura-exportacion-page',
@@ -206,7 +207,7 @@ export class FacturaExportacionPageComponent {
       return;
     }
 
-    this.http.post('http://localhost:3000/api/dtes/generar', datosDTE, {
+    this.http.post(`${environment.apiUrl}/dtes/generar`, datosDTE, {
       headers: {
         'Authorization': `Bearer ${token} `
       },

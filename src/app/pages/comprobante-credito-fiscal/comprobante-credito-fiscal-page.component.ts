@@ -14,6 +14,7 @@ import { ComprobanteCreditoFiscalItemsComponent } from '../../components/comprob
 import { FacturacionCalculationsService } from '../../services/facturacion-calculations.service';
 import { DteService } from '../../services/dte.service';
 import { ItemFactura, Retenciones, ResultadosCalculoFacturacion } from '../../models/facturacion.model';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-comprobante-credito-fiscal-page',
@@ -233,7 +234,7 @@ export class ComprobanteCreditoFiscalPageComponent {
 
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
-    this.http.post('http://localhost:3000/api/dtes/generar', datosDTE, {
+    this.http.post(`${environment.apiUrl}/dtes/generar`, datosDTE, {
       headers: headers,
       responseType: 'blob'
     }).subscribe({

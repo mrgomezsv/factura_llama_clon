@@ -15,6 +15,7 @@ import { FacturacionCalculationsService } from '../../services/facturacion-calcu
 import { DteService } from '../../services/dte.service';
 import { ItemFactura, Retenciones, ResultadosCalculoFacturacion } from '../../models/facturacion.model';
 import { NotificacionModalComponent } from '../../components/notificacion-modal/notificacion-modal.component';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-nota-credito-page',
@@ -241,7 +242,7 @@ export class NotaCreditoPageComponent {
 
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token} `);
 
-    this.http.post('http://localhost:3000/api/dtes/generar', datosDTE, {
+    this.http.post(`${environment.apiUrl}/dtes/generar`, datosDTE, {
       headers: headers,
       responseType: 'blob'
     }).subscribe({

@@ -14,6 +14,7 @@ import { NotaDebitoItemsComponent } from '../../components/nota-debito/items/ite
 import { FacturacionCalculationsService } from '../../services/facturacion-calculations.service';
 import { DteService } from '../../services/dte.service';
 import { ItemFactura, Retenciones, ResultadosCalculoFacturacion } from '../../models/facturacion.model';
+import { environment } from '../../../environments/environment';
 import { NotificacionModalComponent } from '../../components/notificacion-modal/notificacion-modal.component';
 
 @Component({
@@ -226,7 +227,7 @@ export class NotaDebitoPageComponent {
 
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token} `);
 
-    this.http.post('http://localhost:3000/api/dtes/generar', datosDTE, {
+    this.http.post(`${environment.apiUrl}/dtes/generar`, datosDTE, {
       headers: headers,
       responseType: 'blob'
     }).subscribe({

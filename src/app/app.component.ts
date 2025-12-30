@@ -12,6 +12,7 @@ import { PeriodoTributario } from './models/periodo-tributario.model';
 import { UpgradeModalComponent } from './components/upgrade-modal/upgrade-modal.component';
 import { DatePickerComponent } from './components/date-picker/date-picker.component';
 import { TipoDTE } from './models/tipo-dte.model';
+import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -213,7 +214,7 @@ export class AppComponent implements OnInit {
     console.log('🖨️ [Frontend] Exporting PDF for DTE:', dte);
     console.log('🖨️ [Frontend] Using tipoDte param:', tipoDte);
 
-    this.http.get(`http://localhost:3000/api/dtes/${dte.id}/pdf`, {
+    this.http.get(`${environment.apiUrl}/dtes/${dte.id}/pdf`, {
       params: tipoDte ? { tipoDte } : {},
       responseType: 'blob'
     }).subscribe({
