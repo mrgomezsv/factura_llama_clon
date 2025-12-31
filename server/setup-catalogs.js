@@ -2,11 +2,11 @@ const mysql = require('mysql2/promise');
 require('dotenv').config();
 
 const dbConfig = {
-    DB_HOST: process.env.DATABASE_HOST || '45.10.160.29',
-    DB_PORT: process.env.DATABASE_PORT || 5432,
-    DB_NAME: process.env.DATABASE_NAME || 'thetecwa1_fe_dba_prod',
-    DB_USER: process.env.DATABASE_USER || 'thetecwa1_fe_dba_prod',
-    DB_PASSWORD: process.env.DATABASE_PASSWORD || 'ml%BHX$C//Z$f6uL',
+    host: process.env.DATABASE_HOST || '45.10.160.29',
+    port: process.env.DATABASE_PORT || 3306,
+    database: process.env.DATABASE_NAME || 'thetecwa1_lap_fe_prod',
+    user: process.env.DATABASE_USER || 'thetecwa1_lap_fe_prod',
+    password: process.env.DATABASE_PASSWORD || 'ml%BHX$C//Z$f6uL',
 };
 
 async function setupCatalogs() {
