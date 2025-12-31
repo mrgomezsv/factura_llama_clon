@@ -14,6 +14,9 @@ const { initializeDatabase } = require('./verify-db');
 const validateApiKey = require('./middleware/api-key.middleware');
 const path = require('path');
 const fs = require('fs');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./swagger');
+
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_para_desarrollo_123';
 
@@ -111,6 +114,12 @@ pool.getConnection()
   .catch(err => {
     console.error('❌ Error al conectar a MySQL:', err);
   });
+
+// Swagger API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'WavePos DTE API Documentation'
+}));
 
 // Endpoint de salud
 app.get('/api/health', async (req, res) => {
