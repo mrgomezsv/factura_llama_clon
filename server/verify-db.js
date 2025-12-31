@@ -1,7 +1,6 @@
 
 const mysql = require('mysql2/promise');
 require('dotenv').config();
-const { createDatabase, createTables } = require('./create-database');
 const { setupCatalogs } = require('./setup-catalogs');
 
 const dbName = process.env.DATABASE_NAME || 'thetecwa1_fe_dba_prod';
@@ -14,54 +13,33 @@ const dbConfig = {
 };
 
 async function initializeDatabase() {
-    console.log('🔍 Checking database status...');
+    console.log('🔍 Verificando conexión a base de datos...');
     let connection;
 
     try {
-        // Intentar conectar a la base de datos específica
+        // Intentar conectar a la base de datos
         connection = await mysql.createConnection(dbConfig);
-        console.log(`✅ Base de datos "${dbName}" existe and connection successful.`);
+        console.log(`✅ Conectado a la base de datos "${dbName}"`);
 
-        // Verificar integridad de tablas (por si acaso se creó la DB pero falló la creación de tablas)
-        try {
-            // Siempre ejecutar createTables para asegurar que las migraciones corran (es idempotente)
-            console.log('🔄 Verificando esquema de base de datos y migraciones...');
-            await createTables(connection);
-        } catch (tableErr) {
-            console.error('⚠️  Error verificando tablas, intentando recrear estructura:', tableErr.message);
-            // Si falla la verificación, intentamos correr createTables por si acaso
-            await createTables(connection);
-        }
-
-        // Si conecta, cerramos esta conexión para proceder con verificaciones/migraciones
         await connection.end();
 
-        console.log('🔄 Verifying catalogs...');
+        // Verificar y cargar catálogos
+        console.log('🔄 Verificando catálogos...');
         await setupCatalogs();
 
+        console.log('✅ Inicialización completada');
+
     } catch (err) {
-        if (connection) { await connection.end().catch(() => { }); }
-
-        // Código 1049 significa "Unknown database" en MySQL
-        if (err.code === 'ER_BAD_DB_ERROR' || err.code === '3D000' || (err.sqlMessage && err.sqlMessage.includes('Unknown database'))) {
-            console.log(`⚠️  Base de datos "${dbName}" no detectada. Iniciando creación...`);
-            try {
-                // Ejecutar script de creación (Crea DB + Tablas + Datos Semilla)
-                await createDatabase();
-
-                // Ejecutar carga de catálogos
-                console.log('running setup catalogs...');
-                await setupCatalogs();
-
-                console.log('🎉 Inicialización de base de datos completada.');
-            } catch (createErr) {
-                console.error('❌ Error crítico creando la base de datos:', createErr);
-                throw createErr;
-            }
-        } else {
-            console.error('❌ Error de conexión a BD:', err.message);
-            throw err;
+        if (connection) {
+            await connection.end().catch(() => { });
         }
+
+        console.error('❌ Error de conexión a BD:', err.message);
+        console.error('Por favor verifica que:');
+        console.error('  1. La base de datos existe');
+        console.error('  2. Las credenciales son correctas');
+        console.error('  3. La IP del servidor está en la whitelist');
+        throw err;
     }
 }
 
