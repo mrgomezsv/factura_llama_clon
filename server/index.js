@@ -569,7 +569,7 @@ app.get('/api/contingencias/pendientes', authMiddleware, async (req, res) => {
       'SELECT * FROM contingencias WHERE empresa_id = ? AND estado = \'PENDIENTE_REPORTE\' ORDER BY fecha_inicio DESC',
       [empresaId]
     );
-    res.json(result.rows);
+    res.json(rows);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
