@@ -273,16 +273,19 @@ app.post('/api/auth/register', async (req, res) => {
     return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
   }
 
-  const client = await pool.connect();
+  let connection;
 
   try {
-    await client.query('BEGIN');
+    // Obtener conexión del pool
+    connection = await pool.getConnection();
+
+    // Iniciar transacción
+    await connection.beginTransaction();
 
     // 1. Verificar si el usuario ya existe
     const [userRows] = await connection.query('SELECT id FROM users WHERE email = ?', [email.toLowerCase().trim()]);
-    const existingUser = { rows: userRows };
-    if (existingUser.rows.length > 0) {
-      await client.query('ROLLBACK');
+    if (userRows.length > 0) {
+      await connection.rollback();
       return res.status(400).json({ error: 'Este correo electrónico ya está registrado' });
     }
 
@@ -290,36 +293,37 @@ app.post('/api/auth/register', async (req, res) => {
     const userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     const empresaId = 'emp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     const configId = 'conf_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
     // 3. Hashear contraseña
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // 4. Insertar datos en DB
     // a) Empresa (Usar displayName como nombre)
-    // NOTA: La tabla empresas usa 'nombre', NO 'nombre_comercial'
-    await client.query(
+    await connection.query(
       'INSERT INTO empresas (id, nombre) VALUES (?, ?)',
       [empresaId, displayName || 'Mi Empresa']
     );
 
     // b) Configuración de empresa
-    await client.query(
+    await connection.query(
       'INSERT INTO empresa_config (id, empresa_id, nombre_comercial) VALUES (?, ?, ?)',
       [configId, empresaId, displayName || 'Mi Empresa']
     );
 
     // c) Usuario
-    await client.query(
+    await connection.query(
       'INSERT INTO users (id, email, password_hash, display_name, empresa_id) VALUES (?, ?, ?, ?, ?)',
       [userId, email.toLowerCase().trim(), hashedPassword, displayName, empresaId]
     );
 
     // d) Configuración de usuario
-    await client.query(
+    await connection.query(
       'INSERT INTO user_config (id, user_id, rol) VALUES (?, ?, ?)',
       ['uc_' + Date.now(), userId, 'PROPIETARIO']
     );
 
-    await client.query('COMMIT');
+    // Confirmar transacción
+    await connection.commit();
 
     // 5. Generar Token
     const token = jwt.sign(
@@ -333,7 +337,7 @@ app.post('/api/auth/register', async (req, res) => {
       { expiresIn: '8h' }
     );
 
-    // 8. Retornar éxito con token y usuario
+    // 6. Retornar éxito con token y usuario
     res.status(201).json({
       message: 'Cuenta creada exitosamente',
       token,
@@ -346,11 +350,15 @@ app.post('/api/auth/register', async (req, res) => {
     });
 
   } catch (error) {
-    await client.query('ROLLBACK');
+    if (connection) {
+      await connection.rollback();
+    }
     console.error('Registration error:', error);
     res.status(500).json({ error: error.message || 'Error al registrar usuario' });
   } finally {
-    client.release();
+    if (connection) {
+      connection.release();
+    }
   }
 });
 
