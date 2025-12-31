@@ -923,7 +923,7 @@ app.post('/api/v1/external/generar', validateApiKey, async (req, res) => {
       fhProcesamiento: mhResponse.fhProcesamiento,
       descripcionMensaje: mhResponse.descripcionMensaje,
       observaciones: mhResponse.observaciones,
-      pdfUrl: `http://localhost:3000/api/dtes/${dteId}/pdf?tipoDte=${tipoDte}`
+      pdfUrl: `${process.env.BASE_URL || 'http://localhost:3000'}/api/dtes/${dteId}/pdf?tipoDte=${tipoDte}`
     });
 
   } catch (error) {
