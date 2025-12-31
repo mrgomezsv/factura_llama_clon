@@ -851,11 +851,11 @@ app.post('/api/v1/external/generar', validateApiKey, async (req, res) => {
 
     if (!tableName) return res.status(400).json({ error: `Tipo de documento no válido: ${tipoDte}` });
 
-    const lastDteResult = await pool.query(
-      `SELECT numero_documento FROM ${tableName} WHERE empresa_id = $1 AND tipo_dte = $2 ORDER BY numero_documento DESC LIMIT 1`,
+    const [lastDteRows] = await pool.query(
+      `SELECT numero_documento FROM ${tableName} WHERE empresa_id = ? AND tipo_dte = ? ORDER BY numero_documento DESC LIMIT 1`,
       [empresaId, tipoDteCodigo]
     );
-    const nextNumero = lastDteResult.rows.length > 0 ? parseInt(lastDteResult.rows[0].numero_documento) + 1 : 1;
+    const nextNumero = lastDteRows.length > 0 ? parseInt(lastDteRows[0].numero_documento) + 1 : 1;
 
     // --- Construir DTE ---
     const { dteJson, codigoGeneracion, numeroControl } = dteBuilder.buildDteJson({
@@ -975,11 +975,11 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
     });
 
     // --- Verificar Contingencia Activa ---
-    const activeContingencyRes = await pool.query(
-      'SELECT id FROM contingencias WHERE empresa_id = $1 AND estado = \'ACTIVO\' LIMIT 1',
+    const [activeContingencyRows] = await pool.query(
+      'SELECT id FROM contingencias WHERE empresa_id = ? AND estado = \'ACTIVO\' LIMIT 1',
       [empresaId]
     );
-    const contingenciaActiva = activeContingencyRes.rows[0] || null;
+    const contingenciaActiva = activeContingencyRows[0] || null;
     if (contingenciaActiva) {
       console.log('⚠️ Detectada CONTINGENCIA ACTIVA. El DTE se generará en modo Diferido.');
     }
@@ -997,7 +997,7 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
     console.log('🏢 Obteniendo configuración de empresa:', empresaId);
 
     // Unir con tabla de certificados
-    const empresaResult = await pool.query(`
+    const [empresaRows] = await pool.query(`
       SELECT ec.*, 
              crt.password_pri_prueba as cert_password_pri_prueba,
              crt.password_pub_prueba as cert_password_pub_prueba,
@@ -1005,17 +1005,17 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
              crt.password_pub_produccion as cert_password_pub_produccion
       FROM empresa_config ec
       LEFT JOIN empresa_certificados crt ON ec.empresa_id = crt.empresa_id
-      WHERE ec.empresa_id = $1
+      WHERE ec.empresa_id = ?
       `,
       [empresaId]
     );
 
-    if (empresaResult.rows.length === 0) {
+    if (empresaRows.length === 0) {
       console.error('❌ Configuración de empresa no encontrada para:', empresaId);
       return res.status(404).json({ error: 'Configuración de empresa no encontrada' });
     }
 
-    const empresaConfig = empresaResult.rows[0];
+    const empresaConfig = empresaRows[0];
     console.log('👀 DEBUG RAW DB ROW:', empresaConfig);
     console.log('✅ Configuración de empresa obtenida');
 
@@ -1044,15 +1044,15 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: `Tipo de documento no válido: ${tipoDte}` });
     }
 
-    const lastDteResult = await pool.query(
+    const [lastDteRows] = await pool.query(
       `SELECT numero_documento FROM ${tableName} 
-       WHERE empresa_id = $1 AND tipo_dte = $2
+       WHERE empresa_id = ? AND tipo_dte = ?
        ORDER BY numero_documento DESC NULLS LAST LIMIT 1`,
       [empresaId, tipoDteCodigo]
     );
 
-    const nextNumero = lastDteResult.rows.length > 0 && lastDteResult.rows[0].numero_documento !== null
-      ? parseInt(lastDteResult.rows[0].numero_documento) + 1
+    const nextNumero = lastDteRows.length > 0 && lastDteRows[0].numero_documento !== null
+      ? parseInt(lastDteRows[0].numero_documento) + 1
       : 1;
 
     // Construir JSON del DTE (tipoDteCodigo ya fue calculado arriba)
@@ -1315,18 +1315,18 @@ app.get('/api/dtes/:id/pdf', async (req, res) => {
     let tableName = null;
 
     for (const table of tablesToSearch) {
-      const result = await pool.query(
+      const [rows] = await pool.query(
         `SELECT d.*, e.*, c.nombre as cliente_nombre, c.nit as cliente_nit, c.nrc as cliente_nrc, 
                 c.direccion as cliente_direccion, c.correo as cliente_correo
          FROM ${table} d
          LEFT JOIN empresas e ON d.empresa_id = e.id
          LEFT JOIN clientes c ON d.cliente_id = c.id
-         WHERE d.id = $1`,
+         WHERE d.id = ?`,
         [dteId]
       );
 
-      if (result.rows.length > 0) {
-        dteResult = result;
+      if (rows.length > 0) {
+        dteResult = { rows };
         tableName = table;
         break;
       }
@@ -1348,16 +1348,16 @@ app.get('/api/dtes/:id/pdf', async (req, res) => {
     let tipoDteCodigo = identificacion.tipoDte || normalizeTipoDteCodigo(dte.tipo_dte);
 
     // Obtener configuración de empresa
-    const empresaConfigResult = await pool.query(
-      'SELECT * FROM empresa_config WHERE empresa_id = $1 LIMIT 1',
+    const [empresaConfigRows] = await pool.query(
+      'SELECT * FROM empresa_config WHERE empresa_id = ? LIMIT 1',
       [dte.empresa_id]
     );
 
-    if (empresaConfigResult.rows.length === 0) {
+    if (empresaConfigRows.length === 0) {
       return res.status(404).json({ error: 'Configuración de empresa no encontrada' });
     }
 
-    const empresaConfig = empresaConfigResult.rows[0];
+    const empresaConfig = empresaConfigRows[0];
 
     // Preparar datos para generar PDF
     const dteData = {
