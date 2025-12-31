@@ -115,8 +115,8 @@ pool.getConnection()
 // Endpoint de salud
 app.get('/api/health', async (req, res) => {
   try {
-    const result = await pool.query('SELECT NOW()');
-    res.json({ status: 'ok', database: 'connected', time: result.rows[0].now });
+    const [rows] = await pool.query('SELECT NOW()');
+    res.json({ status: 'ok', database: 'connected', time: rows[0].now });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }
@@ -213,12 +213,11 @@ app.post('/api/auth/login', async (req, res) => {
 
     // 1. Buscar usuario
     const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
-    const result = { rows };
-    if (result.rows.length === 0) {
+    if (rows.length === 0) {
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
-    const user = result.rows[0];
+    const user = rows[0];
 
     // 2. Verificar contraseña (asumiendo que están hasheadas con bcrypt)
     // Si en la base de datos hay contraseñas en texto plano (legacy), manejar esa excepción o migrar
@@ -368,13 +367,12 @@ app.post('/api/auth/refresh-token', authMiddleware, async (req, res) => {
     const userId = req.user.id;
     // Buscar información actualizada del usuario
     const [rows] = await pool.query('SELECT * FROM users WHERE id = ?', [userId]);
-    const result = { rows };
 
-    if (result.rows.length === 0) {
+    if (rows.length === 0) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    const user = result.rows[0];
+    const user = rows[0];
 
     // Generar Nuevo Token con claims actualizados
     const token = jwt.sign(
