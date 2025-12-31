@@ -40,6 +40,7 @@ export class AppComponent implements OnInit {
   mostrarSelectorPeriodo = false;
   mostrarMenuDTE = false;
   tiposDTE: TipoDTE[] = [];
+  isAuthenticated$;
 
   constructor(
     private dteService: DteService,
@@ -47,6 +48,7 @@ export class AppComponent implements OnInit {
     private router: Router,
     private http: HttpClient
   ) {
+    this.isAuthenticated$ = this.authService.isAuthenticated();
     this.periodoSeleccionado = PeriodoTributario.ahora();
     this.isLoginRoute = this.isAuthRoute(this.router.url);
     this.showMainLayout = this.shouldShowMainLayout(this.router.url);

@@ -1,4 +1,4 @@
-@if (showMainLayout) {
+@if (showMainLayout && (isAuthenticated$ | async)) {
   <div class="app-container">
     <app-header />
     @if (showDTEsContent) {
