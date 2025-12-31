@@ -424,7 +424,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 app.post('/api/empresas/:id/certificado', authMiddleware, upload.single('certificado'), async (req, res) => {
-  const client = await pool.connect();
+  let connection;
   const uploadedFile = req.file;
 
   try {
@@ -439,18 +439,21 @@ app.post('/api/empresas/:id/certificado', authMiddleware, upload.single('certifi
 
     console.log(`🔐 Configurando certificado para empresa ${empresaId}, Ambiente: ${ambiente}`);
 
-    await client.query('BEGIN');
+    // Obtener conexión del pool
+    connection = await pool.getConnection();
+
+    // Iniciar transacción
+    await connection.beginTransaction();
 
     // 1. Obtener NIT de la empresa para nombrar el archivo
-    const [rows] = await client.query('SELECT nit FROM empresa_config WHERE empresa_id = ?', [empresaId]);
-    const empresaRes = { rows };
+    const [rows] = await connection.query('SELECT nit FROM empresa_config WHERE empresa_id = ?', [empresaId]);
 
-    if (empresaRes.rows.length === 0) {
+    if (rows.length === 0) {
       if (uploadedFile) fs.unlinkSync(uploadedFile.path); // Limpiar temp
       throw new Error('Empresa no encontrada');
     }
 
-    const nit = empresaRes.rows[0].nit;
+    const nit = rows[0].nit;
     if (!nit) {
       if (uploadedFile) fs.unlinkSync(uploadedFile.path); // Limpiar temp
       throw new Error('La empresa no tiene NIT configurado. Configure el NIT primero.');
@@ -471,15 +474,14 @@ app.post('/api/empresas/:id/certificado', authMiddleware, upload.single('certifi
     // Usamos UPSERT (Insert or Update)
 
     // Primero verificar si existe registro
-    const [certRows] = await client.query('SELECT id FROM empresa_certificados WHERE empresa_id = ?', [empresaId]);
-    const certRow = { rows: certRows };
+    const [certRows] = await connection.query('SELECT id FROM empresa_certificados WHERE empresa_id = ?', [empresaId]);
 
-    if (certRow.rows.length === 0) {
+    if (certRows.length === 0) {
       // Insertar
-      await client.query(`
+      await connection.query(`
             INSERT INTO empresa_certificados 
             (empresa_id, password_pri_prueba, password_pub_prueba, password_pri_produccion, password_pub_produccion, cert_path_prueba, cert_path_produccion)
-            VALUES (?, ?, ?, ?, ?, ?, ?); SELECT * FROM empresa_certificados WHERE id = LAST_INSERT_ID()`,
+            VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
           empresaId,
           passwordPriPrueba || null,
@@ -493,18 +495,17 @@ app.post('/api/empresas/:id/certificado', authMiddleware, upload.single('certifi
       // Actualizar dinámicamente
       let updateFields = [];
       let values = [];
-      let paramCount = 1;
 
-      if (passwordPriPrueba) { updateFields.push(`password_pri_prueba = $${paramCount++}`); values.push(passwordPriPrueba); }
-      if (passwordPubPrueba) { updateFields.push(`password_pub_prueba = $${paramCount++}`); values.push(passwordPubPrueba); }
-      if (passwordPriProduccion) { updateFields.push(`password_pri_produccion = $${paramCount++}`); values.push(passwordPriProduccion); }
-      if (passwordPubProduccion) { updateFields.push(`password_pub_produccion = $${paramCount++}`); values.push(passwordPubProduccion); }
+      if (passwordPriPrueba) { updateFields.push(`password_pri_prueba = ?`); values.push(passwordPriPrueba); }
+      if (passwordPubPrueba) { updateFields.push(`password_pub_prueba = ?`); values.push(passwordPubPrueba); }
+      if (passwordPriProduccion) { updateFields.push(`password_pri_produccion = ?`); values.push(passwordPriProduccion); }
+      if (passwordPubProduccion) { updateFields.push(`password_pub_produccion = ?`); values.push(passwordPubProduccion); }
 
       if (certPath) {
         if (ambiente === 'PRUEBAS') {
-          updateFields.push(`cert_path_prueba = $${paramCount++}`); values.push(certPath);
+          updateFields.push(`cert_path_prueba = ?`); values.push(certPath);
         } else {
-          updateFields.push(`cert_path_produccion = $${paramCount++}`); values.push(certPath);
+          updateFields.push(`cert_path_produccion = ?`); values.push(certPath);
         }
       }
 
@@ -512,12 +513,13 @@ app.post('/api/empresas/:id/certificado', authMiddleware, upload.single('certifi
 
       if (updateFields.length > 0) {
         values.push(empresaId);
-        const query = `UPDATE empresa_certificados SET ${updateFields.join(', ')} WHERE empresa_id = $${paramCount}`;
-        await client.query(query, values);
+        const query = `UPDATE empresa_certificados SET ${updateFields.join(', ')} WHERE empresa_id = ?`;
+        await connection.query(query, values);
       }
     }
 
-    await client.query('COMMIT');
+    // Confirmar transacción
+    await connection.commit();
 
     res.json({
       success: true,
@@ -527,14 +529,18 @@ app.post('/api/empresas/:id/certificado', authMiddleware, upload.single('certifi
     });
 
   } catch (error) {
-    await client.query('ROLLBACK');
+    if (connection) {
+      await connection.rollback();
+    }
     console.error('❌ Error guardando certificado:', error);
     if (uploadedFile && fs.existsSync(uploadedFile.path)) {
       try { fs.unlinkSync(uploadedFile.path); } catch (e) { }
     }
     res.status(500).json({ error: error.message });
   } finally {
-    client.release();
+    if (connection) {
+      connection.release();
+    }
   }
 });
 // --- Rutas de Contingencia ---
