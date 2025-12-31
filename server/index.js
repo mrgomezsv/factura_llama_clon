@@ -131,8 +131,8 @@ app.post('/api/query', authMiddleware, async (req, res) => {
     // Convertir INSERT OR IGNORE a INSERT ... ON CONFLICT DO NOTHING
     sql = convertInsertOrIgnore(sql);
 
-    const result = await pool.query(sql, params);
-    res.json(result.rows);
+    const [rows, fields] = await pool.query(sql, params);
+    res.json(rows);
   } catch (error) {
     console.error('Error en query:', error);
     res.status(500).json({ error: error.message });
@@ -148,10 +148,10 @@ app.post('/api/execute', authMiddleware, async (req, res) => {
     // Convertir INSERT OR IGNORE a INSERT ... ON CONFLICT DO NOTHING
     sql = convertInsertOrIgnore(sql);
 
-    const result = await pool.query(sql, params);
+    const [result] = await pool.query(sql, params);
     res.json({
-      rowCount: result.rowCount,
-      rows: result.rows
+      rowCount: result.affectedRows || 0,
+      rows: Array.isArray(result) ? result : []
     });
   } catch (error) {
     console.error('Error en execute:', error);
@@ -549,11 +549,11 @@ app.post('/api/empresas/:id/certificado', authMiddleware, upload.single('certifi
 app.get('/api/contingencias/activa', authMiddleware, async (req, res) => {
   try {
     const empresaId = req.user.empresaId;
-    const result = await pool.query(
+    const [rows] = await pool.query(
       'SELECT * FROM contingencias WHERE empresa_id = ? AND estado = \'ACTIVO\' LIMIT 1',
       [empresaId]
     );
-    res.json(result.rows[0] || null);
+    res.json(rows[0] || null);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -565,7 +565,7 @@ app.get('/api/contingencias/activa', authMiddleware, async (req, res) => {
 app.get('/api/contingencias/pendientes', authMiddleware, async (req, res) => {
   try {
     const empresaId = req.user.empresaId;
-    const result = await pool.query(
+    const [rows] = await pool.query(
       'SELECT * FROM contingencias WHERE empresa_id = ? AND estado = \'PENDIENTE_REPORTE\' ORDER BY fecha_inicio DESC',
       [empresaId]
     );
@@ -593,13 +593,13 @@ app.post('/api/contingencias/iniciar', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'Ya existe una contingencia activa para esta empresa' });
     }
 
-    const result = await pool.query(
+    const [rows] = await pool.query(
       `INSERT INTO contingencias (empresa_id, fecha_inicio, codigo_motivo, descripcion_motivo, estado) 
        VALUES (?, COALESCE(?, CURRENT_TIMESTAMP), ?, ?, 'ACTIVO')`, // Removed RETURNING
       [empresaId, fechaInicio || null, codigoMotivo, descripcionMotivo]
     );
 
-    res.json(result.rows[0]);
+    res.json(rows[0]);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -613,18 +613,18 @@ app.post('/api/contingencias/finalizar', authMiddleware, async (req, res) => {
     const { id, fechaFin } = req.body;
     const empresaId = req.user.empresaId;
 
-    const result = await pool.query(
+    const [rows] = await pool.query(
       `UPDATE contingencias 
        SET fecha_fin = COALESCE(?, CURRENT_TIMESTAMP), estado = 'PENDIENTE_REPORTE', updated_at = CURRENT_TIMESTAMP 
        WHERE id = ? AND empresa_id = ? AND estado = 'ACTIVO'`, // Removed RETURNING
       [fechaFin || null, id, empresaId]
     );
 
-    if (result.rows.length === 0) {
+    if (rows.length === 0) {
       return res.status(404).json({ error: 'Contingencia no encontrada o ya finalizada' });
     }
 
-    res.json(result.rows[0]);
+    res.json(rows[0]);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -639,16 +639,16 @@ app.get('/api/contingencias/:id/dtes', authMiddleware, async (req, res) => {
     const empresaId = req.user.empresaId;
 
     // Obtener datos de la contingencia
-    const contResult = await pool.query(
+    const [contRows] = await pool.query(
       'SELECT * FROM contingencias WHERE id = ? AND empresa_id = ?',
       [id, empresaId]
     );
 
-    if (contResult.rows.length === 0) {
+    if (contRows.length === 0) {
       return res.status(404).json({ error: 'Contingencia no encontrada' });
     }
 
-    const cont = contResult.rows[0];
+    const cont = contRows[0];
     const inicio = cont.fecha_inicio;
     const fin = cont.fecha_fin || new Date();
 
@@ -680,24 +680,24 @@ app.post('/api/contingencias/:id/reportar', authMiddleware, async (req, res) => 
     // 1. Obtener datos
     const [rows] = await pool.query('SELECT * FROM contingencias WHERE id = ? AND empresa_id = ?', [id, empresaId]);
     const contResult = { rows };
-    if (contResult.rows.length === 0) return res.status(404).json({ error: 'Contingencia no encontrada' });
-    const contingencia = contResult.rows[0];
+    if (contRows.length === 0) return res.status(404).json({ error: 'Contingencia no encontrada' });
+    const contingencia = contRows[0];
 
     // 2. Obtener DTEs del periodo usando query unificado
     const fin = contingencia.fecha_fin || new Date();
     const unifiedQuery = getUnifiedDteQuery('id, codigo_generacion, tipo_dte, dte_firmado, sello_recibido, empresa_id, created_at');
-    const dtesResult = await pool.query(
+    const [dtesRows] = await pool.query(
       `SELECT * FROM (${unifiedQuery}) AS dtes_unificados
        WHERE empresa_id = ? AND created_at BETWEEN ? AND ? AND sello_recibido IS NULL`,
       [empresaId, contingencia.fecha_inicio, fin]
     );
 
-    if (dtesResult.rows.length === 0) {
+    if (dtesRows.length === 0) {
       return res.status(400).json({ error: 'No hay DTEs pendientes para reportar en este periodo' });
     }
 
     // 3. Obtener Config Empresa con Certificados
-    const empresaConfigResult = await pool.query(`
+    const [empresaConfigRows] = await pool.query(`
       SELECT ec.*, 
              crt.password_pri_prueba as cert_password_pri_prueba,
              crt.password_pub_prueba as cert_password_pub_prueba,
@@ -707,7 +707,7 @@ app.post('/api/contingencias/:id/reportar', authMiddleware, async (req, res) => 
       LEFT JOIN empresa_certificados crt ON ec.empresa_id = crt.empresa_id
       WHERE ec.empresa_id = ?
     `, [empresaId]);
-    const empresaConfig = empresaConfigResult.rows[0];
+    const empresaConfig = empresaConfigRows[0];
 
     // 4. Generar JSON del Evento
     const { dteJson, codigoGeneracion } = dteBuilder.buildDteJson({
@@ -736,7 +736,7 @@ app.post('/api/contingencias/:id/reportar', authMiddleware, async (req, res) => 
       );
 
       // 6.b Retransmitir DTEs individuales
-      console.log(`🚀 Iniciando retransmisión de ${dtesResult.rows.length} DTEs diferidos...`);
+      console.log(`🚀 Iniciando retransmisión de ${dtesRows.length} DTEs diferidos...`);
       let retransmitidos = 0;
       let fallidos = 0;
 
@@ -775,7 +775,7 @@ app.post('/api/contingencias/:id/reportar', authMiddleware, async (req, res) => 
       res.json({
         success: true,
         mhResponse,
-        retransmision: { total: dtesResult.rows.length, exitosos: retransmitidos, fallidos }
+        retransmision: { total: dtesRows.length, exitosos: retransmitidos, fallidos }
       });
 
     } else {
@@ -816,7 +816,7 @@ app.post('/api/v1/external/generar', validateApiKey, async (req, res) => {
     // (Buscamos la lógica principal del endpoint /api/dtes/generar)
 
     // --- Lógica de Empresa y Configuración ---
-    const empresaResult = await pool.query(`
+    const [empresaRows] = await pool.query(`
       SELECT ec.*, 
              crt.password_pri_prueba as cert_password_pri_prueba,
              crt.password_pub_prueba as cert_password_pub_prueba,
@@ -828,17 +828,17 @@ app.post('/api/v1/external/generar', validateApiKey, async (req, res) => {
       `, [empresaId]
     );
 
-    if (empresaResult.rows.length === 0) {
+    if (empresaRows.length === 0) {
       return res.status(404).json({ error: 'Configuración de empresa no encontrada' });
     }
-    const empresaConfig = empresaResult.rows[0];
+    const empresaConfig = empresaRows[0];
 
     // --- Lógica de Cliente ---
     let cliente = null;
     if (clienteId) {
       const [clientRows] = await pool.query('SELECT * FROM clientes WHERE id = ?', [clienteId]);
       const clienteResult = { rows: clientRows };
-      if (clienteResult.rows.length > 0) cliente = clienteResult.rows[0];
+      if (clienteRows.length > 0) cliente = clienteRows[0];
     } else if (req.body.cliente) {
       cliente = req.body.cliente;
     }
@@ -921,8 +921,8 @@ app.post('/api/v1/external/generar', validateApiKey, async (req, res) => {
       ) VALUES (${values.map((_, i) => `$${i + 1}`).join(', ')}) RETURNING id
     `;
 
-    const insertResult = await pool.query(insertQuery, values);
-    const dteId = insertResult.rows[0].id;
+    const [insertRows] = await pool.query(insertQuery, values);
+    const dteId = insertRows[0].id;
 
     // --- Responder JSON ---
     res.json({
@@ -1020,12 +1020,12 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
     // Obtener datos del cliente
     let cliente = null;
     if (clienteId) {
-      const clienteResult = await pool.query(
+      const [clienteRows] = await pool.query(
         'SELECT * FROM clientes WHERE id = ?', // $1 -> ?
         [clienteId]
       );
-      if (clienteResult.rows.length > 0) {
-        cliente = clienteResult.rows[0];
+      if (clienteRows.length > 0) {
+        cliente = clienteRows[0];
       }
     } else if (req.body.cliente) {
       cliente = req.body.cliente;
@@ -1203,9 +1203,9 @@ app.post('/api/dtes/generar', authMiddleware, async (req, res) => {
       RETURNING id
     `;
 
-    const insertResult = await pool.query(insertQuery, values);
+    const [insertRows] = await pool.query(insertQuery, values);
 
-    const dteId = insertResult.rows[0].id;
+    const dteId = insertRows[0].id;
     console.log('✅ DTE guardado en DB, ID:', dteId);
 
     // Generar PDF
@@ -1330,11 +1330,11 @@ app.get('/api/dtes/:id/pdf', async (req, res) => {
       }
     }
 
-    if (!dteResult || dteResult.rows.length === 0) {
+    if (!dteResult || dteRows.length === 0) {
       return res.status(404).json({ error: 'DTE no encontrado' });
     }
 
-    const dte = dteResult.rows[0];
+    const dte = dteRows[0];
 
     if (!dte.dte_json) {
       return res.status(400).json({ error: 'DTE no tiene JSON asociado' });
