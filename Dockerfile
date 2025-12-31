@@ -45,7 +45,7 @@ COPY --from=build /app/server ./server
 RUN mkdir -p server/certs
 
 # Expose port
-EXPOSE 3000
+EXPOSE 50400
 
 # Start the application
 CMD ["node", "server/index.js"]
