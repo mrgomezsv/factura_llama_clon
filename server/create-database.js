@@ -2,13 +2,13 @@ const mysql = require('mysql2/promise');
 require('dotenv').config();
 
 const adminConfig = {
-  host: process.env.DB_HOST || '45.10.160.29',
-  port: process.env.DB_PORT || 5432,
-  user: process.env.DB_USER || 'root', // Note: This might need adjustment if root access is different
-  password: process.env.DB_PASSWORD || 'ml%BHX$C//Z$f6uL',
+  host: process.env.DATABASE_HOST || '45.10.160.29',
+  port: process.env.DATABASE_PORT || 5432,
+  user: process.env.DATABASE_USER || 'root', // Note: This might need adjustment if root access is different
+  password: process.env.DATABASE_PASSWORD || 'ml%BHX$C//Z$f6uL',
 };
 
-const dbName = process.env.DB_NAME || 'thetecwa1_fe_dba_prod';
+const dbName = process.env.DATABASE_NAME || 'thetecwa1_fe_dba_prod';
 
 async function createDatabase() {
   let connection;
